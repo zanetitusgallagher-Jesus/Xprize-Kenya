@@ -1,0 +1,186 @@
+<!-- ===== NICE GUESTBOOK: paste this whole block just before the closing </body> tag ===== -->
+<!-- If you already pasted the first guestbook block, delete it first so the ids don't repeat. -->
+<style>
+#s7 .gbw{max-width:720px;width:100%;margin:0 auto}
+#s7 .gbhead{text-align:center;margin-bottom:12px}
+#s7 .gbhead p{margin:.2em 0}
+#s7 .gbform{border-color:var(--sun);position:relative}
+#s7 textarea.in{min-height:104px;resize:vertical;font:inherit;width:100%}
+#s7 #gbName{width:100%}
+#s7 .gbrow{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+#s7 .gbc{font-size:.8em;opacity:.8;margin:2px 0}
+#s7 .gbc.warn{color:var(--clay);opacity:1;font-weight:800}
+#s7 .gbtip{font-size:.85em;background:var(--par);color:var(--ink);border-radius:14px;padding:6px 12px;margin:10px 0}
+#s7 .gbhd2{display:flex;align-items:center;justify-content:space-between;margin:20px 0 4px}
+#s7 .gbhd2 .tag{font-size:.65em}
+#s7 .gbn{display:flex;gap:12px;align-items:flex-start;background:var(--card);color:var(--ink);border:3px solid var(--sun);border-radius:20px;padding:12px 14px;margin:12px 0;box-shadow:0 6px 16px rgba(20,60,30,.12);overflow-wrap:anywhere;animation:gbIn .45s ease both}
+#s7 .gbn:nth-child(3n+2){border-color:var(--g)}
+#s7 .gbn:nth-child(3n){border-color:var(--clay)}
+#s7 .gbav{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff;font:400 24px 'Lilita One','Baloo 2',sans-serif;text-shadow:none}
+#s7 .gbbody{flex:1;min-width:0}
+#s7 .gbbody b{display:block;color:var(--g);font-size:1.05em}
+#s7 .gbbody p{margin:.25em 0;white-space:pre-wrap}
+#s7 .gbbody small{display:block;opacity:.7}
+#s7 .gbempty{text-align:center;padding:14px;border:3px dashed #B9792B;border-radius:20px;background:var(--par);color:var(--ink)}
+@keyframes gbIn{from{opacity:0;transform:translateY(10px)}}
+</style>
+
+<section class="scr" id="s7" aria-labelledby="gbh">
+  <div class="gbw">
+    <div class="gbhead">
+      <h2 id="gbh">Guestbook</h2>
+      <p>Leave a friendly note for other explorers!</p>
+    </div>
+
+    <div class="card gbform">
+      <label for="gbName">First name only</label>
+      <input id="gbName" class="in" maxlength="40" autocomplete="off" placeholder="For example: Amina">
+
+      <label for="gbMsg">Your short message</label>
+      <textarea id="gbMsg" class="in" maxlength="300" placeholder="Write something kind…"></textarea>
+
+      <div class="gbrow">
+        <span class="gbc" id="gbCount">0 / 300</span>
+      </div>
+
+      <p class="gbtip">Please share only your first name. Do not write emails, phone numbers or other private information.</p>
+
+      <p><button class="b" id="gbSave" type="button">Save my note</button></p>
+      <p id="gbStatus" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="gbhd2">
+      <h3>Newest notes</h3>
+      <span class="tag" id="gbTotal"></span>
+    </div>
+    <div id="gbList" data-nt="1"></div>
+  </div>
+</section>
+
+<!-- Class data helper: must load before the code below. Replace [MY GITHUB USERNAME] with your GitHub username. -->
+<script src="https://class-data.questx-classroom.workers.dev/questx-data.js" data-site="[MY GITHUB USERNAME]"></script>
+<script>
+(function () {
+  const $g = id => document.getElementById(id);
+  const nameEl = $g('gbName'), msgEl = $g('gbMsg'), saveEl = $g('gbSave'),
+        statusEl = $g('gbStatus'), listEl = $g('gbList'), countEl = $g('gbCount'),
+        totalEl = $g('gbTotal');
+  const COLORS = ['#C8481A', '#1B6B35', '#2E6FB3', '#B9702A', '#7B4FA3', '#C2185B'];
+
+  const note = (text, bad) => {
+    statusEl.textContent = text;                 // textContent only, never innerHTML
+    statusEl.style.color = bad ? 'var(--clay)' : 'var(--g)';
+  };
+  const needHelper = () => {
+    if (typeof QuestXData === 'undefined') {
+      throw new Error('The guestbook could not connect right now. Please try again later.');
+    }
+  };
+
+  msgEl.addEventListener('input', () => {
+    const n = msgEl.value.length;
+    countEl.textContent = n + ' / 300';
+    countEl.classList.toggle('warn', n >= 270);
+  });
+
+  function colorFor(name) {
+    let h = 0;
+    for (const ch of name) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+    return COLORS[h % COLORS.length];
+  }
+
+  function ago(s) {
+    const d = new Date(s);
+    if (isNaN(d)) return '';
+    const sec = Math.round((Date.now() - d) / 1000);
+    if (sec < 60) return 'just now';
+    if (sec < 3600) return Math.floor(sec / 60) + ' min ago';
+    if (sec < 86400) return Math.floor(sec / 3600) + ' h ago';
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  function noteCard(n) {
+    const d = (n && n.data) || {};
+    const name = String(d.name || 'Friend').slice(0, 40);
+    const box = document.createElement('div');
+    box.className = 'gbn';
+
+    const av = document.createElement('div');
+    av.className = 'gbav';
+    av.setAttribute('aria-hidden', 'true');
+    av.style.background = colorFor(name);
+    av.textContent = (Array.from(name.trim())[0] || '?').toUpperCase();
+
+    const body = document.createElement('div');
+    body.className = 'gbbody';
+    const who = document.createElement('b');
+    who.textContent = name;
+    const text = document.createElement('p');
+    text.textContent = String(d.message || '').slice(0, 300);
+    const date = document.createElement('small');
+    date.textContent = ago(n && n.created_at);
+
+    body.append(who, text, date);
+    box.append(av, body);
+    return box;
+  }
+
+  async function loadNotes() {
+    try {
+      needHelper();
+      const notes = await QuestXData.list('guestbook', 20);
+      listEl.textContent = '';
+      const list = (notes || []).slice(0, 20);
+      totalEl.textContent = list.length ? 'Latest ' + list.length : '';
+      if (!list.length) {
+        const e = document.createElement('div');
+        e.className = 'gbempty';
+        e.textContent = 'No notes yet. Be the first to say hello!';
+        listEl.appendChild(e);
+        return;
+      }
+      list.forEach(n => listEl.appendChild(noteCard(n)));
+    } catch (e) {
+      note(e && e.message ? e.message : 'Could not load the notes.', true);
+    }
+  }
+
+  saveEl.addEventListener('click', async () => {
+    const name = nameEl.value.trim().slice(0, 40);
+    const message = msgEl.value.trim().slice(0, 300);
+    if (!name || !message) {
+      note('Please type your first name and a short message.', true);
+      return;
+    }
+    saveEl.disabled = true;
+    const label = saveEl.textContent;
+    saveEl.textContent = 'Saving…';
+    note('');
+    try {
+      needHelper();
+      await QuestXData.save('guestbook', { name, message });
+      msgEl.value = '';
+      countEl.textContent = '0 / 300';
+      countEl.classList.remove('warn');
+      note('Thank you! Your note was saved.');
+      await loadNotes();
+    } catch (e) {
+      note(e && e.message ? e.message : 'Could not save your note.', true);
+    } finally {
+      saveEl.disabled = false;
+      saveEl.textContent = label;
+    }
+  });
+
+  /* menu button that opens the guestbook screen */
+  const btn = document.createElement('button');
+  btn.id = 'gbb';
+  btn.type = 'button';
+  btn.textContent = 'Guestbook';
+  btn.dataset.n = 1;
+  NV.insertBefore(btn, $g('tmr') || $g('lgb') || $g('mu'));
+  btn.onclick = () => { vstop(); clearInterval(LT); SG++; show('s7'); loadNotes(); };
+  try { SWD['Guestbook'] = 'Kitabu cha wageni'; } catch (e) {}
+})();
+</script>
+<!-- ===== END NICE GUESTBOOK ===== -->
