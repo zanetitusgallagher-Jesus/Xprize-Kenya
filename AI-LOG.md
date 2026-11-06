@@ -11,3 +11,15 @@
   - Used `QuestXData.save()` to send new entries to the database.
   - Used `QuestXData.list()` to fetch the 20 most recent messages.
   - Used `textContent` to safely display user submissions and prevent security risks.
+
+## KenyAI learning path (Build 2) at /somo2/
+- **Date:** Nov 6, 2026
+- **Goal:** Combine the team's work into one KenyAI site: the KenyAI home page, Jambo Letters, and the full learning path (Somo Build 2).
+- **Prompt:** "Put it at /somo2/, rename it to KenyAI, push it to GitHub and send me the working link. Use my partners' two index.html files, or merge them with what you made."
+- **What Claude Did:**
+  - `somo2/index.html`: the KenyAI home page (Turi the lion, trail, eggs, guestbook, polls), unchanged except two new buttons: "Learning path" and "Jambo Letters".
+  - `somo2/learn/`: the learning path renamed from Somo to KenyAI. It has stage tutors with Swahili names (Kuku, Kobe, Twiga, Tembo), Inspire → Interpret → Impart units, an egg basket with Kenyan gifts and egg facts, rhymes, stories, a tracing book, three new games and a learning-with-a-grown-up mode.
+  - `somo2/learn/audio/`: the recorded Kenyan English voice (Asilia) so lines play instantly.
+  - `somo2/letters/`: Jambo Letters, with links back to the KenyAI home page and the learning path.
+  - The AI tutor talks through a server relay that holds the Claude key. The key is never put in the page or the repo, because anyone can read a public website's code. The relay now accepts this site's address.
+  - The root `index.html` and `index (4).html` are left as they were.
