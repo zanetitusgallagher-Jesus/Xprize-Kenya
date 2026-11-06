@@ -33,3 +33,10 @@
   - The home page now uses that saved key when no other AI route answers. The learning path already reads the same key.
   - Kept the key out of the repo on purpose. GitHub reports Claude keys found in public code, and Anthropic then switches them off, so a key committed here would stop working.
   - Wrote `README.md`: what each file is, how the AI routes and the key work, the teaching, culture, privacy and accessibility rules, and how to test and log changes.
+
+## Key setup: clean pasted keys and explain test failures
+- **Date:** Nov 6, 2026
+- **Goal:** The setup page said "could not reach Claude" with no reason.
+- **What Claude Did:**
+  - The setup page now strips hidden characters from a pasted key (spaces, line breaks, zero-width marks). Browsers refuse to send a key that contains them. The home page and the learning path clean the saved key the same way.
+  - When the key test fails, the page shows the real error and what to do: wrong or switched-off key, no credit, a blocker or filter on api.anthropic.com, or no internet.

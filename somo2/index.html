@@ -1296,7 +1296,7 @@ $('#go0').insertAdjacentHTML('afterend',' <button class="b sm" id="tourb" data-n
 <script>
 /* KenyAI key (added Nov 6, 2026): if the built-in helper and the server address give no answer, use a
    Claude API key saved on this device by setup/ (localStorage "kenyai-key"). The key is never in the repo. */
-(function(){const _ai2=ai;ai=async function(p){let r=await _ai2(p);if(r!=null)return r;let k='';try{k=localStorage.getItem('kenyai-key')||''}catch(e){}if(!k)return null;
+(function(){const _ai2=ai;ai=async function(p){let r=await _ai2(p);if(r!=null)return r;let k='';try{k=(localStorage.getItem('kenyai-key')||'').replace(/[^A-Za-z0-9_-]/g,'')}catch(e){}if(!k)return null;
  try{const x=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-opus-5-5',max_tokens:700,messages:[{role:'user',content:String(p)}]})});
  if(!x.ok)return null;const j=await x.json();const t=(j.content||[]).map(b=>b.text||'').join('');return t?mdClean(t):null}catch(e){return null}}})();
 </script>

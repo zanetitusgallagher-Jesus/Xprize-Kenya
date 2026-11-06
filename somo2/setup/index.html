@@ -67,19 +67,35 @@
   state();
   $('#show').onclick = function () { var i = $('#k'); i.type = i.type === 'password' ? 'text' : 'password'; this.textContent = i.type === 'password' ? 'Show' : 'Hide'; };
   $('#forget').onclick = function () { put(''); $('#k').value = ''; state(); msg('The key is gone from this device.', true); };
+  /* keys copied from chats, emails or phones often carry hidden characters (spaces, line breaks, zero-width marks);
+     a browser refuses to send a header containing them, so keep only the characters a Claude key can have */
+  function clean(v) { return String(v || '').replace(/[^A-Za-z0-9_-]/g, ''); }
+  async function relayOk() { try { var r = await fetch('https://obyudvdunzuyyskxujrt.supabase.co/functions/v1/somo-kidi', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: true }) }); return r.status < 500; } catch (e) { return false; } }
   $('#save').onclick = async function () {
-    var v = $('#k').value.trim();
-    if (!/^sk-ant-/.test(v)) { msg('That does not look like a Claude API key (it should start with sk-ant-).', false); return; }
-    if (!put(v)) { msg('This browser would not save it (private mode or blocked storage). Try a normal window.', false); return; }
+    var raw = $('#k').value, v = clean(raw);
+    if (!/^sk-ant-/.test(v) || v.length < 40) { msg('That does not look like a whole Claude API key. It should start with sk-ant- and be about 100 characters long.', false); return; }
+    if (v !== raw.trim()) $('#k').value = v;
+    if (!put(v)) { msg('This browser would not save it (private mode or blocked storage). Try a normal browser window.', false); return; }
     state(); msg('Saved. Testing…', true);
+    var ctl = new AbortController(), tm = setTimeout(function () { ctl.abort(); }, 20000);
     try {
-      var r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST',
+      var r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', signal: ctl.signal,
         headers: { 'content-type': 'application/json', 'x-api-key': v, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
         body: JSON.stringify({ model: 'claude-opus-5-5', max_tokens: 60, messages: [{ role: 'user', content: 'Say "Jambo!" and one short happy sentence for a child.' }] }) });
       var j = await r.json().catch(function () { return null; });
-      if (!r.ok) { msg('Saved, but the test failed: ' + ((j && j.error && j.error.message) || ('HTTP ' + r.status)), false); return; }
+      if (!r.ok) {
+        var why = (j && j.error && j.error.message) || ('HTTP ' + r.status);
+        var hint = r.status === 401 ? ' The key was not accepted: check you copied all of it, and that it has not been switched off in the Anthropic Console.' : r.status === 403 ? ' This key is not allowed to make this call (check its workspace permissions).' : r.status === 429 ? ' Too many calls or the spending limit was reached; try again later.' : r.status === 400 && /credit|balance|billing/i.test(why) ? ' The account needs credit (Anthropic Console, Billing).' : '';
+        msg('Saved, but Claude said: ' + why + '.' + hint, false); return;
+      }
       msg('Working! Claude said: ' + (j.content || []).map(function (b) { return b.text || ''; }).join(''), true);
-    } catch (e) { msg('Saved, but this browser could not reach Claude right now. The key will be tried again when the tutors need it.', false); }
+    } catch (e) {
+      var detail = e && e.name === 'AbortError' ? 'no answer within 20 seconds' : ((e && (e.name + ': ' + e.message)) || 'unknown error');
+      var net = await relayOk();
+      msg('Saved, but this browser could not reach Claude (' + detail + '). ' + (net
+        ? 'The internet works, so something is blocking api.anthropic.com: an ad blocker or privacy extension, a school or office network filter, or an in-app browser. Try a normal browser such as Chrome or Safari with extensions off, or another network. The tutors still work through the KenyAI relay meanwhile.'
+        : 'This device seems to be offline or on a very restricted network. Try again on another connection.'), false);
+    } finally { clearTimeout(tm); }
   };
 })();
 </script>
