@@ -23,3 +23,13 @@
   - `somo2/letters/`: Jambo Letters, with links back to the KenyAI home page and the learning path.
   - The AI tutor talks through a server relay that holds the Claude key. The key is never put in the page or the repo, because anyone can read a public website's code. The relay now accepts this site's address.
   - The root `index.html` and `index (4).html` are left as they were.
+
+## AI key setup page and README
+- **Date:** Nov 6, 2026
+- **Goal:** Give the team a way to add a Claude API key that keeps working, and a README so partners and their AI tools can safely keep editing the repo.
+- **Prompt:** "Make a way to add the API key and don't delete it. Please make a README because my partners will be using AI to further edit this repo."
+- **What Claude Did:**
+  - Added `somo2/setup/`: a grown-ups page to paste a Claude key, test it, show or hide it, and forget it. The key is saved in that browser on that device (localStorage `kenyai-key`) and stays until "Forget" is pressed.
+  - The home page now uses that saved key when no other AI route answers. The learning path already reads the same key.
+  - Kept the key out of the repo on purpose. GitHub reports Claude keys found in public code, and Anthropic then switches them off, so a key committed here would stop working.
+  - Wrote `README.md`: what each file is, how the AI routes and the key work, the teaching, culture, privacy and accessibility rules, and how to test and log changes.

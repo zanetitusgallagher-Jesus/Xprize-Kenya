@@ -1,0 +1,107 @@
+# KenyAI: Kenya Accelerates Intelligence
+
+A literacy and numeracy website for young children in Kenya (about ages 5 to 9), built by our XPRIZE team.
+Its learning model is **Internalize/Inspire → Interpret → Impart**: children take in a new idea, make sense of it through play, then teach it to someone else.
+
+**Live site:** https://zanetitusgallagher-jesus.github.io/Xprize-Kenya/somo2/ (GitHub Pages, from the `main` branch, root folder).
+
+> **If you are an AI assistant editing this repo, read this whole file first.** It tells you what each file is, how the AI key works, and the rules to keep.
+
+---
+
+## What is where
+
+| Path | What it is | Who made it |
+|---|---|---|
+| `somo2/index.html` | **KenyAI home page.** Turi the lion, the treasure trail, surprise eggs, guestbook, polls, the grown-ups' tracker. Links to the learning path, Jambo Letters and key setup. | Team (partner file), plus links and the saved-key hookup |
+| `somo2/learn/index.html` | **Learning path** (built from "Somo Build 2"). Four stage tutors with Swahili names, numbers and reading paths, 21 games, lessons, egg basket, rhymes, stories, tracing, grown-up mode, AI tutor chat. | Zane's Somo, extended with the team's ideas |
+| `somo2/learn/audio/` | Recorded Kenyan-English voice clips (`en.json` Opus for most browsers, `en-mp3.json` for iPhone/iPad). The app picks the right file by itself. | Generated |
+| `somo2/letters/index.html` | **Jambo Letters.** Letter tracing, capital and small letters, phonics, books, rhymes, a quiz and games for 5-year-olds. | Team (partner file), plus links at the top |
+| `somo2/setup/index.html` | **AI key setup** for grown-ups (see below). | Added Nov 6, 2026 |
+| `index.html`, `index (4).html` | The original team files at the repo root (copies of the KenyAI home page and Jambo Letters before they were moved to `somo2/`). Left as they were. | Team |
+| `AI-LOG.md` | **Log of every AI-assisted change.** Add an entry each time you change something. | Everyone |
+
+Every page is a **single self-contained HTML file**: no build step, no npm, no framework. Open it in a browser, or serve the folder with `python3 -m http.server` and visit `http://localhost:8000/somo2/`.
+
+---
+
+## How the AI works (and the API key)
+
+The AI never decides whether a child's answer is right. The app's own code does that; the AI only coaches, hints and writes short notes.
+
+The pages try these routes **in this order**:
+
+1. **A key saved on this device.** A grown-up opens `somo2/setup/`, pastes a Claude API key and taps "Save and test". The key is stored in that browser only (localStorage, name `kenyai-key`) and stays until someone taps "Forget". Every KenyAI page on that device uses it. A one-time setup link also works: `…/somo2/setup/#key=sk-ant-…`.
+2. **The KenyAI relay.** A Supabase Edge Function (`somo-kidi`, project "AI Tutor") holds a Claude key as a server secret, so the tutors work for everyone with no key on the device. It only accepts requests from this site and from `rgallaghertt.github.io`, only tutor-style prompts, with rate and daily limits. The learning path uses it; the home page does not yet.
+3. **Inside Claude.** When a page is opened as a Claude artifact, it uses the viewer's Claude account.
+4. **No AI.** Every feature has a written fallback (pre-written hints, a template caregiver note), so the site never breaks.
+
+### Rules for the key (important)
+
+- **Never put an API key in any file in this repo**: not in HTML, JavaScript, README, AI-LOG or a commit message. The repo is public, so anyone can read it. GitHub also scans public code for Claude keys and reports them to Anthropic, which **switches the key off within minutes**. To keep a key working, keep it out of the repo.
+- To add a key, use `somo2/setup/` on each device, or ask the relay's owner to update the relay's server secret.
+- Set a monthly spending limit on the key in the Anthropic Console.
+
+---
+
+## The learning path in more detail (`somo2/learn/`)
+
+- **Placement check** at the start (Teaching at the Right Level): a short check that opens the path at the child's level. It never says right or wrong.
+- **Four stages, each with its own AI tutor**:
+
+  | Stage | Tutor | Skills |
+  |---|---|---|
+  | 1 Mbegu (seed) | Kuku the hen | counting, big numbers, letter sounds, capital and small letters |
+  | 2 Chipukizi (sprout) | Kobe the tortoise | quick sums, make ten, rhyming, blending |
+  | 3 Mti (tree) | Twiga the giraffe | tens and ones, equal groups, tricky words, read and find |
+  | 4 Matunda (fruit) | Tembo the elephant | adding, taking away, sentences |
+
+- **Every skill is a unit of three phases:**
+  - **Inspire:** a nursery rhyme or story, then a lesson (Watch → Together → You).
+  - **Interpret:** up to three games that train that skill.
+  - **Impart:** the child teaches the tutor, who has made a mistake, then gets an activity to show a grown-up at home, in English and Kiswahili.
+- **Egg basket rewards:** finishing steps earns eggs (hen, guinea-fowl, duck, ostrich). The child cracks an egg, finds a Kenyan gift and learns one true fact about that egg, then gives the gift to the tutor ("Asante!" / "Karibu!").
+- **Story corner:** public-domain nursery rhymes, some with tunes; Aesop fables and an East African hare tale, retold; a tracing book for all 52 letters.
+- **Learning with a grown-up:** a switch on the home screen shows a tip in English or Kiswahili before each activity.
+- **Grown-ups panel:** press and hold the people icon. It shows progress, mistakes, the AI status and its own key box.
+- Test hooks for automated testing: `window.__arc`, `window.__jr`, `window.__rw`, `window.__b2`.
+
+`learn/index.html` is a **built file**. Its source lives in a separate, private repo (`rgallagherTT/Chronicle`, folder `prototypes/somo-arcade/`, built with `python3 build.py`). Small edits directly in `learn/index.html` are fine. For big changes to the learning path, ask Zane or the repo owner, so the source and this copy don't drift apart.
+
+---
+
+## Rules every change must keep
+
+These come from our team's design. Please keep them when you or your AI edit the site.
+
+**Teaching**
+- Never say "wrong" or show a red X. When a child misses, teach instead: show why, then let them try again.
+- Rewards come **only from learning** (right answers, finished steps). No streaks, no leaderboards, no rewards just for time spent.
+- Reading text the child must read alone uses only letters and words already taught. Stories read *to* the child can use any words.
+- Games never depend on fast reflexes; a slow child must still be able to show what they know.
+- The AI tutor replies in a few short, simple sentences and never gives away the answer.
+
+**Culture and language**
+- Kenyan settings and things from children's lives: mangoes, matatus, kiondo baskets, mandazi, chai, shillings, Lake Victoria.
+- Swahili names and greetings (Jambo, Asante, Karibu, Hongera). Notes for caregivers come in English **and** Kiswahili.
+- Use only original art drawn in code, or public-domain text. Don't copy characters, art or text from existing apps, games or books.
+
+**Privacy and safety**
+- The guestbook asks for a **first name only**. Never collect emails, phone numbers or other private details from children.
+- Show anything a visitor typed with `textContent`, never `innerHTML`, so nobody can inject code.
+- Never put API keys or passwords in the repo (see above).
+
+**Accessibility**
+- Big buttons that work by touch. Everything is spoken aloud, so a child doesn't need to read the instructions.
+- Keep focus outlines visible and respect "reduce motion".
+
+---
+
+## How to make a change (for people and AI assistants)
+
+1. Edit the HTML file(s) directly.
+2. Test locally with `python3 -m http.server`. Open the page, click through what you changed, and check the browser console for errors.
+3. Add an entry to `AI-LOG.md`: date, goal, the prompt you used, and what the AI did.
+4. Commit and push to `main`. GitHub Pages updates the live site within a minute or two.
+
+Keep the links between pages working: the home page links to `learn/`, `letters/` and `setup/`, and the other pages link back to `../`.

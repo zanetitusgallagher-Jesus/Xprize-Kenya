@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KenyAI key setup</title>
+<style>
+  :root { --g: #1B6B35; --sand: #FFF4DA; --sun: #F5A623; --clay: #C8481A; --ink: #3A2410; --card: #fff; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --g: #8FE0A2; --sand: #18221A; --ink: #F3E4C4; --card: #243326; } }
+  :root[data-theme="dark"] { --g: #8FE0A2; --sand: #18221A; --ink: #F3E4C4; --card: #243326; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--sand); color: var(--ink); font: 17px/1.5 "Trebuchet MS", system-ui, sans-serif; }
+  main { max-width: 40rem; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { color: var(--g); font-size: 2rem; margin: 0 0 .3em; }
+  .card { background: var(--card); border: 3px solid var(--g); border-radius: 18px; padding: 16px; margin: 16px 0; }
+  label { display: block; font-weight: bold; margin-bottom: 6px; }
+  input[type=password], input[type=text] { width: 100%; padding: 12px; font: inherit; border: 2px solid var(--g); border-radius: 12px; background: #fff; color: #222; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  button, a.btn { font: bold 1rem inherit; font-family: inherit; min-height: 48px; padding: 8px 20px; border-radius: 24px; border: 0; background: var(--g); color: #fff; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+  button.warn { background: var(--clay); }
+  button:focus-visible, a:focus-visible, input:focus-visible { outline: 4px solid var(--sun); outline-offset: 2px; }
+  #msg { font-weight: bold; min-height: 1.5em; }
+  .ok { color: var(--g); } .bad { color: var(--clay); }
+  small { opacity: .8; }
+</style>
+</head>
+<body>
+<main>
+  <p><a href="../">&larr; KenyAI home</a></p>
+  <h1>AI key setup (for grown-ups)</h1>
+  <p>KenyAI's tutors (Kuku, Kobe, Twiga, Tembo and Turi) already work through the KenyAI relay, which holds a Claude key on a server. Add your own Claude API key here if the relay is busy or you want the AI to use your account.</p>
+
+  <div class="card">
+    <label for="k">Claude API key</label>
+    <input id="k" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…">
+    <div class="row">
+      <button id="save">Save and test</button>
+      <button id="show" type="button">Show</button>
+      <button id="forget" class="warn" type="button">Forget the key on this device</button>
+    </div>
+    <p id="msg" role="status" aria-live="polite"></p>
+    <p><small id="state"></small></p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0;font-size:1.2rem">Where the key is kept</h2>
+    <ul>
+      <li>It is saved <b>in this browser on this device only</b> (browser storage for this website). It stays until you press "Forget", or until someone clears the browser's site data.</li>
+      <li>Every KenyAI page on this device uses it: the home page, the learning path and Jambo Letters.</li>
+      <li>It is <b>never</b> put in the website files or the GitHub repo. The repo is public, and GitHub automatically reports Claude keys found in public code to Anthropic, which switches them off. A key in the repo would stop working within minutes.</li>
+      <li>Do this once on each phone or computer the children use. On a shared device, anyone using that browser can use the key, so set a monthly spending limit in the Anthropic Console.</li>
+    </ul>
+  </div>
+</main>
+<script>
+(function () {
+  var KEY = 'kenyai-key';
+  var $ = function (s) { return document.querySelector(s); };
+  function get() { try { return localStorage.getItem(KEY) || ''; } catch (e) { return ''; } }
+  function put(v) { try { if (v) localStorage.setItem(KEY, v); else localStorage.removeItem(KEY); return true; } catch (e) { return false; } }
+  function state() { var k = get(); $('#state').textContent = k ? 'A key is saved on this device (ends in …' + k.slice(-4) + ').' : 'No key saved on this device. The tutors use the KenyAI relay.'; }
+  function msg(t, ok) { var m = $('#msg'); m.textContent = t; m.className = ok ? 'ok' : 'bad'; }
+  /* one-time setup link: …/setup/#key=sk-ant-… saves the key, then removes it from the address bar */
+  var hk = (location.hash.match(/[#&]key=([^&]+)/) || [])[1];
+  if (hk) { put(decodeURIComponent(hk)); history.replaceState(null, '', location.pathname); }
+  if (get()) $('#k').value = get();
+  state();
+  $('#show').onclick = function () { var i = $('#k'); i.type = i.type === 'password' ? 'text' : 'password'; this.textContent = i.type === 'password' ? 'Show' : 'Hide'; };
+  $('#forget').onclick = function () { put(''); $('#k').value = ''; state(); msg('The key is gone from this device.', true); };
+  $('#save').onclick = async function () {
+    var v = $('#k').value.trim();
+    if (!/^sk-ant-/.test(v)) { msg('That does not look like a Claude API key (it should start with sk-ant-).', false); return; }
+    if (!put(v)) { msg('This browser would not save it (private mode or blocked storage). Try a normal window.', false); return; }
+    state(); msg('Saved. Testing…', true);
+    try {
+      var r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': v, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: 'claude-opus-5-5', max_tokens: 60, messages: [{ role: 'user', content: 'Say "Jambo!" and one short happy sentence for a child.' }] }) });
+      var j = await r.json().catch(function () { return null; });
+      if (!r.ok) { msg('Saved, but the test failed: ' + ((j && j.error && j.error.message) || ('HTTP ' + r.status)), false); return; }
+      msg('Working! Claude said: ' + (j.content || []).map(function (b) { return b.text || ''; }).join(''), true);
+    } catch (e) { msg('Saved, but this browser could not reach Claude right now. The key will be tried again when the tutors need it.', false); }
+  };
+})();
+</script>
+</body>
+</html>
