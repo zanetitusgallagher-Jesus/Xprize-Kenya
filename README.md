@@ -13,12 +13,13 @@ Its learning model is **Internalize/Inspire → Interpret → Impart**: children
 
 | Path | What it is | Who made it |
 |---|---|---|
-| `somo2/index.html` | **KenyAI home page.** Turi the lion, the treasure trail, surprise eggs, guestbook, polls, the grown-ups' tracker. Links to the learning path, Jambo Letters and key setup. | Team (partner file), plus links and the saved-key hookup |
-| `somo2/learn/index.html` | **Learning path** (built from "Somo Build 2"). Four stage tutors with Swahili names, numbers and reading paths, 21 games, lessons, egg basket, rhymes, stories, tracing, grown-up mode, AI tutor chat. | Zane's Somo, extended with the team's ideas |
-| `somo2/learn/audio/` | Recorded Kenyan-English voice clips (`en.json` Opus for most browsers, `en-mp3.json` for iPhone/iPad). The app picks the right file by itself. | Generated |
+| `somo2/index.html` | **KenyAI main page: the learning path.** It looks like the original Somo, plus a row of feature buttons. Four stage tutors with Swahili names, numbers and reading paths, 21 games, lessons, egg basket, rhymes, stories, tracing, grown-up mode and AI tutor chat. Also: welcome video, accounts, parent and teacher page, guestbook and polls, safari or village music, a safari roadmap background, and at-home activities. | Zane's Somo, extended with the team's ideas |
+| `somo2/audio/` | Recorded Kenyan-English voice clips (`en.json` Opus for most browsers, `en-mp3.json` for iPhone/iPad). The app picks the right file by itself. | Generated |
+| `somo2/trail/index.html` | **Turi's trail** (the team's KenyAI page): Turi the lion, the treasure trail, surprise eggs, guestbook, polls and a grown-ups' tracker. Opened from the "Turi's trail" button. | Team (partner file) |
 | `somo2/letters/index.html` | **Jambo Letters.** Letter tracing, capital and small letters, phonics, books, rhymes, a quiz and games for 5-year-olds. | Team (partner file), plus links at the top |
 | `somo2/setup/index.html` | **AI key setup** for grown-ups (see below). | Added Nov 6, 2026 |
-| `index.html`, `index (4).html` | The original team files at the repo root (copies of the KenyAI home page and Jambo Letters before they were moved to `somo2/`). Left as they were. | Team |
+| `somo2/learn/index.html` | An old address that now sends visitors to `somo2/`. | |
+| `index.html`, `index (4).html` | The original team files at the repo root. Left as they were. | Team |
 | `AI-LOG.md` | **Log of every AI-assisted change.** Add an entry each time you change something. | Everyone |
 
 Every page is a **single self-contained HTML file**: no build step, no npm, no framework. Open it in a browser, or serve the folder with `python3 -m http.server` and visit `http://localhost:8000/somo2/`.
@@ -32,7 +33,7 @@ The AI never decides whether a child's answer is right. The app's own code does 
 The pages try these routes **in this order**:
 
 1. **A key saved on this device.** A grown-up opens `somo2/setup/`, pastes a Claude API key and taps "Save and test". The key is stored in that browser only (localStorage, name `kenyai-key`) and stays until someone taps "Forget". Every KenyAI page on that device uses it. A one-time setup link also works: `…/somo2/setup/#key=sk-ant-…`.
-2. **The KenyAI relay.** A Supabase Edge Function (`somo-kidi`, project "AI Tutor") holds a Claude key as a server secret, so the tutors work for everyone with no key on the device. It only accepts requests from this site and from `rgallaghertt.github.io`, only tutor-style prompts, with rate and daily limits. The learning path uses it; the home page does not yet.
+2. **The KenyAI relay.** A Supabase Edge Function (`somo-kidi`, project "AI Tutor") holds a Claude key as a server secret, so the tutors work for everyone with no key on the device. It only accepts requests from this site and from `rgallaghertt.github.io`, only tutor-style prompts, with rate and daily limits. The learning path (`somo2/`) uses it; Turi's trail does not yet.
 3. **Inside Claude.** When a page is opened as a Claude artifact, it uses the viewer's Claude account.
 4. **No AI.** Every feature has a written fallback (pre-written hints, a template caregiver note), so the site never breaks.
 
@@ -44,7 +45,7 @@ The pages try these routes **in this order**:
 
 ---
 
-## The learning path in more detail (`somo2/learn/`)
+## The learning path in more detail (`somo2/`)
 
 - **Placement check** at the start (Teaching at the Right Level): a short check that opens the path at the child's level. It never says right or wrong.
 - **Four stages, each with its own AI tutor**:
@@ -64,9 +65,18 @@ The pages try these routes **in this order**:
 - **Story corner:** public-domain nursery rhymes, some with tunes; Aesop fables and an East African hare tale, retold; a tracing book for all 52 letters.
 - **Learning with a grown-up:** a switch on the home screen shows a tip in English or Kiswahili before each activity.
 - **Grown-ups panel:** press and hold the people icon. It shows progress, mistakes, the AI status and its own key box.
+- **Feature buttons on the home screen** (added Nov 7, 2026):
+  - **Welcome video:** plays by itself on first launch. It explains why to use KenyAI and how. A grown-up can turn off the autoplay.
+  - **Accounts:** a student part (first name, age, boy or girl, favourite animal friend) and a parent part (first name, relationship, 4-digit PIN, notes language), with set-up instructions for parents, students and teachers.
+  - **Parent page:** PIN-protected. It shows an AI progress story (English and Kiswahili), a learning-gap chart (mastery per skill plus answers per day), the mistakes that repeat, and an AI-recommended plan. It updates by itself after each session and falls back to written text when there is no AI.
+  - **Guestbook and polls:** use the class database (`questx-data.js`, site `livtreaux`), so notes and votes are shared with Turi's trail. First names only; links, emails and phone numbers are refused; text is shown with `textContent`.
+  - **Music:** switch between the village beat and the team's safari groove (kalimba, hand drum, drone).
+  - **Turi's trail:** opens `somo2/trail/`.
+- **Safari roadmap:** the path sits on a sunset savanna, with giraffes, elephants and zebras walking, birds and clouds. It stays still when the device asks for reduced motion.
+- **At-home activities:** every unit ends with an optional activity away from the screen, using beans, sticks, bottle caps or cups (English and Kiswahili). A grown-up taps "We did it together!" to finish it. These activities never block the path.
 - Test hooks for automated testing: `window.__arc`, `window.__jr`, `window.__rw`, `window.__b2`.
 
-`learn/index.html` is a **built file**. Its source lives in a separate, private repo (`rgallagherTT/Chronicle`, folder `prototypes/somo-arcade/`, built with `python3 build.py`). Small edits directly in `learn/index.html` are fine. For big changes to the learning path, ask Zane or the repo owner, so the source and this copy don't drift apart.
+`somo2/index.html` is a **built file**. Its source lives in a separate, private repo (`rgallagherTT/Chronicle`, folder `prototypes/somo-arcade/`, built with `python3 build.py`). Small edits directly in `somo2/index.html` are fine. For big changes to the learning path, ask Zane or the repo owner, so the source and this copy don't drift apart.
 
 ---
 
@@ -104,4 +114,4 @@ These come from our team's design. Please keep them when you or your AI edit the
 3. Add an entry to `AI-LOG.md`: date, goal, the prompt you used, and what the AI did.
 4. Commit and push to `main`. GitHub Pages updates the live site within a minute or two.
 
-Keep the links between pages working: the home page links to `learn/`, `letters/` and `setup/`, and the other pages link back to `../`.
+Keep the links between pages working: `somo2/` (the learning path) links to `trail/`; Turi's trail links to `../`, `../letters/` and `../setup/`; letters and setup link back to `../`.

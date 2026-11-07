@@ -40,3 +40,15 @@
 - **What Claude Did:**
   - The setup page now strips hidden characters from a pasted key (spaces, line breaks, zero-width marks). Browsers refuse to send a key that contains them. The home page and the learning path clean the saved key the same way.
   - When the key test fails, the page shows the real error and what to do: wrong or switched-off key, no credit, a blocker or filter on api.anthropic.com, or no internet.
+
+## KenyAI learning path becomes the main page, with eight new features
+- **Date:** Nov 7, 2026
+- **Goal:** Add the class requirements and the team's ideas to the Somo-based learning path, keep it looking like the original Somo, and add the new features as extra buttons.
+- **Prompt:** "Please add these to the updated version of Somo: 1. guestbook and polls (the requirement from Mr. Kim), 2. an automatic welcome video, 3. account set-up instructions for parent and student, 4. an AI progress narrative for the parent/teacher, 5. an AI learning-gap chart and recommended plan, 6. a safari music option, 7. a more safari-like roadmap background with moving elements, 8. offline activities in the lesson map. It should look like the original Somo, except with the extra feature buttons."
+- **What Claude Did:**
+  - Made the learning path the main page at `somo2/`. Moved the team's KenyAI page to `somo2/trail/` (the "Turi's trail" button). `somo2/learn/` now sends visitors to `somo2/`.
+  - Added a row of feature buttons under the Somo home screen: Welcome video, Accounts, Parent page, Guestbook & polls, Music (Village or Safari) and Turi's trail.
+  - Guestbook and polls use the same class database and site id as the team page, with first names only and `textContent` for display.
+  - Added the welcome video (narrated animated scenes with captions; it plays by itself the first time), accounts with instructions for parents, students and teachers, and a PIN-protected parent and teacher page with an AI progress story, a gap chart and an AI plan, all with written fallbacks.
+  - Added the team's safari groove as a second music style, a moving savanna behind the roadmap, and an optional at-home activity in every unit.
+  - Tested in a browser: the first-launch video, accounts, the at-home step, the parent page with PIN, guestbook and poll saving (with a stand-in database), music switching and saving across a reload, all with no page errors.
