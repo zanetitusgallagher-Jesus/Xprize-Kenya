@@ -150,3 +150,14 @@
   - The "Reading microphone" switch is in the grown-ups panel (press and hold the people icon), because there is no Parent page any more. It is off until a grown-up turns it on. Without it: "Read it to a grown-up", then "Read it well" or "Needs more practice". No audio is stored.
   - `somo4/`: a "Reading aloud" chart and table on each student's page.
   - Source: `prototypes/somo-arcade/src/b2/reading.js` (Chronicle). Tested with a stand-in speech recogniser: no page or console errors.
+
+## Feature 2: learning engine (review dates, warm-up, twin question, hint ladder, fix-it round, Practice Boost)
+- **Date:** Nov 12, 2026
+- **Goal:** Make every skill stick: spaced review, a check after teaching, better hints, and extra practice.
+- **Prompt:** "Review dates from the existing mastery: weak 1 day, building 3 days, strong 7 then 14 days. Each session opens with a warm-up of up to 3 due-review items... Twin question... Hint ladder... Fix-it round... Practice Boost button: 6 questions from the 3 weakest skills."
+- **What Claude Did:** (`somo2/`, source `src/b2/learn.js` in Chronicle)
+  - Every answer sets the skill's next review date from its mastery (under 60%: 1 day; 60 to 79%: 3 days; 80% and up: 7 days, then 14 after a good strong review).
+  - The first step of each session starts with a warm-up of up to 3 questions from due skills (after a 7-day break, the skills left longest come first), then goes on to the step.
+  - In lessons: miss 1 gives the nudge and the picture help (as before); miss 2 now shows a worked example (a different question of the same kind, solved, read aloud, with its picture panel) and lets the child try again; after a miss, a twin question on the same skill follows; at the end, a fix-it round replays the questions missed on the first try (no penalty: fix-it answers do not change mastery).
+  - "Practice Boost" on the home screen: 6 questions from the 3 weakest skills, 5 coins at the end (normal rewards).
+  - Tested in a headless browser: no page or console errors.

@@ -10279,6 +10279,109 @@ $('#stage').addEventListener('click', e => {
 }
 window.__ky = Object.assign(window.__ky || {}, { ReadAloud, PASSAGES, matchReading, readTrendHTML });
 
+/* ============================================================================
+   LEARNING ENGINE (Nov 2026), for every skill
+   - Review dates from the existing mastery: weak skills (under 60%) come back in 1 day, building (60 to 79%) in 3 days,
+     strong (80% and up) in 7 days, then 14 days once a strong review goes well.
+   - Warm-up: each session (each time Somo is opened) starts with up to 3 review questions from skills that are due.
+     After a break of 7 days or more, the skills left longest come first.
+   - Twin question: in a lesson, after a miss and the teaching that follows, a different question on the same skill
+     checks that the idea stuck.
+   - Hint ladder: miss 1 → a nudge (the skill's hint, and the picture help); miss 2 → a worked example: a different
+     question of the same kind, solved and read aloud with its picture panel; then the child tries again.
+   - Fix-it round: at the end of each lesson, the questions missed on the first try come back once more. Normal
+     rewards only, no penalty (fix-it answers do not change mastery).
+   - Practice Boost (home screen): 6 questions from the 3 weakest skills.
+   ========================================================================== */
+const DAY = 864e5;
+function reviewDays(id) { const st = sk(id), m = mastery(id); if (m < .6) return 1; if (m < .8) return 3; return (st.strongOk || 0) >= 1 ? 14 : 7; }
+{ const _a = Engine.answer; Engine.answer = function (it, chosen, extra) {
+    const st = sk(it.skill), wasDue = st.due && st.due <= Date.now(), wasStrong = mastery(it.skill) >= .8; const r = _a.call(this, it, chosen, extra);
+    if (wasDue && wasStrong && r.correct) st.strongOk = (st.strongOk || 0) + 1; if (!r.correct && mastery(it.skill) < .8) st.strongOk = 0;
+    st.due = Date.now() + reviewDays(it.skill) * DAY; return r;
+  }; }
+function dueSkills() {
+  const now = Date.now(), open = Object.keys(SKILL).filter(id => isOpen(id) && S.skills[id] && S.skills[id].n);
+  const due = open.filter(id => (sk(id).due || (sk(id).last || now) + reviewDays(id) * DAY) <= now);
+  const lastAny = Math.max(0, ...open.map(id => sk(id).last || 0)), longBreak = lastAny && now - lastAny >= 7 * DAY;
+  return due.sort(longBreak ? (a, b) => (sk(a).last || 0) - (sk(b).last || 0) : (a, b) => (sk(a).due || 0) - (sk(b).due || 0));
+}
+const quizStep = (id, say) => { const s = youSteps(id, 1)[0]; const _i = s.init; s.init = function () { _i.call(this); if (say) this.say = say + ' ' + this.say; }; return s; };
+
+/* a short quiz in the lesson screen: the warm-up and Practice Boost */
+L.custom = function (id, steps, kind, after) {
+  this.kind = kind; this.after = after; this.missed = []; this.fixDone = true; L.score = { right: 0, total: 0 };
+  this.id = id; this.steps = steps; this.si = 0; App.state = 'lesson'; Round.game = null; App.attract = null; Engine.focus = null; Engine.roundTags = {}; Engine.rng = Math.random;
+  setFriend(friendFor(id).id); HUD.show(false); Card.hide(); $('#chips').hidden = true; Music.stop(); Sfx.engineOn(false); this.go(0);
+};
+{ const _st = L.start; L.start = function (id) { this.kind = null; this.after = null; this.missed = []; this.fixDone = false; return _st.call(this, id); }; }
+{ const _fin = L.finish; L.finish = function () {
+    if (!this.kind) return _fin.call(this);
+    const sc = L.score || { right: 0, total: 0 }, kind = this.kind, after = this.after; this.kind = null; Sfx.play('fanfare'); confetti(30);
+    if (kind === 'warmup') { App.state = 'lessondone'; setScreen(`<div class="scr dim jr"><div style="align-self:center">${kidiMini('happy', 110)}</div><div class="h2" style="text-align:center">Warm-up done!</div><div class="sub" style="text-align:center">Your brain is ready.</div><button class="btn go" data-k="lgo">Let's go!</button></div>`); Speech.say('Warm-up done! Your brain is ready.'); this.after2 = after; return; }
+    S.coins += 5; addXP(10); Store.save(); App.state = 'lessondone';
+    setScreen(`<div class="scr dim jr"><div style="align-self:center">${kidiMini('happy', 110)}</div><div class="h2" style="text-align:center">Boost done!</div><div class="sub" style="text-align:center">${sc.right} of ${sc.total} right the first time. Practice makes you stronger!</div><div class="jprog"><span>+5</span>${COIN_SVG.replace('<svg ', '<svg width="24" height="24" ')}</div><button class="btn go" data-j="continue">Continue the path</button><button class="btn ghost" data-j="home">Map</button></div>`);
+    Speech.say(`Boost done! ${sc.right} of ${sc.total} right the first time. Practice makes you stronger!`);
+  }; }
+
+/* the hint ladder, the twin question and the fix-it list */
+{ const _ans = L.answer; L.answer = function (i, el) {
+    const s = this.step, q = s && s.q; if (!q || q.lock) return _ans.call(this, i, el);
+    const right = String(q.opts[i].v) === String(q.cv), it = q.item;
+    if (it && !q.tries && !right && !s.fix) this.missed.push(it);
+    /* second miss: a worked example, then another try */
+    if (it && !right && q.tries === 1 && q.opts.filter((o, j) => j !== i && !document.querySelectorAll('.jopt')[j].disabled).length >= 1 && !s.example) {
+      q.tries++; s.example = true; el.classList.remove('try'); void el.offsetWidth; el.classList.add('try'); el.disabled = true; Sfx.play('bump');
+      let ex = null; for (let k = 0; k < 6; k++) { const x = Engine.item(SKILL[it.skill].mode, 3, [it.skill]); if (String(x.correct.v) !== String(it.correct.v)) { ex = x; break; } }
+      if (ex) { const vis = Tutor.visual ? Tutor.visual(ex) : null; const v = $('#jstage'); if (v) v.insertAdjacentHTML('beforeend', `<div class="wex"><b>Look at this one together:</b>${promptHTML(ex)}${vis && vis.svg ? `<div class="art sm">${vis.svg}</div>` : ''}<p>Answer: <b>${labelHTML(ex.correct)}</b></p></div>`);
+        this.say(`Let's look at one together. ${ex.spoken}. ${ex.explain} Now you try yours.`); }
+      else this.say(q.explain ? 'Look again: ' + (q.hint || '') : 'Look again. You can do it.');
+      return;
+    }
+    const r = _ans.call(this, i, el);
+    /* the question is settled after a miss: a twin question checks the idea stuck */
+    if (it && q.lock && q.tries > 0 && !s.twinAdded && !s.fix && !s.twin && this.steps.indexOf(s) >= 0) {
+      s.twinAdded = true; const t = quizStep(it.skill, 'One more like that!'); t.twin = true; this.steps.splice(this.si + 1, 0, t);
+    }
+    return r;
+  }; }
+/* the fix-it round at the end of a lesson */
+{ const _go = L.go; L.go = function (i) {
+    if (i >= this.steps.length && !this.kind && !this.fixDone && (this.missed || []).length) {
+      this.fixDone = true; const items = this.missed.slice(0, 4);
+      items.forEach((it, k) => this.steps.push({ ph: 2, fix: true, init() { this.it = it; this.say = (k === 0 ? "Fix-it round! Let's try the tricky ones again. " : '') + it.spoken; this.scaf = null; this.won = false; this.q = { opts: shuffle(R, it.options.slice()), cv: it.correct.v, hint: HINTS[it.skill], explain: it.explain, item: null, tries: 0 }; }, html() { return `<div class="fixtag">Fix it</div>` + promptHTML(this.it) + (this.scaf ? `<div class="art sm">${this.scaf}</div>` : ''); } }));
+    }
+    return _go.call(this, i);
+  }; }
+
+/* the warm-up opens each session (the first time the child starts a step) */
+const Warm = { done: false };
+{ const _rs = runStep; runStep = function (id, i) {
+    if (!Warm.done && !VIEW) { Warm.done = true; const due = dueSkills().slice(0, 3); if (due.length) { const steps = due.map((d, k) => quizStep(d, k === 0 ? 'Warm-up! Let us remember.' : '')); return L.custom(due[0], steps, 'warmup', () => runStep(id, i)); } }
+    return _rs(id, i);
+  }; }
+/* Practice Boost: 6 questions from the 3 weakest skills */
+function practiceBoost() {
+  const list = Object.keys(SKILL).filter(id => isOpen(id) && S.skills[id] && S.skills[id].n).sort((a, b) => mastery(a) - mastery(b)).slice(0, 3);
+  if (!list.length) { Speech.say('Learn a lesson first, then you can boost it!'); return; }
+  const order = Array.from({ length: 6 }, (_, k) => list[k % list.length]);
+  L.custom(list[0], order.map((id, k) => quizStep(id, k === 0 ? 'Practice Boost! Six questions to make you stronger.' : '')), 'boost', null);
+}
+{ const _sh = showHome; showHome = function () { _sh(); if (App.state !== 'hub') return; const f = document.querySelector('#screen .kfeat'); if (!f) return;
+    f.insertAdjacentHTML('afterbegin', `<button data-k="boost"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M13 2L4 14h6l-1 8 9-12h-6z" fill="#F2B829" stroke="#C98A0C" stroke-width="1.3" stroke-linejoin="round"/></svg><span>Practice Boost</span></button>`); }; }
+$('#stage').addEventListener('click', e => {
+  const el = e.target.closest('[data-k]'); if (!el) return; const a = el.dataset.k; if (!['boost', 'lgo'].includes(a)) return; Sfx.unlock(); Sfx.play('click');
+  if (a === 'boost') practiceBoost(); else if (a === 'lgo') { const f = L.after2; L.after2 = null; f ? f() : showHome(); }
+});
+{
+  const u = n => `calc(var(--u)*${n})`;
+  const el = document.createElement('style'); el.textContent = `
+.wex{background:#FFF8EC;color:#2B1E17;border:${u(2)} dashed #F2B829;border-radius:${u(14)};padding:${u(6)} ${u(10)};margin-top:${u(6)};text-align:center;font-weight:700}.wex .pt{font-size:${u(28)}}.wex p{margin:${u(4)} 0 0}
+.fixtag{display:inline-block;background:#F2B829;color:#2B1E17;border-radius:${u(10)};padding:0 ${u(10)};font-weight:800;margin-bottom:${u(4)}}`;
+  document.head.appendChild(el);
+}
+window.__ky = Object.assign(window.__ky || {}, { dueSkills, practiceBoost, reviewDays, Warm });
+
 boot();
 
 </script>
