@@ -23,6 +23,7 @@ Its learning model is **Internalize/Inspire → Interpret → Impart**: children
 | `somo4/teachers/` | **AI teacher skill files** (`*.md`) and their list (`index.json`). Copy `TEMPLATE.md` to make a new AI teacher. | Added Nov 12, 2026 |
 | `somo2/learn/index.html` | An old address that now sends visitors to `somo2/`. | |
 | `index.html`, `index (4).html` | The original team files at the repo root. Left as they were. | Team |
+| `SOMO-GUIDE.md` | **What Somo is and everything it does**, in plain words, for the team, teachers, partners and judges. | |
 | `AI-LOG.md` | **Log of every AI-assisted change.** Add an entry each time you change something. | Everyone |
 
 Every page is a **single self-contained HTML file**: no build step, no npm, no framework. Open it in a browser, or serve the folder with `python3 -m http.server` and visit `http://localhost:8000/somo2/`.

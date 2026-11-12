@@ -134,3 +134,9 @@
   - `somo2/`: "My teacher" (class chat, one-on-one chat, voice notes and picture replies, challenges that count by themselves, leaderboard), a view-only mode (`?view=1`) used by Somo 3 and 4, progress always saved online, and the Parent page, parent account, Teacher page, guestbook and polls removed from the child's app. Source: `prototypes/somo-arcade/src/b2/school.js` in the Chronicle repo.
   - README: new sections and the leaderboard rule updated to the team's decision.
   - Tested in a headless browser (admin → teacher → child, with a stand-in for the server and a fake microphone): no page errors.
+
+## Somo guide (all the features in one file)
+- **Date:** Nov 12, 2026
+- **Goal:** One long, plain-words file that explains what Somo is and every feature.
+- **Prompt:** "Tell me all the features of Somo and what Somo is in a long file."
+- **What Claude Did:** wrote `SOMO-GUIDE.md` (what Somo is, the learning model, the child's app feature by feature, Somo 4, Somo 3, AI teachers, data, privacy, how it is built, the timeline) and linked it from the README. Also fixed an empty blue bar that showed on the teacher page for teachers who are not the admin.
