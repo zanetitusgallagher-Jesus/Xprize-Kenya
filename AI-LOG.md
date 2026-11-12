@@ -182,3 +182,13 @@
   - Separate progress, rewards, certificates and reading history: the first child keeps the existing `kenyai-state` key (no migration needed, nothing lost); other children use `kenyai-state-<id>`; the list is in `kenyai-kids`.
   - "Remove from this phone" per child (tap twice). Online progress stays until a teacher or the admin deletes it.
   - Tested in a headless browser (old single-child phone, add a child, new session, switch back, remove): no data lost, no page or console errors.
+
+## Feature 5: Story sums and Number patterns (two new skills)
+- **Date:** Nov 12, 2026
+- **Goal:** Word problems and number patterns, as full Inspire → Interpret → Impart units.
+- **Prompt:** "Story sums (Stages 3–4): adding and taking away within 20, then within 100, read aloud, with pictures, in Kenyan settings. Number patterns (Stages 2–3): what comes next and the missing number, counting in 1s, 2s, 5s and 10s, forwards and back. Reuse existing game engines... at most one new game. At-home activity and caregiver tip in both languages. Add both to the placement check, the mastery chart and misconception tagging."
+- **What Claude Did:** (`somo2/`, source `src/b2/skills2.js` in Chronicle)
+  - Number patterns (Stage 2, after Make ten): levels go from 1s to 20, to 2s/5s/10s to 50, to forwards and back to 100 with missing numbers. A pattern-strip picture. Inspire: "Buckle My Shoe: count in twos".
+  - Story sums (Stage 4, after Taking away): short stories read aloud about mangoes, the matatu, chai and mandazi with shillings, goats, bananas and eggs; within 10, then 20, then 100; a picture of the things coming or going away. Inspire: a new story, "Baraka's Market Day".
+  - Lessons (Watch → Together → You!), Teach (Impart), games (Boda Boda Rush, Penalty King, Star Blaster, Mango Catcher; no new game), at-home activities with Kiswahili steps, grown-up tips in English and Kiswahili, placement check, the teacher and admin skill charts, and new mistake tags (wrong jump size, wrong way, picked a number from the story) with their own coach tips.
+  - Tested: 600 generated questions per skill all valid; both lessons, teach-back, a game, the at-home activity, a coach tip and the story run with no page or console errors.

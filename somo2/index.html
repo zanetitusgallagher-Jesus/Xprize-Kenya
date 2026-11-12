@@ -10560,6 +10560,180 @@ $('#stage').addEventListener('click', e => {
 }
 window.__ky = Object.assign(window.__ky || {}, { Kids, Who });
 
+/* ============================================================================
+   NEW SKILLS (Nov 2026): Number patterns (Stage 2) and Story sums (Stage 4)
+   Full Inspire → Interpret → Impart units, like every other skill:
+   - pat "Number patterns": what comes next and the missing number; counting in 1s, 2s, 5s and 10s, forwards and back.
+     Inspire: "One, Two, Buckle My Shoe" (counting in twos). Level 1: 1s (and 2s) to 20; level 2: 2s, 5s, 10s to 50;
+     level 3: forwards and back to 100, missing numbers too.
+   - wp "Story sums": adding and taking away told as short Kenyan stories (mangoes, the matatu, shillings, chai, goats),
+     read aloud, with pictures. Level 1: within 10; level 2: within 20; level 3: within 100.
+     Inspire: an original story, "Baraka's Market Day".
+   Games: Boda Boda Rush, Penalty King, Star Blaster and Mango Catcher (they already ask every number skill). No new game.
+   Both skills are in the placement check, the mastery chart (by skill id), misconception tagging, the grown-up tips
+   (English and Kiswahili) and the at-home activities.
+   ========================================================================== */
+Object.assign(ICON, {
+  coin: `<circle cx="32" cy="32" r="24" fill="#E9B949" stroke="#A6781E" stroke-width="3"/><circle cx="32" cy="32" r="17" fill="none" stroke="#A6781E" stroke-width="1.6"/><text x="32" y="40" font-size="20" font-weight="800" text-anchor="middle" fill="#7A5310" font-family="Baloo 2,sans-serif">sh</text>`,
+  person: `<circle cx="32" cy="16" r="9" fill="#7A4A2A"/><path d="M18 58V36q0-12 14-12t14 12v22z" fill="#2F7D4F"/>`,
+});
+SKILLS.num.splice(SKILLS.num.findIndex(s => s.id === 'bond') + 1, 0, { id: 'pat', name: 'Number patterns', diff: 1 });
+SKILLS.num.push({ id: 'wp', name: 'Story sums (word problems)', diff: 2 });
+for (const s of SKILLS.num) SKILL[s.id] = { ...s, mode: 'num' };
+NUM_PATH.splice(NUM_PATH.indexOf('bond') + 1, 0, 'pat'); NUM_PATH.push('wp');
+STAGES[1].skills.push('pat'); STAGES[3].skills.push('wp');
+Object.assign(SHORT, { pat: 'Number patterns', wp: 'Story sums' });
+Object.assign(DESC, { pat: 'What comes next? Count in 1s, 2s, 5s and 10s.', wp: 'Listen to the story. Add or take away?' });
+Object.assign(HINTS, { pat: 'How big is each jump? Say the numbers out loud.', wp: 'Do things come or go away? Coming is adding; going is taking away.' });
+Object.assign(SKILL_SW, { pat: 'mfuatano wa namba (kuhesabu kwa 2, 5 na 10)', wp: 'hesabu za hadithi (kujumlisha na kutoa)' });
+Object.assign(TAGS, { wrongStep: 'Used the wrong jump size (counted by 1s instead of 5s)', wrongWay: 'Went the wrong way (forwards instead of back)', storyNumber: 'Picked a number from the story instead of working it out' });
+Object.assign(TAG_SKILL, { wrongStep: 'pat', wrongWay: 'pat', storyNumber: 'wp' });
+Object.assign(STUCK, { wrongStep: ['finding the size of the jump in a pattern', 'kupata ukubwa wa kuruka katika mfuatano'], wrongWay: ['seeing if a pattern goes up or down', 'kuona kama mfuatano unapanda au unashuka'], storyNumber: ['working out the answer instead of picking a number from the story', 'kufanya hesabu badala ya kuchagua namba kutoka kwenye hadithi'] });
+Object.assign(Coach.FALLBACK, { wrongStep: 'Find the jump first: how much bigger is each number?', wrongWay: 'Look: do the numbers get bigger or smaller?', storyNumber: 'The answer is new. Do the sum: add or take away.' });
+Object.assign(ACT, {
+  pat: ['clapping and counting in twos and fives together, then counting back from 10', 'kupiga makofi na kuhesabu kwa mbili na tano pamoja, kisha kuhesabu kurudi nyuma kutoka 10'],
+  wp: ['telling a short story with mangoes or bottle caps and asking: add or take away?', 'kusimulia hadithi fupi kwa maembe au vifuniko na kuuliza: kujumlisha au kutoa?'],
+});
+Object.assign(GUIDE, {
+  pat: ['Number patterns. Ask your child to say the numbers out loud and find the jump: "2, 4, 6... each time 2 more." Clap on each number. Counting back is harder, so go slowly.', 'Mfuatano wa namba. Mwombe mtoto ataje namba kwa sauti na apate kuruka: "2, 4, 6... kila mara 2 zaidi." Pigeni makofi kwa kila namba. Kuhesabu kurudi nyuma ni kugumu zaidi, kwa hiyo nendeni polepole.'],
+  wp: ['Story sums. Listen to the story together. Before the numbers, ask: "Are things coming, or going away?" Coming means adding; going away means taking away. Let your child use fingers or beans.', 'Hesabu za hadithi. Sikilizeni hadithi pamoja. Kabla ya namba, uliza: "Vitu vinakuja, au vinaondoka?" Kuja ni kujumlisha; kuondoka ni kutoa. Mwache mtoto atumie vidole au maharagwe.'],
+});
+Object.assign(OFFLINE, {
+  pat: { t: 'Clap and count', sw: 'Piga makofi uhesabu', m: ['your hands', '20 bottle caps'], s: ['Put bottle caps in pairs and count them in twos: 2, 4, 6, 8, 10.', 'Clap and count in fives together: 5, 10, 15, 20.', 'Say "10, 9, 8..." and your child goes on counting back. Then stop in the middle: "6, 7, what comes next?"'],
+    ssw: ['Weka vifuniko kwa jozi na mvihesabu kwa mbili: 2, 4, 6, 8, 10.', 'Pigeni makofi mkihesabu kwa tano: 5, 10, 15, 20.', 'Sema "10, 9, 8..." na mtoto aendelee kuhesabu kurudi nyuma. Kisha simama katikati: "6, 7, ifuatayo ni nini?"'] },
+  wp: { t: 'Kitchen stories', sw: 'Hadithi za jikoni', m: ['beans, mangoes or bottle caps'], s: ['Tell a short story: "We have 5 mangoes. Grandma brings 3 more. How many now?"', 'Your child shows it with beans, then says the answer.', 'Next, a story where some go away: "We have 9 bananas. We eat 4." Let your child make up a story for you too.'],
+    ssw: ['Simulia hadithi fupi: "Tuna maembe 5. Bibi analeta 3 zaidi. Sasa tuna mangapi?"', 'Mtoto aonyeshe kwa maharagwe, kisha aseme jibu.', 'Kisha hadithi ambapo vingine vinaondoka: "Tuna ndizi 9. Tunakula 4." Mwache mtoto naye akusimulie hadithi.'] },
+});
+/* ---------------- pictures: the pattern strip and the story picture ---------------- */
+function seqSVG(v) {
+  const n = v.nums.length, w = 58, gap = 8, W = n * w + (n - 1) * gap;
+  return `<svg viewBox="0 0 ${W} 64" style="width:100%;max-width:calc(var(--u)*320)">${v.nums.map((x, i) => { const blank = i === v.blank, X = i * (w + gap);
+    return `<rect x="${X}" y="6" width="${w}" height="52" rx="12" fill="${blank ? '#FFF1C9' : '#FFF8EC'}" stroke="${blank ? '#F2B829' : '#C9B49A'}" stroke-width="${blank ? 3 : 2}" ${blank ? 'stroke-dasharray="6 4"' : ''}/>
+      <text x="${X + w / 2}" y="42" font-size="${String(x).length > 2 ? 22 : 26}" font-weight="800" text-anchor="middle" fill="${blank ? '#C98A0C' : '#2B1E17'}" font-family="Baloo 2,sans-serif">${blank ? '?' : x}</text>${i < n - 1 ? `<path d="M${X + w + 1} 20q${gap / 2} -10 ${gap - 2} 0" stroke="#E8577A" stroke-width="2" fill="none"/>` : ''}`; }).join('')}</svg>`;
+}
+function storySVG(v) {
+  const ic = (x, y, s, fade) => iconSVG(v.icon).replace('<svg ', `<svg x="${x}" y="${y}" width="${s}" height="${s}" ${fade ? 'opacity=".28"' : ''} `);
+  const total = v.op === '+' ? v.a + v.b : v.a;
+  if (total > 20) return `<svg viewBox="0 0 300 80" style="width:100%;max-width:calc(var(--u)*320)">${ic(10, 10, 56)}<text x="74" y="52" font-size="30" font-weight="800" fill="#2B1E17" font-family="Baloo 2,sans-serif">${v.a}</text><text x="140" y="52" font-size="34" font-weight="800" fill="#E8577A" font-family="Baloo 2,sans-serif">${v.op === '+' ? '+' : '−'}</text>${ic(170, 10, 56, v.op !== '+')}<text x="234" y="52" font-size="30" font-weight="800" fill="#2B1E17" font-family="Baloo 2,sans-serif">${v.b}</text></svg>`;
+  const per = 10, s = 26, items = [];
+  for (let i = 0; i < v.a; i++) items.push([i, v.op === '−' && i >= v.a - v.b, false]);
+  if (v.op === '+') for (let i = 0; i < v.b; i++) items.push([v.a + i, false, true]);
+  const rows = Math.ceil(items.length / per), H = rows * (s + 6) + 8;
+  return `<svg viewBox="0 0 ${per * (s + 4) + 12} ${H}" style="width:100%;max-width:calc(var(--u)*320)">${items.map(([k, fade, extra]) => { const x = 6 + (k % per) * (s + 4), y = 4 + Math.floor(k / per) * (s + 6);
+    return (extra ? `<rect x="${x - 1}" y="${y - 1}" width="${s + 2}" height="${s + 2}" rx="6" fill="#DDF1E2"/>` : '') + ic(x, y, s, fade); }).join('')}</svg>`;
+}
+{ const _v = visualSVG; visualSVG = function (v) { if (v && v.type === 'seq') return seqSVG(v); if (v && v.type === 'story') return storySVG(v); return _v(v); }; }
+{ const _si = skillIcon; skillIcon = function (id, size = 40) {
+    if (id === 'pat') return `<svg viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true"><text x="32" y="40" font-size="19" font-weight="800" text-anchor="middle" fill="#2B1B12" font-family="Baloo 2,sans-serif">2 4 6</text><path d="M12 22q6-8 12 0M28 22q6-8 12 0" stroke="#E8577A" stroke-width="2.4" fill="none"/></svg>`;
+    if (id === 'wp') return `<svg viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${iconSVG('mango').replace('<svg ', '<svg x="2" y="12" width="30" height="30" ')}<text x="40" y="38" font-size="22" font-weight="800" text-anchor="middle" fill="#E8577A" font-family="Baloo 2,sans-serif">+</text>${iconSVG('mango').replace('<svg ', '<svg x="44" y="16" width="20" height="20" ')}<path d="M6 52h52" stroke="#6E5644" stroke-width="2.4" stroke-linecap="round"/></svg>`;
+    return _si(id, size);
+  }; }
+/* ---------------- the question generators ---------------- */
+GEN.pat = function (lv, rng) {
+  let step, dir, max;
+  if (lv === 1) { step = rng() < .75 ? 1 : 2; dir = step === 1 && rng() < .35 ? -1 : 1; max = 20; }
+  else if (lv === 2) { step = pick(rng, [2, 5, 10]); dir = 1; max = 50; }
+  else { step = pick(rng, [2, 5, 10, 10]); dir = rng() < .45 ? -1 : 1; max = 100; }
+  const span = step * 4; let start;
+  if (dir > 0) { const hi = Math.floor((max - span) / step); start = step === 1 ? ri(rng, 1, max - span) : step * ri(rng, step === 2 ? 0 : 0, Math.max(0, hi)); if (step === 2 && lv >= 2 && rng() < .3) start += 1; }
+  else { const lo = Math.ceil(span / step); start = step === 1 ? ri(rng, span + 1, max) : step * ri(rng, lo, Math.floor(max / step)); }
+  const nums = [0, 1, 2, 3, 4].map(i => start + dir * step * i); const blank = lv === 1 || rng() < .55 ? 4 : ri(rng, 1, 3); const ans = nums[blank];
+  const prev = blank > 0 ? nums[blank - 1] : nums[blank + 1] - dir * step;
+  const c = [N(ans + 1, 'offByOne'), N(ans - 1, 'offByOne')];
+  if (step !== 1) { c.unshift(N(prev + dir, 'wrongStep')); const other = step === 10 ? 5 : step === 5 ? 10 : 1; c.push(N(prev + dir * other, 'wrongStep')); }
+  if (dir < 0) c.unshift(N(prev + step, 'wrongWay')); else if (lv >= 2) c.push(N(prev - step, 'wrongWay'));
+  if (ans >= 12 && rev2(ans) !== ans && rev2(ans) <= 99) c.push(N(rev2(ans), 'reversal'));
+  const shown = nums.map((x, i) => i === blank ? '?' : x);
+  const spoken = blank === 4 ? `What comes next? ${nums.slice(0, 4).join(', ')}, and then?` : `What number is missing? ${nums.map((x, i) => i === blank ? 'what' : x).join(', ')}.`;
+  return { skill: 'pat', spoken, display: shown.join(', '), dkind: 'visual', visual: { type: 'seq', nums, blank }, correct: N(ans), cands: c.filter(x => x.v >= 0 && x.v <= 100 && x.v !== ans),
+    explain: `It goes ${dir > 0 ? 'up' : 'down'} by ${step} each time. ${blank === 4 ? `${ans} comes next.` : `The missing number is ${ans}.`}`, ex: { step, dir, ans, nums } };
+};
+const WP_NAMES = ['Amina', 'Baraka', 'Wanjiru', 'Otieno', 'Achieng', 'Kamau', 'Njeri', 'Kiprop', 'Zawadi', 'Juma'];
+const WP_STORIES = [
+  { icon: 'mango', thing: 'mangoes', add: (n, a, b) => `${n} has ${a} mangoes. Mama gives ${n} ${b} more. How many mangoes now?`, sub: (n, a, b) => `${n} has ${a} mangoes and eats ${b}. How many mangoes are left?`, short: ['mangoes', 'more', 'eaten'] },
+  { icon: 'bus', thing: 'people', add: (n, a, b) => `There are ${a} people in the matatu. ${b} more get on. How many people are in the matatu now?`, sub: (n, a, b) => `There are ${a} people in the matatu. ${b} get off. How many people are left?`, short: ['people', 'get on', 'get off'] },
+  { icon: 'coin', thing: 'shillings', add: (n, a, b) => `A cup of chai costs ${a} shillings. A mandazi costs ${b} shillings. How much do both cost?`, sub: (n, a, b) => `${n} has ${a} shillings and buys a mandazi for ${b} shillings. How many shillings are left?`, short: ['shillings', 'more', 'spent'] },
+  { icon: 'goat', thing: 'goats', add: (n, a, b) => `${a} goats are eating grass. ${b} more goats come. How many goats now?`, sub: (n, a, b) => `${a} goats are eating grass. ${b} goats walk home. How many goats are still eating?`, short: ['goats', 'come', 'go home'] },
+  { icon: 'banana', thing: 'bananas', add: (n, a, b) => `${n} sells ${a} bananas in the morning and ${b} bananas in the afternoon. How many bananas is that?`, sub: (n, a, b) => `There are ${a} bananas at the stall. ${n} sells ${b}. How many bananas are left?`, short: ['bananas', 'more', 'sold'] },
+  { icon: 'egg', thing: 'eggs', add: (n, a, b) => `The hen lays ${a} eggs, then ${b} more eggs. How many eggs?`, sub: (n, a, b) => `There are ${a} eggs in the basket. ${b} go to the market. How many eggs are left?`, short: ['eggs', 'more', 'sold'] },
+];
+GEN.wp = function (lv, rng) {
+  const st = pick(rng, WP_STORIES), n = pick(rng, WP_NAMES), op = rng() < .5 ? '+' : '−'; let a, b, ans;
+  for (let k = 0; k < 200; k++) {
+    if (lv === 1) { if (op === '+') { a = ri(rng, 2, 7); b = ri(rng, 1, 10 - a); } else { a = ri(rng, 4, 10); b = ri(rng, 1, a - 2); } }
+    else if (lv === 2) { if (op === '+') { a = ri(rng, 6, 12); b = ri(rng, 3, 20 - a); } else { a = ri(rng, 11, 20); b = ri(rng, 3, a - 3); } }
+    else { if (op === '+') { a = ri(rng, 15, 60); b = ri(rng, 11, 99 - a); } else { a = ri(rng, 30, 99); b = ri(rng, 11, a - 10); } }
+    ans = op === '+' ? a + b : a - b; if (ans !== a && ans !== b && a !== b && b > 0) break;
+  }
+  const c = [N(op === '+' ? Math.abs(a - b) : a + b, 'wrongOp'), N(a, 'storyNumber'), N(b, 'storyNumber'), N(ans + 1, 'offByOne'), N(ans - 1, 'offByOne')];
+  if (lv === 3) { c.push(N(ans + 10, 'offByTen'), N(ans - 10, op === '+' ? 'forgotCarry' : 'offByTen')); }
+  const spoken = op === '+' ? st.add(n, a, b) : st.sub(n, a, b);
+  return { skill: 'wp', spoken, display: `${a} ${st.short[0]}, ${b} ${op === '+' ? st.short[1] : st.short[2]}`, dkind: 'visual', visual: { type: 'story', icon: st.icon, a, b, op }, correct: N(ans), cands: c.filter(x => x.v >= 0 && x.v !== ans),
+    explain: op === '+' ? `${b} more came, so we add: ${a} plus ${b} is ${ans}.` : `${b} went away, so we take away: ${a} take away ${b} is ${ans}.`, ex: { a, b, op, ans, thing: st.thing } };
+};
+/* ---------------- lessons: Watch → Together → You ---------------- */
+const seqHTML = (nums, blank) => `<div class="art">${seqSVG({ nums, blank })}</div>`;
+LESSONS.pat = function () {
+  const s = pick(R, [2, 5, 10]), st = s * nn(1, 3), seq = [0, 1, 2, 3].map(i => st + s * i), nxt = st + s * 4;
+  const m0 = 5 * nn(1, 4), mseq = [m0, m0 + 5, m0 + 10, m0 + 15, m0 + 20];
+  return [
+    { ph: 0, frames: [
+      { html: seqHTML([1, 2, 3, 4, 5], 4), say: 'Counting in ones: 1, 2, 3, 4. Each number is one more. Next comes 5!' },
+      { html: seqHTML([2, 4, 6, 8, 10], 4), say: 'Counting in twos: 2, 4, 6, 8. Each jump is 2. Next comes 10!' },
+      { html: seqHTML([10, 20, 30, 40, 50], 4), say: 'Counting in tens: 10, 20, 30, 40. Next comes 50!' },
+      { html: seqHTML([10, 9, 8, 7, 6], 4), say: 'Counting back: 10, 9, 8, 7. Each number is one less. Next comes 6.' },
+    ] },
+    { ph: 1, say: `${seq.join(', ')}. How big is each jump?`, helpSay: `Count from ${seq[0]} to ${seq[1]}. How many?`, init() { this.won = false; this.q = askQ([opt(s, 'num', String(s)), opt(1, 'num', '1', 'wrongStep'), opt(s === 10 ? 5 : 10, 'num', String(s === 10 ? 5 : 10), 'wrongStep')], s, `From ${seq[0]} to ${seq[1]} is a jump of ${s}.`, `Each jump is ${s}.`); },
+      html: () => `<div class="art">${seqSVG({ nums: seq, blank: -1 })}</div><div class="pt sm">Jump = ?</div>` },
+    { ph: 1, say: `So what comes next? ${seq.join(', ')}...`, helpSay: `${seq[3]} and ${s} more.`, init() { this.won = false; this.q = askQ([N(nxt), N(seq[3] + 1, 'wrongStep'), N(nxt + s, 'offByOne')], nxt, `${seq[3]} plus ${s}.`, `${seq[3]} and ${s} more is ${nxt}.`); }, html: () => seqHTML([...seq, nxt], 4) },
+    { ph: 1, say: `A number is missing. ${mseq[0]}, ${mseq[1]}, what, ${mseq[3]}, ${mseq[4]}.`, helpSay: 'Count in fives. Say each number out loud.', init() { this.won = false; this.q = askQ([N(mseq[2]), N(mseq[1] + 1, 'wrongStep'), N(mseq[2] + 10, 'wrongStep')], mseq[2], 'Count in fives from the first number.', `${mseq[1]} and 5 more is ${mseq[2]}.`); }, html: () => seqHTML(mseq, 2) },
+    ...youSteps('pat'),
+  ];
+};
+LESSONS.wp = function () {
+  const n = pick(R, WP_NAMES), a = nn(3, 5), b = nn(2, 3), c = nn(6, 8), d = nn(2, 3);
+  const pic = (x, y, op, icon = 'mango') => `<div class="art">${storySVG({ icon, a: x, b: y, op })}</div>`;
+  return [
+    { ph: 0, frames: [
+      { html: pic(a, 0, '+'), say: `${n} has ${a} mangoes.` },
+      { html: pic(a, b, '+'), say: `Mama gives ${n} ${b} more. More are coming, so we add.` },
+      { html: pic(a, b, '+') + `<div class="pt sm">${a} + ${b} = ${a + b}</div>`, say: `Count them all: ${a} plus ${b} is ${a + b} mangoes!` },
+      { html: pic(c, 0, '+', 'bus'), say: `Now the matatu. There are ${c} people in the matatu.` },
+      { html: pic(c, d, '−', 'bus'), say: `${d} people get off. They go away, so we take away.` },
+      { html: pic(c, d, '−', 'bus') + `<div class="pt sm">${c} − ${d} = ${c - d}</div>`, say: `${c} take away ${d} is ${c - d}. ${c - d} people are left.` },
+    ] },
+    { ph: 1, say: `${n} has 6 bananas. ${n} gives 2 to a friend. Do we add, or take away?`, helpSay: 'Do the bananas come, or go away?', init() { this.won = false; this.q = askQ([opt('sub', 'word', 'Take away'), opt('add', 'word', 'Add', 'wrongOp')], 'sub', 'The bananas go away.', 'They go away, so we take away.'); }, html: () => pic(6, 2, '−', 'banana') },
+    { ph: 1, say: '6 take away 2. How many bananas are left?', helpSay: 'Count the bananas that are still there.', init() { this.won = false; this.q = askQ([N(4), N(8, 'wrongOp'), N(2, 'storyNumber')], 4, 'Count the bright bananas.', '6 take away 2 is 4.'); }, html: () => pic(6, 2, '−', 'banana') },
+    { ph: 1, say: '5 goats are eating. 3 more goats come. How many goats now?', helpSay: 'More come, so we add. Count them all.', init() { this.won = false; this.q = askQ([N(8), N(2, 'wrongOp'), N(5, 'storyNumber')], 8, 'More goats came. Count them all.', '5 plus 3 is 8.'); }, html: () => pic(5, 3, '+', 'goat') },
+    ...youSteps('wp'),
+  ];
+};
+/* ---------------- Inspire: a counting-in-twos rhyme and a market story ---------------- */
+if (!RHYME_LIB.some(r => r.skill === 'pat')) {
+  const shoe = RHYME_LIB.find(r => r.id === 'shoe');
+  if (shoe) RHYME_LIB.push({ ...shoe, id: 'shoe2', skill: 'pat', title: 'Buckle My Shoe: count in twos', q: [{ ask: 'Two, four, six... what comes next?', ans: '8', opts: ['8', '7', '10'] }, { ask: 'In the rhyme, what comes after "nine, ten"?', ans: 'a big fat hen', opts: ['a big fat hen', 'knock at the door', 'buckle my shoe'] }] });
+}
+STORIES.push({ id: 'market', skill: 'wp', title: "Baraka's Market Day", from: 'A Somo story', pages: [
+  [() => A.village() + iconSVG('mango').replace('<svg ', '<svg x="40" y="120" width="44" height="44" ') + iconSVG('mango').replace('<svg ', '<svg x="88" y="120" width="44" height="44" ') + iconSVG('mango').replace('<svg ', '<svg x="136" y="120" width="44" height="44" '), 'Baraka helps Mama at the market. They have 3 mangoes to sell.'],
+  [() => A.village() + [40, 88, 136, 184, 232].map(x => iconSVG('mango').replace('<svg ', `<svg x="${x}" y="120" width="44" height="44" `)).join(''), 'Grandpa brings 2 more mangoes. Now they have 5 mangoes!'],
+  [() => A.village() + [40, 88, 136].map(x => iconSVG('mango').replace('<svg ', `<svg x="${x}" y="120" width="44" height="44" `)).join('') + [184, 232].map(x => iconSVG('coin').replace('<svg ', `<svg x="${x}" y="124" width="36" height="36" `)).join(''), 'A lady buys 2 mangoes. She pays with coins. Now 3 mangoes are left.'],
+  [() => A.village() + iconSVG('cup').replace('<svg ', '<svg x="120" y="110" width="60" height="60" '), 'With the coins, Mama buys two cups of chai. "Asante, Baraka!" she says.'],
+], q: [{ ask: 'They had 3 mangoes. Grandpa brought 2 more. How many then?', ans: '5', opts: ['5', '1', '3'] }, { ask: 'They had 5 mangoes and sold 2. How many were left?', ans: '3', opts: ['3', '7', '2'] }] });
+/* ---------------- games and the placement check ---------------- */
+for (const g of ['boda', 'penalty', 'star', 'mango']) if (GAME_BY[g]) for (const id of ['pat', 'wp']) if (!GAME_BY[g].skills.includes(id)) GAME_BY[g].skills.push(id);
+LADDER.num.splice(LADDER.num.findIndex(x => x[0] === 'facts') + 1, 0, ['pat', 1]); LADDER.num.splice(LADDER.num.findIndex(x => x[0] === 'add'), 0, ['wp', 1]);
+/* the at-home activity in Kiswahili too, when there is one */
+{ const _os = Offline.show; if (_os) Offline.show = function (id) { const r = _os.apply(this, arguments); const o = OFFLINE[id || this.id]; const box = document.querySelector('#screen .offc'); if (o && o.ssw && box && !box.querySelector('.ossw')) box.insertAdjacentHTML('beforeend', `<div class="ossw"><b>Kwa Kiswahili:</b><ol>${o.ssw.map(x => `<li>${esc(x)}</li>`).join('')}</ol></div>`); return r; }; }
+{ const el = document.createElement('style'); el.textContent = `.ossw{margin-top:calc(var(--u)*8);font-size:calc(var(--u)*13);opacity:.9}.ossw ol{margin:calc(var(--u)*4) 0 0;padding-left:calc(var(--u)*18)}`; document.head.appendChild(el); }
+window.__ky = Object.assign(window.__ky || {}, { seqSVG, storySVG });
+/* coach tips for the new mistakes: the pattern strip and the story picture */
+{ const _ts = tipSteps; tipSteps = function (tag, e) {
+    const x = (e && e.ex) || {};
+    if (e && e.skill === 'pat' && x.nums && ['wrongStep', 'wrongWay', 'offByOne', 'reversal'].includes(tag)) { const up = x.dir > 0; return [{ svg: seqSVG({ nums: x.nums, blank: -1 }), say: `Look at the jumps: ${x.nums.slice(0, 3).join(', ')}.` }, { svg: seqSVG({ nums: x.nums, blank: -1 }), say: `Each time it goes ${up ? 'up' : 'down'} by ${x.step}. Find the jump first, then count on.` }]; }
+    if (e && e.skill === 'wp' && x.a != null && ['wrongOp', 'storyNumber', 'offByOne', 'offByTen', 'forgotCarry'].includes(tag)) { const v = { type: 'story', icon: 'mango', a: x.a, b: x.b, op: x.op }; return [{ svg: storySVG(v), say: x.op === '+' ? `${x.b} more came. Coming means adding.` : `${x.b} went away. Going away means taking away.` }, { svg: storySVG(v), say: `${x.a} ${x.op === '+' ? 'plus' : 'take away'} ${x.b} is ${x.ans}. The answer is a new number.` }]; }
+    return _ts(tag, e);
+  }; }
+
 boot();
 
 </script>
