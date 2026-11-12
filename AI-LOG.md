@@ -140,3 +140,13 @@
 - **Goal:** One long, plain-words file that explains what Somo is and every feature.
 - **Prompt:** "Tell me all the features of Somo and what Somo is in a long file."
 - **What Claude Did:** wrote `SOMO-GUIDE.md` (what Somo is, the learning model, the child's app feature by feature, Somo 4, Somo 3, AI teachers, data, privacy, how it is built, the timeline) and linked it from the README. Also fixed an empty blue bar that showed on the teacher page for teachers who are not the admin.
+
+## Feature 1: read-aloud check
+- **Date:** Nov 12, 2026
+- **Goal:** The child reads a short passage out loud; Somo follows word by word and saves accuracy and words correct per minute.
+- **Prompt:** "Read-aloud check: add to the Stage 3 Read and find unit, the Stage 4 Sentences unit and the story corner... Web Speech API (en-KE, then en-US)... match in order, up to 3 words ahead... accuracy % and words correct per minute... Let's read these together... a grown-up switch Reading microphone... fallback Read it to a grown-up."
+- **What Claude Did:**
+  - `somo2/`: a "Read aloud" step before "Teach" in Read and find and Sentences, and a "Read it" shelf in the story corner. 8 passages, checked in code to use only taught words. Live word highlight, "read" / "not yet" words, "Let's read these together" with tap-to-hear, every attempt saved with progress (synced online), a "Reading aloud" trend in the progress report.
+  - The "Reading microphone" switch is in the grown-ups panel (press and hold the people icon), because there is no Parent page any more. It is off until a grown-up turns it on. Without it: "Read it to a grown-up", then "Read it well" or "Needs more practice". No audio is stored.
+  - `somo4/`: a "Reading aloud" chart and table on each student's page.
+  - Source: `prototypes/somo-arcade/src/b2/reading.js` (Chronicle). Tested with a stand-in speech recogniser: no page or console errors.

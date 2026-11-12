@@ -10117,6 +10117,168 @@ ${VIEW ? '[data-k="pdel"],[data-k="con"],[data-k="csave"],[data-k="cshow"],[data
 }
 window.__ky = Object.assign(window.__ky || {}, { School, VIEW });
 
+/* ============================================================================
+   READ-ALOUD CHECK (Nov 2026)
+   The child reads a short passage out loud. Passages use only words Somo has already taught (checked below).
+   - In the Stage 3 "Read and find" unit and the Stage 4 "Sentences" unit (a "Read aloud" step before "Teach"),
+     and in the story corner ("Read it" shelf).
+   - With the browser's speech recognition (en-KE, then en-US), continuous with interim results: spoken words are
+     matched to the passage in order, looking up to 3 words ahead. The current word is highlighted; each word ends
+     "read" or "not yet". Accuracy % and words correct per minute are saved for every attempt (with progress, so it
+     syncs online) and shown as a trend in the progress report (teachers and the admin) and the teacher page.
+   - Missed words come back as "Let's read these together", tap to hear. Never a fail.
+   - Browser speech recognition can send audio to the browser maker's servers, so it is used only when a grown-up
+     turns on "Reading microphone" (grown-ups panel, press and hold the people icon). It is off until then.
+   - Without it (switch off, no recognition, no permission, no internet): "Read it to a grown-up", then the grown-up
+     taps "Read it well" or "Needs more practice". Somo stores no audio.
+   ========================================================================== */
+const READ_FUNC = ['the', 'a', 'is', 'on', 'in', 'by', 'and', 'it', 'at', 'can', 'not', 'up', 'no', 'big', 'red', 'hot'];
+const READ_OK = new Set([...READ_FUNC, ...CVC, ...PICWORDS, ...SUBJ, ...OBJ, ...SIGHT.flat()]);
+const PASSAGES = [
+  { id: 'r1', skill: 'pic', title: 'The cat and the dog', text: 'The cat sat. The dog sat. The cat and the dog sat in the sun.' },
+  { id: 'r2', skill: 'pic', title: 'The big bus', text: 'Look at the big red bus. The bus is hot in the sun.' },
+  { id: 'r3', skill: 'pic', title: 'A hen in a box', text: 'A hen is in the box. A pig is by the box. The pig is not in the box.' },
+  { id: 'r4', skill: 'pic', title: 'The fish', text: 'Here is a net. Here is a fish. The fish is in the net!' },
+  { id: 's1', skill: 'sent', title: 'Where is the hat?', text: 'Where is the hat? It is not in the bag. The hat is on the bed.' },
+  { id: 's2', skill: 'sent', title: 'Come here', text: 'Come here, said the hen. The pig and the dog come. They sit in the sun.' },
+  { id: 's3', skill: 'sent', title: 'The goat', text: 'They went on the bus. A goat is on the bus. Look at that goat!' },
+  { id: 's4', skill: 'sent', title: 'Mango time', text: 'I have a mango. The mango is in the cup. The cup is by the pot.' },
+].filter(p => p.text.toLowerCase().replace(/[^a-z' ]/g, ' ').split(/\s+/).filter(Boolean).every(w => w === 'i' || READ_OK.has(w)));
+const normW = w => String(w).toLowerCase().replace(/[^a-z']/g, '');
+const SOUNDS_LIKE = { too: 'two', to: 'two', the: 'a', see: 'sea', sun: 'son', by: 'bye', here: 'hear', where: 'wear', for: 'four', i: 'eye', mango: 'mangoes' };
+function wordMatch(said, want) {
+  if (!said || !want) return false; if (said === want || SOUNDS_LIKE[want] === said || SOUNDS_LIKE[said] === want) return true;
+  if (want.length >= 4 && said.length >= 3) { let d = 0; const a = said, b = want; if (Math.abs(a.length - b.length) > 1) return false; for (let i = 0, j = 0; i < a.length || j < b.length;) { if (a[i] === b[j]) { i++; j++; } else { d++; if (d > 1) return false; if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; } } } return true; }
+  return said + 's' === want || want + 's' === said;
+}
+/* match the spoken words to the passage in order, looking up to 3 words ahead */
+function matchReading(words, spoken) {
+  const st = words.map(() => 0); let p = 0;
+  for (const s of spoken) { if (p >= words.length) break; for (let k = 0; k <= 3 && p + k < words.length; k++) { if (wordMatch(s, words[p + k].n)) { st[p + k] = 1; p = p + k + 1; break; } } }
+  return { st, p };
+}
+const RA = () => { const k = KY(); return k.reads || (k.reads = []); };
+const readMicOn = () => KY().readMic === true;
+const SRC = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+const MIC2_SVG = '<svg viewBox="0 0 24 24" width="46" height="46" aria-hidden="true"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="#fff"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>';
+const ReadAloud = {
+  cur: null, words: [], st: [], p: 0, rec: null, t0: 0, tEnd: 0, onDone: null, skill: null, mode: 'mic', lang: 'en-KE', heard: '',
+  pick(skill) { const list = PASSAGES.filter(p => !skill || p.skill === skill); const done = RA().map(r => r.id); return list.find(p => !done.includes(p.id)) || pick(R, list); },
+  start(skill, onDone) { this.open(this.pick(skill), onDone, skill); },
+  open(passage, onDone, skill) {
+    this.cur = passage; this.onDone = onDone || null; this.skill = skill || passage.skill; this.words = passage.text.split(/\s+/).map(t => ({ t, n: normW(t) })).filter(w => w.n);
+    this.st = this.words.map(() => 0); this.p = 0; this.result = null; this.mode = readMicOn() && SRC ? 'mic' : 'grownup'; this.heard = '';
+    App.state = 'readaloud'; Round.game = null; App.attract = null; HUD.show(false); Card.hide(); Music.stop(); this.render();
+    Speech.say(this.mode === 'mic' ? `Read it out loud! Tap the microphone, then read the words. Take your time.` : `Read it to a grown-up! Point at each word as you read.`);
+  },
+  render() {
+    const r = this.result, w = this.words;
+    const passage = `<div class="rapass" id="rapass">${w.map((x, i) => `<span class="raw ${r ? (this.st[i] ? 'ok' : 'nyet') : this.st[i] ? 'ok' : ''}${!r && this.rec && i === this.p ? ' now' : ''}">${esc(x.t)}</span>`).join(' ')}</div>`;
+    let ctl;
+    if (r) {
+      const miss = [...new Set(w.filter((x, i) => !this.st[i]).map(x => x.n))];
+      ctl = `<div class="kcard rares"><h3>${r.mode === 'grownup' ? (r.ok ? 'You read it well!' : 'Good practice!') : r.read === r.total ? 'You read every word!' : `You read ${r.read} of ${r.total} words!`}</h3>
+        ${r.mode === 'mic' ? `<p class="kfine">${r.acc}% of the words · ${r.wcpm} words a minute</p>` : ''}
+        ${miss.length && r.mode === 'mic' ? `<p><b>Let's read these together:</b></p><div class="ramiss">${miss.map(m => `<button data-k="rasay" data-v="${esc(m)}">${SPEAKER_SVG.replace('<svg ', '<svg width="20" height="20" ')} ${esc(m)}</button>`).join('')}</div>` : ''}
+        <div class="row"><button class="btn ghost" data-k="raagain">Read again</button><button class="btn go" data-k="radone">${this.onDone ? 'Next' : 'Done'}</button></div></div>`;
+    } else if (this.mode === 'mic') {
+      ctl = this.rec ? `<div class="srec"><span class="dot"></span><b>Reading…</b><button class="micb stop" data-k="rastop" aria-label="I am done reading">${'<svg viewBox="0 0 24 24" width="36" height="36"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="#fff"/></svg>'}</button></div>`
+        : `<div class="srec"><button class="micb" data-k="rago" aria-label="Tap and read">${MIC2_SVG}</button></div><p class="kfine" style="text-align:center">Tap the microphone, then read.</p><button class="btn ghost" data-k="ragrown">Read it to a grown-up instead</button>`;
+    } else {
+      ctl = `<div class="kcard"><p><b>Read it to a grown-up.</b> Point at each word as you read.</p><p class="kfine">Grown-up: listen, then tap one. Somo does not record anything.</p>
+        <div class="row"><button class="btn go" data-k="rawell">Read it well</button><button class="btn ghost" data-k="ramore">Needs more practice</button></div></div>`;
+    }
+    setScreen(`<div class="scr jr raread"><div class="toprow"><button class="hb" data-k="raquit" aria-label="Back">${BACK_SVG}</button><div class="h2" style="flex:1">${esc(this.cur.title)}</div></div>
+      <div class="kcard">${passage}</div>${ctl}${this.msg ? `<p class="kfine">${esc(this.msg)}</p>` : ''}${grownBtn()}</div>`);
+  },
+  go() {
+    if (!SRC) { this.mode = 'grownup'; this.msg = 'This browser cannot listen. Read it to a grown-up.'; return this.render(); }
+    Speech.stop(); this.st = this.words.map(() => 0); this.p = 0; this.heard = ''; this.msg = ''; this.final = '';
+    const rec = new SRC(); this.rec = rec; rec.lang = this.lang; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 1; this.t0 = 0; this.tEnd = 0;
+    rec.onresult = e => {
+      let fin = '', inter = ''; for (let i = 0; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) fin += ' ' + t; else inter += ' ' + t; }
+      const spoken = (fin + ' ' + inter).split(/\s+/).map(normW).filter(Boolean); if (spoken.length && !this.t0) this.t0 = performance.now();
+      const m = matchReading(this.words, spoken); if (m.p > this.p) this.tEnd = performance.now(); this.st = m.st; this.p = m.p;
+      document.querySelectorAll('#rapass .raw').forEach((el, i) => { el.classList.toggle('ok', !!this.st[i]); el.classList.toggle('now', i === this.p); });
+      if (this.p >= this.words.length) this.stop();
+    };
+    rec.onerror = e => {
+      if (e.error === 'language-not-supported' && this.lang === 'en-KE') { this.lang = 'en-US'; this.rec = null; return this.go(); }
+      if (['not-allowed', 'service-not-allowed', 'network', 'audio-capture'].includes(e.error)) { this.rec = null; this.mode = 'grownup'; this.msg = e.error === 'network' ? 'No internet for listening right now. Read it to a grown-up.' : 'Somo cannot use the microphone. Read it to a grown-up.'; this.render(); }
+    };
+    rec.onend = () => { if (this.rec === rec) { this.rec = null; if (this.mode === 'mic') this.finish(); } };
+    try { rec.start(); this.startedAt = performance.now(); Sfx.play('pop'); } catch (e) { this.rec = null; this.mode = 'grownup'; }
+    this.render(); this.watch = setTimeout(() => this.stop(), 90000);
+  },
+  stop() { clearTimeout(this.watch); const r = this.rec; if (r) { try { r.stop(); } catch (e) { this.rec = null; this.finish(); } } },
+  finish(grown) {
+    const total = this.words.length, read = this.st.reduce((a, b) => a + b, 0);
+    let res;
+    if (grown != null) res = { mode: 'grownup', ok: grown, total, read: null, acc: null, wcpm: null };
+    else { const secs = Math.max(1, ((this.tEnd || performance.now()) - (this.t0 || this.startedAt || performance.now())) / 1000); res = { mode: 'mic', total, read, acc: Math.round(100 * read / total), wcpm: read ? Math.round(read / (secs / 60)) : 0 }; }
+    this.result = res; RA().push({ id: this.cur.id, skill: this.skill, at: Date.now(), ...res }); if (RA().length > 200) RA().shift(); kSave();
+    if (typeof addXP === 'function' && (res.mode === 'grownup' || read)) addXP(10);
+    Sfx.play('fanfare'); confetti(res.mode === 'mic' && read === total ? 40 : 20); this.render();
+    if (res.mode === 'grownup') Speech.say(grown ? `Well done, ${LEARNER}! You read it well.` : 'Good practice! Let us read it again another time.');
+    else { const miss = [...new Set(this.words.filter((x, i) => !this.st[i]).map(x => x.n))]; Speech.say(read === total ? `You read every word, ${LEARNER}!` : `You read ${read} of ${total} words! ${miss.length ? "Let's read these together: " + miss.slice(0, 5).join(', ') + '.' : ''}`); }
+  },
+  done() { const f = this.onDone; this.onDone = null; if (f) f(); else if (this.fromLib) Library.home('read'); else showHome(); },
+};
+/* the units: a "Read aloud" step before "Teach" in Read and find, and Sentences */
+{ const _us = unitSteps; unitSteps = function (id) { const ss = _us(id); if ((id === 'pic' || id === 'sent') && !ss.some(s => s.k === 'read')) { const ti = ss.findIndex(s => s.k === 'teach'); ss.splice(ti < 0 ? ss.length : ti, 0, { k: 'read' }); } return ss; }; }
+PHASE.read = 'Interpret';
+{ const _sl = stepLabel; stepLabel = function (id, i) { const s = unitSteps(id)[i]; return s && s.k === 'read' ? 'Read aloud' : _sl(id, i); }; }
+{ const _sd = stepDisc; stepDisc = function (id, s) { return s.k === 'read' ? '<svg viewBox="0 0 48 48" width="40" height="40"><circle cx="24" cy="24" r="22" fill="#2F7D4F"/><rect x="19" y="10" width="10" height="18" rx="5" fill="#fff"/><path d="M14 24a10 10 0 0 0 20 0M24 34v5" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>' : _sd(id, s); }; }
+{ const _rs = runStep; runStep = function (id, i) { const s = unitSteps(id)[i]; if (s && s.k === 'read') { App.step = { id, i }; J().strand = SKILL[id].mode; setFriend(friendFor(id).id); return ReadAloud.start(id, () => { markStep(id, s); App.state = 'hub'; JR.scrollToCur = true; showHome(); }); } return _rs(id, i); }; }
+/* story corner: a "Read it" shelf */
+{ const _h = Library.home; Library.home = function (tab) {
+    if ((tab || this.tab) !== 'read') { _h.call(this, tab); const seg = document.querySelector('.lib .seg'); if (seg && !seg.querySelector('[data-k="read"]')) seg.insertAdjacentHTML('beforeend', '<button data-l="tab" data-k="read" aria-pressed="false">Read it</button>'); return; }
+    _h.call(this, 'rhymes'); this.tab = 'read'; const seg = document.querySelector('.lib .seg'); if (seg) { seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', 'false')); seg.insertAdjacentHTML('beforeend', '<button data-l="tab" data-k="read" aria-pressed="true">Read it</button>'); }
+    const best = id => RA().filter(r => r.id === id).slice(-1)[0];
+    const g = document.querySelector('.libgrid'); if (g) g.innerHTML = PASSAGES.map(p => { const b = best(p.id); return `<button class="libcard" data-k="raopen" data-v="${p.id}"><span class="lart">${skillIcon(p.skill, 60)}</span><b>${esc(p.title)}</b><small>${esc(p.text.split(' ').slice(0, 5).join(' '))}…</small>${b ? '<span class="tick">✓</span>' : ''}</button>`; }).join('');
+    Speech.say('Read it yourself! Pick one to read out loud.');
+  }; }
+/* grown-ups panel: the "Reading microphone" switch (off until a grown-up turns it on) */
+{ const _sp = showParent; showParent = function () { _sp(); const el = $('#parent'), h = el.querySelector('h3'); if (!h) return;
+    h.insertAdjacentHTML('beforebegin', `<h3>Reading microphone</h3><p class="muted">For the read-aloud check, Somo can listen to ${esc(LEARNER)} read and follow along word by word. It uses the browser's speech recognition, which may send the sound to the browser maker's servers (Google or Apple) to turn it into words. Somo itself stores no audio, only which words were read. When it is off, the child reads to a grown-up instead.</p>
+      <p><label style="display:flex;gap:8px;align-items:center;font-weight:800"><input type="checkbox" id="readmic" ${readMicOn() ? 'checked' : ''} style="width:22px;height:22px"> Reading microphone ${readMicOn() ? 'on' : 'off'}</label>${SRC ? '' : ' <span class="muted">(this browser has no speech recognition, so it reads to a grown-up anyway)</span>'}</p>`);
+    const cb = $('#readmic'); if (cb) cb.addEventListener('change', () => { KY().readMic = cb.checked; kSave(); showParent(); });
+  }; }
+/* the trend: in the progress report (shown to teachers and the admin) */
+function readTrendHTML(list) {
+  const mic = list.filter(r => r.mode === 'mic').slice(-12), grown = list.filter(r => r.mode === 'grownup');
+  if (!list.length) return '<p class="kfine">No read-aloud checks yet.</p>';
+  const W = 300, H = 90; const mx = Math.max(60, ...mic.map(r => r.wcpm || 0)); const xs = i => 20 + i * ((W - 30) / Math.max(1, mic.length - 1));
+  const line = (k, m, col) => mic.length ? `<polyline fill="none" stroke="${col}" stroke-width="3" points="${mic.map((r, i) => `${xs(i)},${H - 10 - (H - 20) * (r[k] || 0) / m}`).join(' ')}"/>${mic.map((r, i) => `<circle cx="${xs(i)}" cy="${H - 10 - (H - 20) * (r[k] || 0) / m}" r="3.5" fill="${col}"/>`).join('')}` : '';
+  const last = mic[mic.length - 1];
+  return `${mic.length ? `<svg viewBox="0 0 ${W} ${H}" class="kchart" role="img" aria-label="Reading accuracy and words per minute over time">${line('acc', 100, '#2F7D4F')}${line('wcpm', mx, '#236FA6')}</svg>
+    <p class="kfine"><b style="color:#2F7D4F">Green</b>: % of words read. <b style="color:#236FA6">Blue</b>: words correct per minute. Latest: ${last.acc}% · ${last.wcpm} a minute (${esc(new Date(last.at).toLocaleDateString())}).</p>` : ''}
+    ${grown.length ? `<p class="kfine">Read to a grown-up: ${grown.length} time${grown.length > 1 ? 's' : ''} (${grown.filter(r => r.ok).length} "read it well").</p>` : ''}`;
+}
+{ const _rn = Parent.render; Parent.render = function (d, n, p) { _rn.call(this, d, n, p); const a = document.querySelector('[data-k="prefresh"]'); if (!a) return;
+    a.insertAdjacentHTML('beforebegin', `<div class="kcard"><h3>Reading aloud</h3>${readTrendHTML(RA())}<p class="kfine">Kusoma kwa sauti: asilimia ya maneno yaliyosomwa na maneno kwa dakika.</p></div>`); }; }
+$('#stage').addEventListener('click', e => {
+  const el = e.target.closest('[data-k]'); if (!el) return; const a = el.dataset.k; if (!['rago', 'rastop', 'ragrown', 'rawell', 'ramore', 'rasay', 'raagain', 'radone', 'raquit', 'raopen'].includes(a)) return; Sfx.unlock();
+  const R2 = ReadAloud;
+  if (a === 'rago') R2.go(); else if (a === 'rastop') R2.stop(); else if (a === 'ragrown') { R2.mode = 'grownup'; R2.render(); Speech.say('Read it to a grown-up! Point at each word as you read.'); }
+  else if (a === 'rawell' || a === 'ramore') R2.finish(a === 'rawell'); else if (a === 'rasay') Speech.say(el.dataset.v);
+  else if (a === 'raagain') R2.open(R2.cur, R2.onDone, R2.skill); else if (a === 'radone') R2.done();
+  else if (a === 'raquit') { if (R2.rec) { const r = R2.rec; R2.rec = null; try { r.abort(); } catch (x) { } } R2.fromLib ? Library.home('read') : showHome(); }
+  else if (a === 'raopen') { const p = PASSAGES.find(x => x.id === el.dataset.v); R2.fromLib = true; R2.open(p, null, p.skill); }
+});
+{ const _ls = L.start; L.start = function (id) { ReadAloud.fromLib = false; return _ls.call(this, id); }; }
+{ const _fs = fabSync; fabSync = function () { const b = $('#kidiFab'); if (b && App.state === 'readaloud') { b.hidden = true; return; } _fs(); }; }
+{
+  const u = n => `calc(var(--u)*${n})`;
+  const el = document.createElement('style'); el.textContent = `
+.rapass{font-size:${u(28)};line-height:1.6;font-weight:800;color:#2B1E17;text-align:center}.raw{display:inline-block;border-radius:${u(8)};padding:0 ${u(3)};transition:background .2s}
+.raw.now{background:#FFE7A0;box-shadow:0 0 0 ${u(2)} #F2B829}.raw.ok{background:#CDEBD3;color:#1E5631}.raw.nyet{background:#EADBC4;color:#6E5644;text-decoration:underline dotted}
+.ramiss{display:flex;flex-wrap:wrap;gap:${u(6)}}.ramiss button{display:flex;align-items:center;gap:${u(4)};background:#FFF1C9;color:#2B1E17;border-radius:${u(12)};padding:${u(4)} ${u(10)};font-weight:800;font-size:${u(18)}}
+.rares h3{margin:0}`;
+  document.head.appendChild(el);
+}
+window.__ky = Object.assign(window.__ky || {}, { ReadAloud, PASSAGES, matchReading, readTrendHTML });
+
 boot();
 
 </script>
