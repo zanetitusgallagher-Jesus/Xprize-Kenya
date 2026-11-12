@@ -9769,6 +9769,92 @@ $('#stage').addEventListener('click', e => {
 }
 window.__ky = Object.assign(window.__ky || {}, { Teacher, Subs, PROG });
 
+/* ============================================================================
+   CERTIFICATES (Nov 2026, from Ekah's website): after every lesson the child gets a certificate with their score:
+   how many of the lesson's own questions ("You!" part) were right the first time. It shows the child's name, the
+   lesson, the score, stars, the date and the animal friend's signature. It can be printed or saved as a picture,
+   and every certificate is kept in "Certificates" (home screen). They are saved with progress, so teachers and the
+   admin see them too.
+   ========================================================================== */
+const CERTS = () => { const k = KY(); return k.certs || (k.certs = []); };
+/* count the lesson's recorded questions: the first pick on each one counts (same rule as everywhere in Somo) */
+{ const _st = L.start; L.start = function (id) { L.score = { right: 0, total: 0 }; return _st.call(this, id); }; }
+{ const _ans = L.answer; L.answer = function (i, el) {
+    const s = this.step, q = s && s.q; if (q && q.item && !q.tries && !q.lock && L.score) { L.score.total++; if (String(q.opts[i].v) === String(q.cv)) L.score.right++; }
+    return _ans.call(this, i, el);
+  }; }
+function certSVG(c) {
+  const f = FRIENDS[c.friend] || FRIENDS.kuku, pct = c.total ? Math.round(100 * c.right / c.total) : 100, stars = c.total && c.right === c.total ? 3 : pct >= 60 ? 2 : 1;
+  const date = new Date(c.at).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+  const band = Array.from({ length: 24 }, (_, i) => `<rect x="${20 + i * 25}" y="0" width="25" height="10" fill="${['#B5462A', '#F2B829', '#2F7D4F'][i % 3]}"/>`).join('');
+  const star = (x, on) => `<path transform="translate(${x} 292) scale(1.6)" d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" fill="${on ? '#F2B829' : '#EADBC4'}" stroke="${on ? '#C98A0C' : '#C9B49A'}" stroke-width="1.2"/>`;
+  const face = friendFace(f.id, 'happy', 64).replace('<svg ', '<svg x="500" y="352" ');
+  const T = (y, s, size, fill = '#2B1E17', weight = 800) => `<text x="320" y="${y}" font-size="${size}" font-weight="${weight}" text-anchor="middle" fill="${fill}" font-family="Baloo 2,Trebuchet MS,sans-serif">${esc(s)}</text>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 460" class="certsvg" role="img" aria-label="Certificate: ${esc(c.name)} scored ${c.right} out of ${c.total} in ${esc(c.lesson)}">
+    <rect width="640" height="460" rx="22" fill="#FFFBF2"/><rect x="10" y="10" width="620" height="440" rx="16" fill="none" stroke="#2F7D4F" stroke-width="6"/><rect x="20" y="20" width="600" height="420" rx="12" fill="none" stroke="#2F7D4F" stroke-width="2"/>
+    <g transform="translate(0 30)">${band}</g><g transform="translate(0 424)">${band}</g>
+    ${T(92, 'Certificate of Learning', 40, '#2F7D4F')}${T(124, 'This certificate is proudly given to', 17, '#6E5644', 600)}
+    ${T(176, c.name, 46, '#B5462A')}<line x1="170" y1="190" x2="470" y2="190" stroke="#C9B49A" stroke-width="2" stroke-dasharray="6 6"/>
+    ${T(222, 'for finishing the lesson', 17, '#6E5644', 600)}${T(254, c.lesson, 28)}
+    ${star(258, stars >= 1)}${star(300, stars >= 2)}${star(342, stars >= 3)}
+    ${T(360, `Score: ${c.right} of ${c.total} right the first time (${pct}%)`, 20, '#2F7D4F')}
+    <line x1="60" y1="398" x2="250" y2="398" stroke="#2B1E17" stroke-width="1.5"/><line x1="300" y1="398" x2="490" y2="398" stroke="#2B1E17" stroke-width="1.5"/>
+    <text x="60" y="392" font-size="15" font-weight="800" fill="#2B1E17" font-family="Baloo 2,sans-serif">${esc(date)}</text><text x="60" y="413" font-size="12" fill="#6E5644" font-family="Baloo 2,sans-serif">date</text>
+    <text x="490" y="392" font-size="15" font-weight="800" text-anchor="end" fill="#2B1E17" font-family="Baloo 2,sans-serif">${esc(f.name)} the ${esc(f.animal)}</text><text x="490" y="413" font-size="12" text-anchor="end" fill="#6E5644" font-family="Baloo 2,sans-serif">your learning friend</text>${face}
+    <text x="320" y="56" font-size="12" text-anchor="middle" fill="#6E5644" letter-spacing="2" font-weight="800" font-family="Baloo 2,sans-serif">SOMO · LEARN IT. PLAY IT.</text></svg>`;
+}
+const Certs = {
+  cur: null,
+  add(id) {
+    const sc = L.score || { right: 0, total: 0 }; const c = { id, lesson: SHORT[id] || id, name: LEARNER, friend: friendFor(id).id, right: sc.right, total: sc.total, at: Date.now() };
+    CERTS().push(c); if (CERTS().length > 200) CERTS().shift(); kSave(); return c;
+  },
+  show(c, back) {
+    this.cur = c; this.back = back; App.state = 'cert'; Round.game = null; App.attract = null; HUD.show(false); Card.hide(); Sfx.play('fanfare'); confetti(40);
+    setScreen(`<div class="scr dim jr certscr"><div class="certwrap" id="certPrint">${certSVG(c)}</div>
+      <div class="row"><button class="btn ghost" data-k="cprint">Print</button><button class="btn ghost" data-k="csavepic">Save picture</button></div>
+      <button class="btn go" data-k="cnext">${back === 'list' ? 'Back to my certificates' : 'Continue'}</button>${grownBtn()}</div>`);
+    const pct = c.total ? Math.round(100 * c.right / c.total) : 100;
+    Speech.say(c.total ? `Here is your certificate, ${c.name}! ${c.right} out of ${c.total} right the first time. ${pct === 100 ? 'Perfect!' : 'Well done!'}` : `Here is your certificate, ${c.name}! Well done!`);
+  },
+  list() {
+    App.state = 'certs'; Round.game = null; App.attract = null; HUD.show(false); Card.hide(); const all = CERTS().slice().reverse();
+    setScreen(`<div class="scr jr"><div class="toprow"><button class="hb" data-j="home" aria-label="Back">${BACK_SVG}</button><div class="h2" style="flex:1">My certificates</div></div>
+      <div class="sub">${all.length ? `${all.length} certificate${all.length > 1 ? 's' : ''}. Tap one to see it, print it or save it.` : 'Finish a lesson to get your first certificate!'}</div>
+      <div class="certgrid">${all.map((c, i) => `<button class="certmini" data-k="copen" data-v="${all.length - 1 - i}" aria-label="${esc(c.lesson)}, ${c.right} of ${c.total}">${certSVG(c)}</button>`).join('')}</div>${grownBtn()}</div>`);
+    Speech.say(all.length ? `My certificates. You have ${all.length}.` : 'Finish a lesson to get your first certificate!');
+  },
+  /* save the certificate as a PNG picture (drawn from the SVG) */
+  savePic() {
+    const c = this.cur; if (!c) return; const svg = certSVG(c).replace('class="certsvg"', 'width="1280" height="920"');
+    const img = new Image(); img.onload = () => { const cv = document.createElement('canvas'); cv.width = 1280; cv.height = 920; const g = cv.getContext('2d'); g.drawImage(img, 0, 0); try { const a = document.createElement('a'); a.download = `Somo certificate - ${c.name} - ${c.lesson}.png`; a.href = cv.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); } catch (e) { window.print(); } };
+    img.onerror = () => window.print(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  },
+};
+/* after every lesson: the certificate comes first, then the usual "You learned it!" screen */
+{ const _fin = L.finish; L.finish = function () { const id = this.id; _fin.call(this); const c = Certs.add(id); const sc = $('#screen'); Certs.doneHTML = sc ? sc.innerHTML : null; Certs.show(c, 'lesson'); }; }
+/* home: a Certificates button */
+{ const _sh = showHome; showHome = function () { _sh(); if (App.state !== 'hub') return; const f = document.querySelector('#screen .kfeat'); if (!f) return;
+    f.insertAdjacentHTML('beforeend', `<button data-k="certs"><svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="3" width="20" height="15" rx="2" fill="#FFFBF2" stroke="#2F7D4F" stroke-width="2"/><path d="M6 8h12M6 11h8" stroke="#2F7D4F" stroke-width="1.6" stroke-linecap="round"/><circle cx="16" cy="17" r="4" fill="#F2B829"/><path d="M14 20l-1 3 3-1.5 3 1.5-1-3" fill="#B5462A"/></svg><span>Certificates (${CERTS().length})</span></button>`); }; }
+/* parent page: the certificates earned */
+{ const _rn = Parent.render; Parent.render = function (d, n, p) { _rn.call(this, d, n, p); const a = document.querySelector('[data-k="prefresh"]'); if (!a) return; const cs = CERTS().slice(-8).reverse();
+    a.insertAdjacentHTML('beforebegin', `<div class="kcard"><h3>Certificates (${CERTS().length})</h3>${cs.length ? `<ul class="kgaps">${cs.map(c => `<li><b>${esc(c.lesson)}</b>: ${c.right} of ${c.total} right the first time · ${esc(new Date(c.at).toLocaleDateString())}</li>`).join('')}</ul><button class="btn ghost" data-k="certs">See all certificates</button>` : '<p class="kfine">A certificate is given after every lesson.</p>'}</div>`); }; }
+$('#stage').addEventListener('click', e => {
+  const el = e.target.closest('[data-k]'); if (!el) return; const a = el.dataset.k; if (!['certs', 'copen', 'cprint', 'csavepic', 'cnext'].includes(a)) return; Sfx.unlock(); Sfx.play('click');
+  if (a === 'certs') Certs.list(); else if (a === 'copen') Certs.show(CERTS()[+el.dataset.v], 'list'); else if (a === 'cprint') window.print(); else if (a === 'csavepic') Certs.savePic();
+  else if (a === 'cnext') { if (Certs.back === 'list') Certs.list(); else if (Certs.doneHTML) { App.state = 'lessondone'; setScreen(Certs.doneHTML); Speech.say('You learned it! Now play a game to win stars.'); } else showHome(); }
+});
+{ const _fs = fabSync; fabSync = function () { const b = $('#kidiFab'); if (b && ['cert', 'certs'].includes(App.state)) { b.hidden = true; return; } _fs(); }; }
+{
+  const u = n => `calc(var(--u)*${n})`;
+  const el = document.createElement('style'); el.textContent = `
+.certscr{justify-content:center}.certwrap{width:100%;animation:pop .6s ease-out}.certwrap svg,.certmini svg{width:100%;height:auto;display:block;border-radius:${u(14)};box-shadow:0 ${u(6)} ${u(18)} rgba(0,0,0,.45)}
+.certgrid{display:grid;grid-template-columns:1fr 1fr;gap:${u(10)}}.certmini{padding:0;background:none;border-radius:${u(10)}}
+@media print{body *{visibility:hidden!important}#certPrint,#certPrint *{visibility:visible!important}#certPrint{position:fixed;left:0;top:0;width:100vw}#certPrint svg{box-shadow:none}}`;
+  document.head.appendChild(el);
+}
+window.__ky = Object.assign(window.__ky || {}, { Certs, certSVG });
+
 boot();
 
 </script>

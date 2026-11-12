@@ -15,7 +15,7 @@ Its learning model is **Internalize/Inspire → Interpret → Impart**: children
 |---|---|---|
 | `somo2/index.html` | **Somo main page: the learning path.** It looks like the original Somo, plus a row of feature buttons. Four stage tutors with Swahili names, numbers and reading paths, 20 games, lessons, treasure chests, rhymes, stories, tracing, grown-up mode and AI tutor chat. Also: welcome video, accounts, parent and teacher page, guestbook and polls, safari or village music, a safari roadmap background, and at-home activities. | Zane's Somo, extended with the team's ideas |
 | `somo2/audio/` | Recorded Kenyan-English voice clips (`en.json` Opus for most browsers, `en-mp3.json` for iPhone/iPad). The app picks the right file by itself. | Generated |
-| `somo2/trail/index.html` | **Turi's trail** (the team's Somo page): Turi the lion, the treasure trail, surprise eggs, guestbook, polls and a grown-ups' tracker. Opened from the "Turi's trail" button. | Team (partner file) |
+| `somo2/trail/index.html` | **Turi's trail** (the team's Somo page): Turi the lion, the treasure trail, a certificate after every lesson, guestbook, polls and a grown-ups' tracker (no eggs since Nov 12, 2026). Opened from the "Turi's trail" button. | Team (partner file) |
 | `somo2/letters/index.html` | **Jambo Letters.** Letter tracing, capital and small letters, phonics, books, rhymes, a quiz and games for 5-year-olds. | Team (partner file), plus links at the top |
 | `somo2/setup/index.html` | **AI key setup** for grown-ups (see below). | Added Nov 6, 2026 |
 | `somo3/index.html` | **Admin view.** Log in with the admin key to see every teacher and class, every student's progress, any teacher's class view and any student's view, and to hide guestbook notes. It reads from Supabase through the `somo-progress` function. | Added Nov 12, 2026 |
@@ -74,6 +74,7 @@ The pages try these routes **in this order**:
   - **Guestbook and polls:** use the class database (`questx-data.js`, site `livtreaux`), so notes and votes are shared with Turi's trail. First names only; links, emails and phone numbers are refused; text is shown with `textContent`.
   - **Music:** switch between the village beat and the team's safari groove (kalimba, hand drum, drone).
   - **Turi's trail:** opens `somo2/trail/`.
+- **Certificates (from Ekah's website):** after every lesson the child gets a certificate with their name, the lesson, the score (questions right the first time in the lesson's "You!" part), stars, the date and the animal friend's signature. It can be printed or saved as a picture. All certificates are kept under "Certificates" on the home screen, listed on the Parent page, and saved with the progress in Supabase. Turi's trail shows the same kind of certificate after each of its lessons.
 - **Safari roadmap:** the path sits on a sunset savanna, with giraffes, elephants and zebras walking, birds and clouds. It stays still when the device asks for reduced motion.
 - **At-home activities:** every unit ends with an optional activity away from the screen, using beans, sticks, bottle caps or cups (English and Kiswahili). A grown-up taps "We did it together!" to finish it. These activities never block the path.
 - Test hooks for automated testing: `window.__arc`, `window.__jr`, `window.__rw`, `window.__b2`.

@@ -113,3 +113,12 @@
   - Updated the welcome video, the student instructions and the delete-account screen to talk about chests and stickers instead of eggs.
   - Left untouched: the Humpty Dumpty rhyme picture (it is part of the nursery rhyme), and Turi's trail, which is the partner's own page with its own surprise eggs.
   - Tested in a browser: Egg Farm and the basket are gone, a finished step pops a chest with a sticker, the sticker book and closet are on the home screen, and there were no page errors.
+
+## Lesson certificates; no eggs on Turi's trail
+- **Date:** Nov 12, 2026
+- **Goal:** Bring the certificate feature from Ekah's website into the team build: show the child's score after every lesson. Remove the eggs from Turi's trail too.
+- **Prompt:** "Remove the eggs from Turi's trail too." / "Can you add a certificate feature that shows the user's score after every lesson so we can add a feature from Ekah's website into our team build 3?"
+- **What Claude Did:**
+  - `somo2/index.html`: after every lesson, a "Certificate of Learning" with the child's name, the lesson, the score (right the first time), 1 to 3 stars, the date and the stage friend's signature. Buttons: Print, Save picture, Continue (back to the usual "You learned it!" screen). A "Certificates" button on the home screen lists them all; the Parent page lists the latest ones. Certificates are saved with progress (and in Supabase when online saving is on). Source: `prototypes/somo-arcade/src/b2/certs.js` in the Chronicle repo.
+  - `somo2/trail/index.html`: removed the egg basket and the "crack an egg" screen; finishing a lesson now gives points and a certificate (name, lesson, score, stars, friend, date) with a "Print or save my certificate" button. Certificates are kept in the saved progress (`st.certs`).
+  - Tested in a headless browser: score counted correctly, print/save and the certificate list work, no page errors.
