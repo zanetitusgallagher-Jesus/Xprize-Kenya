@@ -9735,7 +9735,12 @@ window.__b2 = Object.assign(window.__b2 || {}, { Library, Trace, Guide, RHYME_LI
    ========================================================================== */
 const KY = () => S.kenyai || (S.kenyai = { account: null, seenVideo: false, hist: {}, off: {}, narr: null, plan: null });
 const kSave = () => Store.save();
-const QX_SRC = 'https://class-data.questx-classroom.workers.dev/questx-data.js', QX_SITE = 'livtreaux';
+/* The class database only accepts saves from the enrolled site's own address: site id "x" saves from x.github.io.
+   So notes and votes are saved under this page's own GitHub username, and the team's earlier notes from
+   livtreaux.github.io are still shown (read-only), so nothing disappears. */
+const QX_API = 'https://class-data.questx-classroom.workers.dev';
+const QX_SITE = /\.github\.io$/.test(location.hostname) ? location.hostname.replace(/\.github\.io$/, '').toLowerCase() : 'livtreaux';
+const QX_READ = [...new Set([QX_SITE, 'livtreaux'])];
 
 /* ---------------- the child's name and pronouns come from the account ---------------- */
 function applyAccount() {
@@ -10025,8 +10030,14 @@ const POLLS = [
 const Guest = {
   qx: null,
   helper() {
-    if (window.QuestXData) return Promise.resolve(window.QuestXData); if (this.qx) return this.qx;
-    return (this.qx = new Promise((res, rej) => { const s = document.createElement('script'); s.src = QX_SRC; s.dataset.site = QX_SITE; s.onload = () => window.QuestXData ? res(window.QuestXData) : rej(new Error('helper missing')); s.onerror = () => { this.qx = null; rej(new Error('offline')); }; document.head.appendChild(s); }));
+    const call = (method, site, path, body) => fetch(`${QX_API}/api/${encodeURIComponent(site)}${path}`, body === undefined ? { method } : { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(r => r.json().catch(() => ({})).then(d => { if (!r.ok) throw new Error(d.error || ('Request failed: ' + r.status)); return d; }));
+    const many = (fn) => Promise.allSettled(QX_READ.map(fn)).then(rs => { const ok = rs.filter(r => r.status === 'fulfilled').map(r => r.value); if (!ok.length) throw rs[0].reason; return ok; });
+    return Promise.resolve({
+      save: (coll, rec) => call('POST', QX_SITE, '/' + coll, rec).then(d => d.record),
+      list: (coll, n) => many(site => call('GET', site, `/${coll}?limit=${n || 20}`).then(d => d.records || [])).then(ls => ls.flat().sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || ''))).slice(0, n || 20)),
+      count: (coll, f) => many(site => call('GET', site, `/${coll}?count=${encodeURIComponent(f)}`).then(d => d.counts || {})).then(cs => { const t = {}; for (const c of cs) for (const [k, v] of Object.entries(c)) t[k] = (t[k] || 0) + (Number(v) || 0); return t; }),
+    });
   },
   open() {
     App.state = 'guestbook'; Round.game = null; App.attract = null; HUD.show(false); Card.hide();
@@ -10062,7 +10073,7 @@ const Guest = {
     if (/@|\d{6,}|https?:/i.test(name + ' ' + message)) { this.status('Please do not write emails, phone numbers or links.', true); return; }
     const b = $('#gbSave'); b.disabled = true; this.status('Saving…');
     try { const Q = await this.helper(); await Q.save('guestbook', { name, message }); $('#gbMsg').value = ''; $('#gbCount').textContent = '0 / 300'; this.status('Thank you! Your note was saved.'); Sfx.play('good'); await this.load(); }
-    catch (e) { this.status('Could not save your note. Please try again later.', true); } finally { b.disabled = false; }
+    catch (e) { this.status('Could not save your note: ' + ((e && e.message) || 'please try again later') + '.', true); } finally { b.disabled = false; }
   },
   vote: id => { try { return localStorage.getItem('kenyai-poll-' + id); } catch (e) { return null; } },
   buildPolls() {
@@ -10085,7 +10096,7 @@ const Guest = {
   async castVote(pid, choice) {
     const p = POLLS.find(x => x.id === pid); if (!p || this.vote(pid)) return; const st = $('#pst-' + pid); document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => { b.disabled = true; }); if (st) st.textContent = 'Saving your vote…';
     try { const Q = await this.helper(); await Q.save(p.coll, { choice }); try { localStorage.setItem('kenyai-poll-' + pid, choice); } catch (e) { } document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => b.classList.toggle('on', b.dataset.c === choice)); if (st) st.textContent = 'Thanks for voting!'; Sfx.play('pop'); this.refreshPolls(); }
-    catch (e) { document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => { b.disabled = false; }); if (st) { st.textContent = 'Could not save your vote. Please try again later.'; st.className = 'kmsg bad'; } }
+    catch (e) { document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => { b.disabled = false; }); if (st) { st.textContent = 'Could not save your vote: ' + ((e && e.message) || 'please try again later') + '.'; st.className = 'kmsg bad'; } }
   },
 };
 

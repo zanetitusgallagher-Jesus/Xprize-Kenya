@@ -52,3 +52,13 @@
   - Added the welcome video (narrated animated scenes with captions; it plays by itself the first time), accounts with instructions for parents, students and teachers, and a PIN-protected parent and teacher page with an AI progress story, a gap chart and an AI plan, all with written fallbacks.
   - Added the team's safari groove as a second music style, a moving savanna behind the roadmap, and an optional at-home activity in every unit.
   - Tested in a browser: the first-launch video, accounts, the at-home step, the parent page with PIN, guestbook and poll saving (with a stand-in database), music switching and saving across a reload, all with no page errors.
+
+## Guestbook and polls: fix saving
+- **Date:** Nov 12, 2026
+- **Goal:** Notes and votes were not saving on the live site.
+- **What Claude Did:**
+  - Found the cause: the class database only accepts saves from the enrolled site's own address (site id `x` saves only from `x.github.io`). Our pages used the site id `livtreaux` but run on `zanetitusgallagher-jesus.github.io`, so every save was refused.
+  - The main page now saves notes and votes under this page's own GitHub username. It still shows the team's earlier notes and votes from `livtreaux` (read-only), so nothing disappears.
+  - Turi's trail (`somo2/trail/`) no longer hard-codes `data-site`, so the helper picks the right site id from the page's address on any host.
+  - If a save still fails, the page now shows the server's actual reason instead of a generic message.
+  - Tested in a browser with a stand-in server that enforces the same rule: saving a note and a vote both work, and the team's old note still shows.
