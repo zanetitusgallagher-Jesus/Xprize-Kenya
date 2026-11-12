@@ -10734,6 +10734,17 @@ window.__ky = Object.assign(window.__ky || {}, { seqSVG, storySVG });
     return _ts(tag, e);
   }; }
 
+/* ============================================================================
+   THE SOMO LOGO (Nov 2026, from the team's design system: src/art/, copied to somo2/art/ on the site)
+   The wordmark (the last "o" is a mango) on the home screen, the app icon in the browser tab.
+   ========================================================================== */
+const LOGO_REV = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 170"><path d="M80 64Q74 50 52 50Q28 50 28 72Q28 92 54 100Q80 108 80 128Q80 150 54 150Q32 150 24 136" fill="none" stroke="#FFF8EC" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="146" cy="100" r="39" fill="none" stroke="#FFF8EC" stroke-width="22"></circle><path d="M212 150V76Q212 50 238 50Q264 50 264 76V150M264 76Q264 50 290 50Q316 50 316 76V150" fill="none" stroke="#FFF8EC" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="384" cy="100" r="50" fill="#F2B829"></circle><path d="M358 88Q362 70 378 64" fill="none" stroke="#FFF8EC" stroke-opacity=".55" stroke-width="8" stroke-linecap="round"></path><path d="M384 52Q382 40 374 34" fill="none" stroke="#FFF8EC" stroke-width="7" stroke-linecap="round"></path><path d="M386 52C388 30 404 14 432 12C430 38 412 54 386 52Z" fill="#6FA83A"></path><path d="M390 48Q408 34 424 20" fill="none" stroke="#FFF8EC" stroke-opacity=".5" stroke-width="3" stroke-linecap="round"></path></svg>`;
+const LOGO_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect rx="112" fill="#1F5A3A"></rect><circle cx="256" cy="290" r="150" fill="#F2B829"></circle><path d="M178 254Q190 200 238 182" fill="none" stroke="#FFF8EC" stroke-opacity=".55" stroke-width="22" stroke-linecap="round"></path><path d="M256 142Q250 108 228 92" fill="none" stroke="#FFF8EC" stroke-width="18" stroke-linecap="round"></path><path d="M262 142C268 78 316 32 396 26C390 104 336 148 262 142Z" fill="#6FA83A"></path><path d="M276 130Q328 90 376 46" fill="none" stroke="#FFF8EC" stroke-opacity=".5" stroke-width="9" stroke-linecap="round"></path></svg>`;
+{ const l = document.createElement('link'); l.rel = 'icon'; l.type = 'image/svg+xml'; l.href = 'data:image/svg+xml,' + encodeURIComponent(LOGO_ICON); document.head.appendChild(l); }
+{ const _sh = showHome; showHome = function () { _sh(); const lg = document.querySelector('#screen .logo'); if (!lg || App.state !== 'hub' || !/^Somo/.test(lg.textContent)) return;
+    lg.classList.add('somologo'); lg.innerHTML = LOGO_REV.replace('<svg ', '<svg role="img" aria-label="Somo" ') + '<small>Learn it. Play it.</small>'; }; }
+{ const el = document.createElement('style'); el.textContent = `.somologo svg{height:calc(var(--u)*46);width:auto;display:block}.somologo small{margin-top:calc(var(--u)*2)}`; document.head.appendChild(el); }
+
 boot();
 
 </script>

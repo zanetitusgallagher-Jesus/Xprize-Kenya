@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Somo admin</title>
+<link rel="icon" type="image/svg+xml" href="../somo2/art/somo-icon.svg">
 <meta name="description" content="Somo admin: every teacher (people and AI), every student, assigning students to teachers, and what each teacher and child sees.">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
 <style>
@@ -14,6 +15,7 @@
   body { margin: 0; background: var(--bg); color: var(--ink); font: 600 16px/1.4 "Baloo 2", system-ui, sans-serif; }
   header { background: linear-gradient(180deg, #B9552A, #7A3119); color: #FFF8EC; padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   header h1 { margin: 0; font-size: 1.7rem; line-height: 1; color: var(--sun); text-shadow: 0 3px 0 #5A2210; }
+  header h1.brand { display: flex; align-items: center; gap: 10px; } header h1.brand img { height: 40px; width: auto; display: block; }
   header h1 small { display: block; font-size: .8rem; color: #FFF8EC; text-shadow: none; }
   header .sp { flex: 1; }
   header a, header button { color: #FFF8EC; }
@@ -62,7 +64,7 @@
 </head>
 <body>
 <header>
-  <h1>Somo admin<small>Somo 3 · every teacher and student</small></h1>
+  <h1 class="brand"><img src="../somo2/art/somo-logo-reverse.svg" alt="Somo" width="106" height="40"><span>admin<small>Somo 3 · every teacher and student</small></span></h1>
   <span class="sp"></span>
   <a href="../somo2/">Open the Somo app</a>
   <a href="../somo4/">Teacher page</a>

@@ -6,8 +6,8 @@
    - Supabase (progress, chats) and the AI relay are never cached here: they always go to the network, and the app
      already falls back gracefully when there is no internet.
    - To force every phone to refresh everything, change VERSION. To refresh the voice pack, change AUDIO. */
-const VERSION = 'somo-shell-v1', AUDIO = 'somo-audio-v1', FONTS = 'somo-fonts-v1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './letters/', './trail/', './setup/'];
+const VERSION = 'somo-shell-v2', AUDIO = 'somo-audio-v1', FONTS = 'somo-fonts-v1';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './art/somo-icon.svg', './art/somo-logo-reverse.svg', './letters/', './trail/', './setup/'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => Promise.all(SHELL.map(u => c.add(new Request(u, { cache: 'reload' })).catch(() => null)))).then(() => self.skipWaiting()));
 });

@@ -192,3 +192,9 @@
   - Story sums (Stage 4, after Taking away): short stories read aloud about mangoes, the matatu, chai and mandazi with shillings, goats, bananas and eggs; within 10, then 20, then 100; a picture of the things coming or going away. Inspire: a new story, "Baraka's Market Day".
   - Lessons (Watch → Together → You!), Teach (Impart), games (Boda Boda Rush, Penalty King, Star Blaster, Mango Catcher; no new game), at-home activities with Kiswahili steps, grown-up tips in English and Kiswahili, placement check, the teacher and admin skill charts, and new mistake tags (wrong jump size, wrong way, picked a number from the story) with their own coach tips.
   - Tested: 600 generated questions per skill all valid; both lessons, teach-back, a game, the at-home activity, a coach tip and the story run with no page or console errors.
+
+## The Somo logo
+- **Date:** Nov 12, 2026
+- **Goal:** Use the team's new Somo logo everywhere.
+- **Prompt:** "This is the logo of Somo. Add this into Somo." (a design-system zip with the wordmark, mono and reverse versions, and the app icon)
+- **What Claude Did:** saved the logo files in `somo2/art/` (the content-credential metadata was taken out to keep them small); new app icons (192, 512, maskable, Apple touch) drawn from `somo-icon.svg`; the wordmark on the Somo home screen (source `src/b2/brand.js` in Chronicle) and in the headers of the teacher (`somo4/`) and admin (`somo3/`) pages; the icon as the browser-tab icon. The service worker cache version went up so phones pick up the new icons. Checked in a headless browser: no page or console errors.
