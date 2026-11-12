@@ -999,7 +999,25 @@ $('#go0').insertAdjacentHTML('afterend',' <button class="b sm" id="tourb" data-n
 </section>
 
 <!-- Class data helper: must load before the code below. -->
-<script src="https://class-data.questx-classroom.workers.dev/questx-data.js"></script><!-- no data-site: the helper uses this page's own GitHub username, the only site id the class database lets this page save to -->
+<script>
+/* All Somo data lives in Supabase: this stands in for the class QuestX helper with the same save / list / count
+   functions, so the guestbook and polls below work unchanged (somo-progress Edge Function: gb_* and poll_* actions). */
+(function () {
+  var URL_ = 'https://obyudvdunzuyyskxujrt.supabase.co/functions/v1/somo-progress';
+  var POLLS = { votes: { subject: ['Math', 'Language', 'Science', 'History', 'Reading'] }, 'votes-food': { icecream: ['Chocolate', 'Vanilla', 'Strawberry', 'Matcha'], pizza: ['Mushrooms', 'Pepperoni', 'Olives'] } };
+  function call(action, body) { body = body || {}; body.action = action; return fetch(URL_, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok) throw new Error(d.error || ('Request failed: ' + r.status)); return d; }); }); }
+  window.QuestXData = {
+    site: 'somo',
+    save: function (coll, rec) {
+      if (coll === 'guestbook') return call('gb_save', rec).then(function (d) { return d.record; });
+      var polls = POLLS[coll] || {}, poll = Object.keys(polls).filter(function (p) { return polls[p].indexOf(rec.choice) >= 0; })[0];
+      return call('poll_vote', { poll: poll, choice: rec.choice });
+    },
+    list: function (coll, n) { return call('gb_list', { limit: n || 20 }).then(function (d) { return d.records || []; }); },
+    count: function (coll) { return call('poll_counts', { polls: Object.keys(POLLS[coll] || {}) }).then(function (d) { var out = {}; Object.keys(d.counts || {}).forEach(function (p) { Object.assign(out, d.counts[p]); }); return out; }); }
+  };
+})();
+</script>
 <script>
 (function () {
   const $g = id => document.getElementById(id);

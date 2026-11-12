@@ -18,6 +18,7 @@ Its learning model is **Internalize/Inspire → Interpret → Impart**: children
 | `somo2/trail/index.html` | **Turi's trail** (the team's Somo page): Turi the lion, the treasure trail, surprise eggs, guestbook, polls and a grown-ups' tracker. Opened from the "Turi's trail" button. | Team (partner file) |
 | `somo2/letters/index.html` | **Jambo Letters.** Letter tracing, capital and small letters, phonics, books, rhymes, a quiz and games for 5-year-olds. | Team (partner file), plus links at the top |
 | `somo2/setup/index.html` | **AI key setup** for grown-ups (see below). | Added Nov 6, 2026 |
+| `somo3/index.html` | **Admin view.** Log in with the admin key to see every teacher and class, every student's progress, any teacher's class view and any student's view, and to hide guestbook notes. It reads from Supabase through the `somo-progress` function. | Added Nov 12, 2026 |
 | `somo2/learn/index.html` | An old address that now sends visitors to `somo2/`. | |
 | `index.html`, `index (4).html` | The original team files at the repo root. Left as they were. | Team |
 | `AI-LOG.md` | **Log of every AI-assisted change.** Add an entry each time you change something. | Everyone |
@@ -80,6 +81,13 @@ The pages try these routes **in this order**:
 `somo2/index.html` is a **built file**. Its source lives in a separate, private repo (`rgallagherTT/Chronicle`, folder `prototypes/somo-arcade/`, built with `python3 build.py`). Small edits directly in `somo2/index.html` are fine. For big changes to the learning path, ask Zane or the repo owner, so the source and this copy don't drift apart.
 
 ---
+
+## Teachers, classes and the admin (all in Supabase)
+
+- **All data lives in Supabase:** progress, classes, the guestbook and the polls. The team's earlier notes and votes from the class database were copied over. Turi's trail uses a small stand-in for the old helper, so its own code still works.
+- **Teacher view (inside Somo, the "Teacher" button):** make a class to get a **class code** for families and a private **teacher key**. Families type the class code in Accounts → Parent. The teacher then sees each student's mastery, answers in the last 7 days, learning gaps and last-active day, and can open any one student. To open the class on another device, enter the class code and the teacher key.
+- **Admin view (`somo3/`):** log in with the admin key to see every teacher and class, every student's progress, any class exactly as its teacher sees it, any student's view, and the guestbook (hide or show notes). Only a hash of the admin key is stored in the database. To add another admin, insert a row in `somo_admins` with the SHA-256 of a new key.
+- **Subtitles:** every line Somo speaks also appears on screen. They are on by default, and the "Subtitles" button on the home screen turns them off.
 
 ## Where progress is saved (Supabase)
 

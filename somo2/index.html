@@ -10104,7 +10104,7 @@ const Guest = {
     const b = $('#gbSave'); b.disabled = true; this.status('Saving…');
     try { const Q = await this.helper(); await Q.save('guestbook', { name, message }); $('#gbMsg').value = ''; $('#gbCount').textContent = '0 / 300'; this.status('Thank you! Your note was saved.'); Sfx.play('good'); await this.load(); }
     catch (e) {
-      if (this.notEnrolled(e)) { this.queue().push({ coll: 'guestbook', rec: { name, message }, t: new Date().toISOString() }); kSave(); $('#gbMsg').value = ''; $('#gbCount').textContent = '0 / 300'; this.status('Your note is saved on this device. It will be shared with everyone as soon as your teacher adds this site to the class database.'); Sfx.play('good'); this.load(); }
+      if (this.notEnrolled(e)) { this.queue().push({ coll: 'guestbook', rec: { name, message }, t: new Date().toISOString() }); kSave(); $('#gbMsg').value = ''; $('#gbCount').textContent = '0 / 300'; this.status('No internet right now, so your note is saved on this device. It will be shared next time you are online.'); Sfx.play('good'); this.load(); }
       else this.status('Could not save your note: ' + this.why(e) + '.', true);
     } finally { b.disabled = false; }
   },
@@ -10139,7 +10139,7 @@ const Guest = {
     const p = POLLS.find(x => x.id === pid); if (!p || this.vote(pid)) return; const st = $('#pst-' + pid); document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => { b.disabled = true; }); if (st) st.textContent = 'Saving your vote…';
     try { const Q = await this.helper(); await Q.save(p.coll, { choice }); try { localStorage.setItem('kenyai-poll-' + pid, choice); } catch (e) { } document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => b.classList.toggle('on', b.dataset.c === choice)); if (st) st.textContent = 'Thanks for voting!'; Sfx.play('pop'); this.refreshPolls(); }
     catch (e) {
-      if (this.notEnrolled(e)) { this.queue().push({ coll: p.coll, rec: { choice }, t: new Date().toISOString() }); kSave(); try { localStorage.setItem('kenyai-poll-' + pid, choice); } catch (x) { } document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => b.classList.toggle('on', b.dataset.c === choice)); if (st) { st.textContent = 'Your vote is saved on this device. It will be counted as soon as your teacher adds this site to the class database.'; st.className = 'kmsg'; } Sfx.play('pop'); }
+      if (this.notEnrolled(e)) { this.queue().push({ coll: p.coll, rec: { choice }, t: new Date().toISOString() }); kSave(); try { localStorage.setItem('kenyai-poll-' + pid, choice); } catch (x) { } document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => b.classList.toggle('on', b.dataset.c === choice)); if (st) { st.textContent = 'No internet right now, so your vote is saved on this device. It will be counted next time you are online.'; st.className = 'kmsg'; } Sfx.play('pop'); }
       else { document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => { b.disabled = false; }); if (st) { st.textContent = 'Could not save your vote: ' + this.why(e) + '.'; st.className = 'kmsg bad'; } }
     }
   },
@@ -10393,6 +10393,155 @@ $('#stage').addEventListener('click', async e => {
   document.head.appendChild(el);
 }
 window.__ky = Object.assign(window.__ky || {}, { Cloud });
+
+/* ============================================================================
+   CLASSROOM (Nov 2026): everything in Supabase, a teacher view, joining a class, subtitles
+   - Guestbook and polls now use Supabase (somo-progress: gb_list / gb_save / poll_vote / poll_counts) instead of the
+     class QuestX database. Notes that cannot be sent (no internet) wait on the device and are sent later.
+   - Teacher view: a teacher makes a class (class code + teacher key), children join with the class code
+     (Accounts → Parent), and the teacher sees every student's progress and can open one student.
+   - Subtitles: every line Somo speaks is also written on the screen (on by default; a home button turns it off).
+   The admin view (every teacher, class and student) is a separate page: somo3/.
+   ========================================================================== */
+const PROG = (action, body = {}) => fetch(PROG_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action, ...body }) })
+  .then(r => r.json().catch(() => ({})).then(d => { if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status)); return d; }));
+
+/* ---------------- guestbook and polls → Supabase ---------------- */
+Guest.helper = function () {
+  const pollsOf = coll => POLLS.filter(p => p.coll === coll);
+  return Promise.resolve({
+    save: (coll, rec) => coll === 'guestbook' ? PROG('gb_save', rec).then(d => d.record)
+      : PROG('poll_vote', { poll: (pollsOf(coll).find(p => p.choices.includes(rec.choice)) || {}).id, choice: rec.choice }),
+    list: (coll, n) => PROG('gb_list', { limit: n || 20 }).then(d => d.records || []),
+    count: (coll) => PROG('poll_counts', { polls: pollsOf(coll).map(p => p.id) }).then(d => Object.assign({}, ...Object.values(d.counts || {}))),
+  });
+};
+/* no internet: keep the note or vote on the device and send it next time (same queue as before) */
+Guest.notEnrolled = e => !e || e instanceof TypeError || /failed to fetch|network|load failed|enrol/i.test(String(e && e.message));
+
+/* ---------------- subtitles: what Somo says, written on the screen ---------------- */
+const Subs = {
+  el: null, t: null,
+  on() { return S.subs !== false; },
+  show(text) {
+    if (!this.on() || !text) return; const t = String(text).replace(/\s+/g, ' ').trim(); if (!t) return;
+    let el = this.el || (this.el = document.getElementById('subs')); if (!el) { el = this.el = document.createElement('div'); el.id = 'subs'; el.setAttribute('aria-hidden', 'true'); $('#stage').appendChild(el); }
+    el.textContent = t; el.className = App.state === 'play' || App.state === 'countdown' ? 'top on' : 'on'; clearTimeout(this.t);
+    this.t = setTimeout(() => this.hide(), Math.min(12000, 1800 + t.length * 70));
+  },
+  hide() { if (this.el) this.el.className = this.el.className.replace(' on', '').replace(/^on$/, ''); },
+};
+{ const _say = Speech.say; Speech.say = function (text, opt) { Subs.show(text); return _say.call(this, text, opt); }; }
+{ const _sk = Speech.sayKidi; Speech.sayKidi = function (text) { Subs.show(text); return _sk.call(this, text); }; }
+{ const _st = Speech.stop; Speech.stop = function () { Subs.hide(); return _st.call(this); }; }
+
+/* ---------------- children join a class (Accounts → Parent) ---------------- */
+{ const _r = Accounts.render; Accounts.render = function () {
+    _r.call(this); if (this.tab !== 'parent') return; const box = $('#apcloud'); if (!box) return; const c = Cloud.c();
+    box.closest('label').insertAdjacentHTML('afterend', `<label for="apclass">Class code from the teacher (optional)</label><input id="apclass" class="kin" maxlength="6" autocomplete="off" spellcheck="false" style="text-transform:uppercase" value="${esc(c.classCode || '')}" placeholder="for example K7P2QX">${c.className ? `<p class="kfine">In the class: <b>${esc(c.className)}</b></p>` : ''}`);
+    $('#apclass').addEventListener('keydown', e => e.stopPropagation());
+  }; }
+{ const _rd = Accounts.read; Accounts.read = function () {
+    const inp = this.tab === 'parent' ? $('#apclass') : null; const code = inp ? inp.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') : null; const err = _rd.call(this); if (err || code === null) return err;
+    const c = Cloud.c(); if (code === (c.classCode || '')) return null;
+    if (code && !/^[A-Z0-9]{6}$/.test(code)) return 'A class code has 6 letters and numbers.';
+    (async () => {
+      try { if (!Cloud.linked()) await Cloud.enable(); await PROG(code ? 'join' : 'leave', { child_id: c.child_id, write_key: c.write_key, group_code: code }); c.classCode = code; c.className = code ? code : ''; kSave(); Cloud.status = code ? 'joined the class' : 'left the class'; }
+      catch (e) { Cloud.status = 'class: ' + e.message; const m = $('#amsg'); if (m) { m.textContent = 'Class code: ' + e.message + '.'; m.className = 'kmsg bad'; } }
+    })();
+    return null;
+  }; }
+
+/* ============================================================================
+   THE TEACHER VIEW: make a class, open a class, see every student, open one student
+   ========================================================================== */
+const CLASS_KEY = () => { const k = KY(); return k.classes || (k.classes = []); };
+const SK_NAME = id => SHORT[id] || (SKILL[id] && SKILL[id].name) || id;
+function progRow(p) {
+  if (!p) return { mastery: null, answers: 0, gaps: [], stars: 0, last: null };
+  const sk = Object.entries(p.skills || {}); const mastery = sk.length ? Math.round(sk.reduce((a, [, v]) => a + v.mastery, 0) / sk.length) : null;
+  const answers = (p.days || []).slice(-7).reduce((a, d) => a + (d.n || 0), 0); const gaps = sk.filter(([, v]) => v.n >= 4 && v.mastery < 70).map(([id]) => SK_NAME(id));
+  return { mastery, answers, gaps, stars: sk.reduce((a, [, v]) => a + (v.stars || 0), 0), last: p.last_active };
+}
+const ago = iso => { if (!iso) return 'not yet'; const d = (Date.now() - Date.parse(iso)) / 864e5; return d < 1 ? 'today' : d < 2 ? 'yesterday' : Math.floor(d) + ' days ago'; };
+function studentHTML(c) {
+  const p = c.progress; if (!p) return `<div class="kcard"><h3>${esc(c.first_name || 'Student')}</h3><p>No progress saved online yet.</p></div>`;
+  const sk = Object.entries(p.skills || {}).sort((a, b) => a[1].mastery - b[1].mastery), W = 320, L = 110, H = 26;
+  const col = m => m < 50 ? '#C42E6F' : m < 70 ? '#F07A2A' : '#2F7D4F';
+  const bars = sk.map(([id, v], i) => { const w = Math.max(2, (W - L - 34) * v.mastery / 100); return `<text x="${L - 6}" y="${i * H + 17}" font-size="12" font-weight="700" text-anchor="end" fill="#2B1E17" font-family="Baloo 2,sans-serif">${esc(SK_NAME(id))}</text><rect x="${L}" y="${i * H + 5}" width="${W - L - 34}" height="16" rx="8" fill="#EADBC4"/><rect x="${L}" y="${i * H + 5}" width="${w}" height="16" rx="8" fill="${col(v.mastery)}"/><text x="${L + w + 4}" y="${i * H + 17}" font-size="11" font-weight="800" fill="#2B1E17" font-family="Baloo 2,sans-serif">${v.mastery}%</text>`; }).join('');
+  const days = p.days || [], mx = Math.max(1, ...days.map(d => d.n)), bw = (W - 20) / Math.max(7, days.length);
+  const spark = days.length ? `<svg viewBox="0 0 ${W} 70" class="kchart">${days.map((d, i) => { const hh = 44 * d.n / mx, rh = 44 * d.c / mx; return `<rect x="${10 + i * bw}" y="${50 - hh}" width="${bw - 6}" height="${hh}" rx="3" fill="#EADBC4"/><rect x="${10 + i * bw}" y="${50 - rh}" width="${bw - 6}" height="${rh}" rx="3" fill="#2F7D4F"/><text x="${10 + i * bw + (bw - 6) / 2}" y="64" font-size="9" text-anchor="middle" fill="#2B1E17" font-family="Baloo 2,sans-serif">${esc(String(d.day).split('-').slice(1).join('/'))}</text>`; }).join('')}</svg>` : '<p class="kfine">No days yet.</p>';
+  const r = progRow(p);
+  return `<div class="kcard"><h3>${friendFace(['kuku', 'kobe', 'twiga', 'tembo'].includes(c.avatar) ? c.avatar : 'kuku', 'happy', 34)} ${esc(c.first_name || 'Student')}${p.age ? ` <small>age ${p.age}</small>` : ''}</h3>
+    <p class="kfine">Last active: <b>${esc(ago(p.last_active || c.last_sync))}</b> · steps done: <b>${p.steps_done}</b> · at-home activities: <b>${p.offline_done}</b> · stars: <b>${r.stars}</b></p></div>
+    <div class="kcard"><h3>Skills (mastery of the last 10 answers)</h3>${sk.length ? `<svg viewBox="0 0 ${W} ${sk.length * H + 4}" class="kchart">${bars}</svg>` : '<p class="kfine">No answers yet.</p>'}<h4>Answers per day</h4>${spark}</div>
+    <div class="kcard"><h3>Learning gaps</h3>${r.gaps.length ? `<ul class="kgaps">${r.gaps.map(g => `<li>${esc(g)}</li>`).join('')}</ul>` : '<p>No learning gaps right now.</p>'}<h4>Mistakes that repeat</h4>${(p.tags || []).length ? `<ul class="ktags">${p.tags.map(t => `<li><b>${t.n}×</b> ${esc(TAGS[t.tag] || t.tag)}</li>`).join('')}</ul>` : '<p class="kfine">None yet.</p>'}</div>`;
+}
+function classTable(children, open) {
+  if (!children.length) return '<p class="kfine">No students yet. Give the class code to the families: they type it in Accounts → Parent.</p>';
+  return `<div class="ktbl">${children.map(c => { const r = progRow(c.progress); return `<button class="krow" data-k="${open}" data-v="${esc(c.id)}"><b>${esc(c.first_name || 'Student')}</b><span>${r.mastery == null ? '—' : r.mastery + '%'}<small>mastery</small></span><span>${r.answers}<small>answers, 7 days</small></span><span class="${r.gaps.length ? 'gap' : ''}">${r.gaps.length ? esc(r.gaps.slice(0, 2).join(', ')) : 'none'}<small>gaps</small></span><span>${esc(ago(c.progress && c.progress.last_active || c.last_sync))}<small>last active</small></span></button>`; }).join('')}</div>`;
+}
+const Teacher = {
+  cur: null, data: null,
+  home(msg) {
+    App.state = 'teacher'; Round.game = null; App.attract = null; HUD.show(false); Card.hide(); const cls = CLASS_KEY();
+    setScreen(`<div class="scr jr"><div class="toprow"><button class="hb" data-j="home" aria-label="Back">${BACK_SVG}</button><div class="h2" style="flex:1">Teacher</div></div>
+      ${msg ? `<div class="kcard">${msg}</div>` : ''}
+      <div class="kcard"><h3>My classes</h3>${cls.length ? cls.map((c, i) => `<button class="btn ghost" data-k="topen" data-v="${i}">${esc(c.name)} <small>(${esc(c.code)})</small></button>`).join('') : '<p class="kfine">No classes on this device yet.</p>'}</div>
+      <div class="kcard"><h3>Make a new class</h3><label for="tname">Your name (as the children call you)</label><input id="tname" class="kin" maxlength="40" placeholder="for example Mr. Kim"><label for="tclass">Class name</label><input id="tclass" class="kin" maxlength="60" placeholder="for example Grade 3 Blue"><button class="btn go" data-k="tmake">Make the class</button></div>
+      <div class="kcard"><h3>Open a class from another device</h3><label for="tcode">Class code</label><input id="tcode" class="kin" maxlength="6" style="text-transform:uppercase"><label for="tkey">Teacher key</label><input id="tkey" class="kin" autocomplete="off" spellcheck="false"><button class="btn ghost" data-k="tadd">Open</button><p class="kmsg" id="tmsg"></p></div>
+      <p class="kfine">Children only appear when their family has "Save progress online" on and has typed your class code in Accounts → Parent. You see first names and learning progress only.</p>${grownBtn()}</div>`);
+    document.querySelectorAll('.kin').forEach(i => i.addEventListener('keydown', e => e.stopPropagation()));
+  },
+  async make() {
+    const tn = ($('#tname').value || '').trim(), cn = ($('#tclass').value || '').trim(); if (!tn || !cn) { Speech.say('Please type your name and a class name.'); return; }
+    try { const r = await PROG('create_class', { teacher_name: tn, name: cn }); CLASS_KEY().push({ name: cn, teacher: tn, code: r.code, key: r.teacher_key }); kSave();
+      this.home(`<h3>Your class is ready!</h3><p>Class code for families: <b class="kbig">${esc(r.code)}</b></p><p>Your teacher key (keep it private, write it down): <span class="kcode">${esc(r.teacher_key)}</span></p><p class="kfine">You need the code and the key to open this class on another device.</p>`); Sfx.play('fanfare'); }
+    catch (e) { this.home(`<p class="kmsg bad">Could not make the class: ${esc(e.message)}.</p>`); }
+  },
+  async add() {
+    const code = ($('#tcode').value || '').trim().toUpperCase(), key = ($('#tkey').value || '').trim(); const m = $('#tmsg');
+    try { const r = await PROG('class_v2', { code, teacher_key: key }); if (!CLASS_KEY().some(c => c.code === code)) CLASS_KEY().push({ name: r.class.name, teacher: r.class.teacher_name, code, key }); kSave(); this.open(CLASS_KEY().findIndex(c => c.code === code)); }
+    catch (e) { if (m) { m.textContent = 'Could not open: ' + e.message + '.'; m.className = 'kmsg bad'; } }
+  },
+  async open(i) {
+    const c = CLASS_KEY()[i]; if (!c) return this.home(); this.cur = c; App.state = 'teacher';
+    setScreen(`<div class="scr jr"><div class="toprow"><button class="hb" data-k="tback" aria-label="Back">${BACK_SVG}</button><div class="h2" style="flex:1">${esc(c.name)}</div></div><div class="kcard"><p>Loading the class…</p></div></div>`);
+    try { const r = await PROG('class_v2', { code: c.code, teacher_key: c.key }); this.data = r;
+      setScreen(`<div class="scr jr"><div class="toprow"><button class="hb" data-k="tback" aria-label="Back">${BACK_SVG}</button><div class="h2" style="flex:1">${esc(r.class.name)}</div></div>
+        <div class="kcard"><p>Teacher: <b>${esc(r.class.teacher_name || c.teacher || '')}</b> · Class code: <b>${esc(r.class.code)}</b> · Students: <b>${r.children.length}</b></p><button class="btn ghost" data-k="topen" data-v="${i}">Refresh</button></div>
+        <div class="kcard"><h3>Students</h3>${classTable(r.children, 'tkid')}</div>${grownBtn()}</div>`); }
+    catch (e) { setScreen(`<div class="scr jr"><div class="toprow"><button class="hb" data-k="tback">${BACK_SVG}</button><div class="h2">${esc(c.name)}</div></div><div class="kcard"><p class="kmsg bad">Could not load the class: ${esc(e.message)}.</p></div></div>`); }
+  },
+  async kid(id) {
+    const c = this.cur; setScreen(`<div class="scr jr"><div class="toprow"><button class="hb" data-k="topen" data-v="${CLASS_KEY().indexOf(c)}" aria-label="Back">${BACK_SVG}</button><div class="h2" style="flex:1">Student</div></div><div class="kcard"><p>Loading…</p></div></div>`);
+    try { const r = await PROG('class_child', { code: c.code, teacher_key: c.key, child_id: id }); setScreen(`<div class="scr jr"><div class="toprow"><button class="hb" data-k="topen" data-v="${CLASS_KEY().indexOf(c)}" aria-label="Back">${BACK_SVG}</button><div class="h2" style="flex:1">${esc(r.child.first_name || 'Student')}</div></div>${studentHTML(r.child)}${grownBtn()}</div>`); }
+    catch (e) { Speech.say('Could not open that student.'); }
+  },
+};
+
+/* ---------------- home: Teacher and Subtitles buttons ---------------- */
+{ const _sh = showHome; showHome = function () {
+    _sh(); if (App.state !== 'hub') return; const f = document.querySelector('#screen .kfeat'); if (!f) return;
+    f.insertAdjacentHTML('beforeend', `<button data-k="teacher">${CHART_SVG.replace('#236FA6', '#7A4FD0')}<span>Teacher</span></button><button data-k="subs">${'<svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="5" width="20" height="14" rx="3" fill="#2B1E17"/><path d="M6 14h5M13 14h5M6 10h8" stroke="#FFF8EC" stroke-width="2" stroke-linecap="round"/></svg>'}<span>Subtitles: ${Subs.on() ? 'On' : 'Off'}</span></button>`);
+  }; }
+$('#stage').addEventListener('click', e => {
+  const el = e.target.closest('[data-k]'); if (!el) return; const a = el.dataset.k, v = el.dataset.v; if (!['teacher', 'subs', 'tmake', 'tadd', 'topen', 'tback', 'tkid'].includes(a)) return; Sfx.unlock(); Sfx.play('click');
+  if (a === 'teacher') Teacher.home(); else if (a === 'tmake') Teacher.make(); else if (a === 'tadd') Teacher.add(); else if (a === 'topen') Teacher.open(+v); else if (a === 'tback') Teacher.home(); else if (a === 'tkid') Teacher.kid(v);
+  else if (a === 'subs') { S.subs = !Subs.on(); kSave(); if (!S.subs) Subs.hide(); showHome(); Speech.say(S.subs ? 'Subtitles on.' : 'Subtitles off.'); }
+});
+{ const _fs = fabSync; fabSync = function () { const b = $('#kidiFab'); if (b && App.state === 'teacher') { b.hidden = true; return; } _fs(); }; }
+{
+  const u = n => `calc(var(--u)*${n})`;
+  const el = document.createElement('style'); el.textContent = `
+#subs{position:absolute;left:${u(12)};right:${u(96)};bottom:${u(14)};z-index:30;pointer-events:none;background:rgba(20,12,8,.86);color:#FFF8EC;border-radius:${u(12)};padding:${u(6)} ${u(10)};font-weight:800;font-size:${u(17)};line-height:1.25;text-align:center;opacity:0;transform:translateY(${u(6)});transition:opacity .2s,transform .2s}
+#subs.on{opacity:1;transform:none}#subs.top{top:${u(118)};bottom:auto;right:${u(12)}}
+.ktbl{display:flex;flex-direction:column;gap:${u(6)}}.krow{display:grid;grid-template-columns:1.3fr .8fr .9fr 1.3fr 1fr;gap:${u(4)};align-items:center;background:#fff;border-radius:${u(12)};padding:${u(6)} ${u(8)};text-align:left;color:var(--ink);font-size:${u(13)};box-shadow:0 ${u(2)} 0 rgba(0,0,0,.15)}
+.krow b{font-size:${u(15)}}.krow span{font-weight:800;line-height:1.1}.krow small{display:block;font-weight:600;opacity:.65;font-size:${u(10)}}.krow .gap{color:#C42E6F}
+.kbig{font-size:${u(30)};letter-spacing:${u(3)};color:var(--leaf)}.kcard h3 small{font-size:${u(12)}}`;
+  document.head.appendChild(el);
+}
+window.__ky = Object.assign(window.__ky || {}, { Teacher, Subs, PROG });
 
 boot();
 

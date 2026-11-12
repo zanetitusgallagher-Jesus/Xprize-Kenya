@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Somo admin</title>
+<meta name="description" content="Somo admin: every teacher, class and student, from the Somo Supabase database.">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #1E140E; --panel: #2E1F16; --paper: #FFF8EC; --ink: #2B1E17; --soil: #B5462A; --mango: #F07A2A; --sun: #F2B829; --sky: #236FA6; --leaf: #2F7D4F; --rose: #C42E6F; --line: #EADBC4; --muted: #6E5644; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #2E1F16; --ink: #FFF1DD; --line: #4A3426; --muted: #CDB89E; } }
+  :root[data-theme="dark"] { --paper: #2E1F16; --ink: #FFF1DD; --line: #4A3426; --muted: #CDB89E; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 600 16px/1.4 "Baloo 2", system-ui, sans-serif; }
+  header { background: linear-gradient(180deg, #B9552A, #7A3119); color: #FFF8EC; padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 1.7rem; line-height: 1; color: var(--sun); text-shadow: 0 3px 0 #5A2210; }
+  header h1 small { display: block; font-size: .8rem; color: #FFF8EC; text-shadow: none; }
+  header .sp { flex: 1; }
+  header a, header button { color: #FFF8EC; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+  .card { background: var(--paper); border-radius: 18px; padding: 14px 16px; box-shadow: 0 4px 0 rgba(0,0,0,.35); }
+  .card h2 { margin: 0 0 8px; font-size: 1.25rem; }
+  .card h3 { margin: 10px 0 4px; font-size: 1.05rem; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .stat { background: var(--paper); border-radius: 16px; padding: 10px 14px; box-shadow: 0 4px 0 rgba(0,0,0,.35); }
+  .stat b { display: block; font-size: 2rem; line-height: 1.1; color: var(--leaf); }
+  .stat span { color: var(--muted); font-size: .9rem; }
+  button, .btn { font: inherit; font-weight: 800; border: 0; border-radius: 14px; padding: 8px 14px; min-height: 44px; cursor: pointer; background: var(--leaf); color: #fff; }
+  button.ghost { background: transparent; color: inherit; border: 2px solid currentColor; }
+  button.small { min-height: 34px; padding: 4px 10px; font-size: .9rem; }
+  button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+  input { font: inherit; padding: 10px 12px; border-radius: 12px; border: 2px solid var(--line); background: #fff; color: #2B1E17; width: 100%; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tabs button { background: var(--panel); color: #FFF8EC; }
+  .tabs button[aria-pressed="true"] { background: var(--sun); color: #2B1E17; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  .tbl th { text-align: left; color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; padding: 6px 8px; border-bottom: 2px solid var(--line); }
+  .tbl td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .tbl tr.click { cursor: pointer; }
+  .tbl tr.click:hover td, .tbl tr.click:focus-within td { background: rgba(242,184,41,.15); }
+  .tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .wrap { overflow-x: auto; }
+  .gap { color: var(--rose); }
+  .pill { display: inline-block; border-radius: 10px; padding: 0 8px; font-size: .8rem; font-weight: 800; background: var(--line); }
+  .pill.ok { background: #CDEBD3; color: #1E5631; } .pill.mid { background: #FCE0C4; color: #8A3D0B; } .pill.low { background: #F7CFDD; color: #8A1F4D; }
+  .muted { color: var(--muted); }
+  .msg { font-weight: 800; min-height: 1.4em; } .msg.bad { color: var(--rose); }
+  svg.chart { width: 100%; height: auto; max-width: 520px; display: block; }
+  .crumbs { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; color: #FFF8EC; }
+  .crumbs button { background: var(--panel); }
+  .hidden-note { opacity: .55; }
+  @media (max-width: 640px) { .hide-sm { display: none; } main { padding: 12px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Somo admin<small>every teacher, class and student</small></h1>
+  <span class="sp"></span>
+  <a href="../somo2/">Open the Somo app</a>
+  <button class="ghost small" id="out" hidden>Log out</button>
+</header>
+<main id="app" aria-live="polite"></main>
+<script>
+(function () {
+  'use strict';
+  var URL_ = 'https://obyudvdunzuyyskxujrt.supabase.co/functions/v1/somo-progress';
+  var SKILL = { cnt: 'Counting', rec: 'Big numbers', facts: 'Quick sums', bond: 'Make ten', pv: 'Tens and ones', mul: 'Equal groups', add: 'Adding', sub: 'Taking away', snd: 'Letter sounds', abc: 'Letter partners', rhy: 'Rhyming', cvc: 'Blending', sight: 'Tricky words', pic: 'Read and find', sent: 'Sentences' };
+  var TAGS = { smallerFromLarger: 'Took the smaller digit from the larger', forgotCarry: 'Forgot to carry the ten', reversal: 'Swapped tens and ones', offByTen: 'Off by ten', offByOne: 'Off by one', wrongOp: 'Used the wrong operation', addedDigits: 'Added the tens and ones digits', addedInstead: 'Added instead of making equal groups', groupOff: 'One group too many or too few', bothTo10: 'Made each digit up to 10', letterReversal: 'Letter reversal (b/d, p/q)', similarSound: 'Mixed up similar sounds', vowel: 'Vowel confusion', onset: 'Changed the first sound', firstLetter: 'Guessed from the first letter', smallWord: 'Missed the small word (on/in/by)', overshoot: 'Collected past the target', miscount: 'Lost count', countedStart: 'Counted the starting number too', sameStart: 'Same first sound, not a rhyme', sameEnd: 'Only the same last sound', caseShape: 'Mixed up look-alike small letters' };
+  var app = document.getElementById('app'), out = document.getElementById('out');
+  var key = ''; try { key = sessionStorage.getItem('somo-admin') || ''; } catch (e) {}
+  var data = null, tab = 'students', q = '';
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function call(action, body) {
+    body = body || {}; body.action = action; body.admin_key = key;
+    return fetch(URL_, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status)); return d; }); });
+  }
+  function ago(iso) { if (!iso) return 'not yet'; var d = (Date.now() - Date.parse(iso)) / 864e5; return d < 1 ? 'today' : d < 2 ? 'yesterday' : Math.floor(d) + ' days ago'; }
+  function prog(p) {
+    if (!p) return { mastery: null, answers: 0, gaps: [], stars: 0, last: null, active7: false };
+    var sk = Object.keys(p.skills || {}).map(function (id) { return [id, p.skills[id]]; });
+    var m = sk.length ? Math.round(sk.reduce(function (a, x) { return a + x[1].mastery; }, 0) / sk.length) : null;
+    var ans = (p.days || []).slice(-7).reduce(function (a, d) { return a + (d.n || 0); }, 0);
+    return { mastery: m, answers: ans, gaps: sk.filter(function (x) { return x[1].n >= 4 && x[1].mastery < 70; }).map(function (x) { return SKILL[x[0]] || x[0]; }), stars: sk.reduce(function (a, x) { return a + (x[1].stars || 0); }, 0), last: p.last_active, active7: p.last_active && (Date.now() - Date.parse(p.last_active)) < 7 * 864e5 };
+  }
+  function pill(m) { return m == null ? '<span class="pill">—</span>' : '<span class="pill ' + (m < 50 ? 'low' : m < 70 ? 'mid' : 'ok') + '">' + m + '%</span>'; }
+  function studentsTable(list, showClass) {
+    if (!list.length) return '<p class="muted">No students yet. Children appear when a family turns on "Save progress online" in Somo.</p>';
+    return '<div class="wrap"><table class="tbl"><thead><tr><th>Student</th>' + (showClass ? '<th>Class</th>' : '') + '<th class="num">Mastery</th><th class="num hide-sm">Answers (7 days)</th><th>Learning gaps</th><th class="hide-sm">Last active</th></tr></thead><tbody>' +
+      list.map(function (s) { var r = prog(s.progress); return '<tr class="click" tabindex="0" data-kid="' + esc(s.id) + '"><td><b>' + esc(s.first_name || 'Student') + '</b>' + (s.progress && s.progress.age ? ' <span class="muted">age ' + s.progress.age + '</span>' : '') + '</td>' + (showClass ? '<td>' + esc(s.class || 'no class') + '</td>' : '') + '<td class="num">' + pill(r.mastery) + '</td><td class="num hide-sm">' + r.answers + '</td><td class="' + (r.gaps.length ? 'gap' : '') + '">' + esc(r.gaps.length ? r.gaps.join(', ') : 'none') + '</td><td class="hide-sm">' + esc(ago(r.last || s.last_sync)) + '</td></tr>'; }).join('') + '</tbody></table></div>';
+  }
+  function login(msg) {
+    out.hidden = true;
+    app.innerHTML = '<div class="card" style="max-width:460px"><h2>Admin log in</h2><p class="muted">The admin sees every teacher, class and student saved in the Somo database. Teachers use the Teacher page inside the Somo app instead.</p><label for="k"><b>Admin key</b></label><input id="k" type="password" autocomplete="current-password"><div class="row" style="margin-top:10px"><button id="go">Log in</button></div><p class="msg ' + (msg ? 'bad' : '') + '" id="m">' + esc(msg || '') + '</p></div>';
+    var k = document.getElementById('k'); k.focus();
+    var go = function () { key = k.value.trim(); load(); };
+    document.getElementById('go').onclick = go; k.onkeydown = function (e) { if (e.key === 'Enter') go(); };
+  }
+  function load() {
+    app.innerHTML = '<div class="card">Loading…</div>';
+    call('admin_overview').then(function (d) { data = d; try { sessionStorage.setItem('somo-admin', key); } catch (e) {} out.hidden = false; overview(); })
+      .catch(function (e) { key = ''; try { sessionStorage.removeItem('somo-admin'); } catch (x) {} login(/admin key/.test(e.message) ? 'That admin key is not right.' : 'Could not connect: ' + e.message); });
+  }
+  function overview() {
+    var st = data.students, active = st.filter(function (s) { return prog(s.progress).active7; }).length, gaps = st.filter(function (s) { return prog(s.progress).gaps.length; }).length;
+    var list = st.filter(function (s) { return !q || (s.first_name + ' ' + (s.class || '')).toLowerCase().indexOf(q) >= 0; });
+    var body = '';
+    if (tab === 'students') body = '<div class="card"><h2>All students (' + st.length + ')</h2><input id="q" placeholder="Search by first name or class" value="' + esc(q) + '" aria-label="Search students"><div style="height:8px"></div>' + studentsTable(list, true) + '</div>';
+    else if (tab === 'classes') body = '<div class="card"><h2>Teachers and classes (' + data.classes.length + ')</h2>' + (data.classes.length ? '<div class="wrap"><table class="tbl"><thead><tr><th>Teacher</th><th>Class</th><th>Class code</th><th class="num">Students</th></tr></thead><tbody>' + data.classes.map(function (c) { return '<tr class="click" tabindex="0" data-cls="' + esc(c.id) + '"><td><b>' + esc(c.teacher_name || '—') + '</b></td><td>' + esc(c.name) + '</td><td><code>' + esc(c.code) + '</code></td><td class="num">' + c.students + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="muted">No classes yet. A teacher makes one from the Teacher page in the Somo app.</p>') + '</div>';
+    else body = '<div class="card"><h2>Guestbook</h2><p class="muted">Hide a note to take it off the guestbook; you can show it again.</p><div id="gb">Loading…</div></div>';
+    app.innerHTML = '<div class="stats"><div class="stat"><b>' + data.classes.length + '</b><span>teachers and classes</span></div><div class="stat"><b>' + st.length + '</b><span>students saving online</span></div><div class="stat"><b>' + active + '</b><span>active in the last 7 days</span></div><div class="stat"><b>' + gaps + '</b><span>with a learning gap</span></div><div class="stat"><b>' + data.guestbook_notes + '</b><span>guestbook notes</span></div></div>' +
+      '<div class="tabs" role="group" aria-label="View">' + [['students', 'All students'], ['classes', 'Teachers and classes'], ['guestbook', 'Guestbook']].map(function (t) { return '<button data-tab="' + t[0] + '" aria-pressed="' + (tab === t[0]) + '">' + t[1] + '</button>'; }).join('') + '<button class="small ghost" id="ref" style="color:#FFF8EC">Refresh</button></div>' + body;
+    var qi = document.getElementById('q'); if (qi) { qi.oninput = function () { q = qi.value.trim().toLowerCase(); var pos = qi.selectionStart; overview(); var n = document.getElementById('q'); n.focus(); n.setSelectionRange(pos, pos); }; }
+    if (tab === 'guestbook') guestbook();
+  }
+  function guestbook(hideId, hide) {
+    call('admin_gb', hideId ? { hide_id: hideId, hide: hide } : {}).then(function (d) {
+      var el = document.getElementById('gb'); if (!el) return;
+      el.innerHTML = d.notes.length ? '<div class="wrap"><table class="tbl"><thead><tr><th>Name</th><th>Note</th><th class="hide-sm">When</th><th></th></tr></thead><tbody>' + d.notes.map(function (n) { return '<tr class="' + (n.hidden ? 'hidden-note' : '') + '"><td><b>' + esc(n.name) + '</b></td><td>' + esc(n.message) + '</td><td class="hide-sm">' + esc(new Date(n.created_at).toLocaleDateString()) + '</td><td><button class="small ' + (n.hidden ? '' : 'ghost') + '" data-hide="' + esc(n.id) + '" data-h="' + (n.hidden ? '0' : '1') + '">' + (n.hidden ? 'Show' : 'Hide') + '</button></td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="muted">No notes yet.</p>';
+    }).catch(function (e) { var el = document.getElementById('gb'); if (el) el.textContent = 'Could not load: ' + e.message; });
+  }
+  function crumbs(parts) { return '<div class="crumbs"><button class="small" data-home="1">Overview</button>' + parts.map(function (p) { return ' › ' + (p.cls ? '<button class="small" data-cls="' + esc(p.cls) + '">' + esc(p.t) + '</button>' : '<span>' + esc(p.t) + '</span>'); }).join('') + '</div>'; }
+  function openClass(id) {
+    app.innerHTML = '<div class="card">Loading the class…</div>';
+    call('admin_class', { class_id: id }).then(function (d) {
+      app.innerHTML = crumbs([{ t: d.class.name }]) + '<div class="card"><h2>' + esc(d.class.name) + '</h2><p>Teacher: <b>' + esc(d.class.teacher_name || '—') + '</b> · Class code: <code>' + esc(d.class.code) + '</code> · Students: <b>' + d.children.length + '</b></p><p class="muted">This is what the teacher sees on their Teacher page.</p></div><div class="card"><h2>Students</h2>' + studentsTable(d.children, false) + '</div>';
+      app.dataset.cls = id; app.dataset.clsName = d.class.name;
+    }).catch(function (e) { app.innerHTML = crumbs([]) + '<div class="card msg bad">Could not load the class: ' + esc(e.message) + '</div>'; });
+  }
+  function openKid(id) {
+    var back = app.dataset.cls ? [{ t: app.dataset.clsName, cls: app.dataset.cls }] : [];
+    app.innerHTML = '<div class="card">Loading the student…</div>';
+    call('admin_child', { child_id: id }).then(function (d) {
+      var c = d.child, p = c.progress, r = prog(p);
+      var html = crumbs(back.concat([{ t: c.first_name || 'Student' }])) + '<div class="card"><h2>' + esc(c.first_name || 'Student') + (p && p.age ? ' <span class="muted">age ' + p.age + '</span>' : '') + '</h2><p>' + (c.in_class ? 'In a class' : 'Not in a class') + ' · last active <b>' + esc(ago(r.last || c.last_sync)) + '</b>' + (p ? ' · steps done <b>' + p.steps_done + '</b> · at-home activities <b>' + p.offline_done + '</b> · stars <b>' + r.stars + '</b> · coins <b>' + p.coins + '</b>' : '') + '</p><p class="muted">This is the student\'s progress as their teacher and family see it.</p></div>';
+      if (!p) { app.innerHTML = html + '<div class="card">No progress saved online yet.</div>'; return; }
+      var sk = Object.keys(p.skills).map(function (id) { return [id, p.skills[id]]; }).sort(function (a, b) { return a[1].mastery - b[1].mastery; });
+      var W = 520, L = 130, H = 28, bars = sk.map(function (x, i) { var v = x[1], w = Math.max(2, (W - L - 44) * v.mastery / 100), col = v.mastery < 50 ? '#C42E6F' : v.mastery < 70 ? '#F07A2A' : '#2F7D4F'; return '<text x="' + (L - 8) + '" y="' + (i * H + 18) + '" font-size="13" font-weight="700" text-anchor="end" fill="currentColor">' + esc(SKILL[x[0]] || x[0]) + '</text><rect x="' + L + '" y="' + (i * H + 6) + '" width="' + (W - L - 44) + '" height="16" rx="8" fill="#EADBC4"/><rect x="' + L + '" y="' + (i * H + 6) + '" width="' + w + '" height="16" rx="8" fill="' + col + '"/><text x="' + (L + w + 6) + '" y="' + (i * H + 18) + '" font-size="12" font-weight="800" fill="currentColor">' + v.mastery + '%</text>'; }).join('');
+      var days = p.days || [], mx = Math.max.apply(null, [1].concat(days.map(function (d) { return d.n; }))), bw = (W - 20) / Math.max(7, days.length);
+      var spark = days.map(function (d, i) { var hh = 60 * d.n / mx, rh = 60 * d.c / mx; return '<rect x="' + (10 + i * bw) + '" y="' + (66 - hh) + '" width="' + (bw - 6) + '" height="' + hh + '" rx="3" fill="#EADBC4"/><rect x="' + (10 + i * bw) + '" y="' + (66 - rh) + '" width="' + (bw - 6) + '" height="' + rh + '" rx="3" fill="#2F7D4F"/><text x="' + (10 + i * bw + (bw - 6) / 2) + '" y="82" font-size="10" text-anchor="middle" fill="currentColor">' + esc(String(d.day).split('-').slice(1).join('/')) + '</text>'; }).join('');
+      html += '<div class="card"><h2>Skills</h2><p class="muted">How often the last 10 answers were right. Red: a learning gap. Orange: almost there. Green: secure.</p>' + (sk.length ? '<svg class="chart" viewBox="0 0 ' + W + ' ' + (sk.length * H + 6) + '" role="img" aria-label="Mastery of each skill">' + bars + '</svg>' : '<p class="muted">No answers yet.</p>') + '<h3>Answers per day</h3>' + (days.length ? '<svg class="chart" viewBox="0 0 ' + W + ' 88" role="img" aria-label="Answers per day: all answers light, first-time right green">' + spark + '</svg>' : '<p class="muted">No days yet.</p>') + '</div>';
+      html += '<div class="card"><h2>Learning gaps</h2>' + (r.gaps.length ? '<ul>' + r.gaps.map(function (g) { return '<li class="gap">' + esc(g) + '</li>'; }).join('') + '</ul>' : '<p>No learning gaps right now.</p>') + '<h3>Mistakes that repeat</h3>' + ((p.tags || []).length ? '<ul>' + p.tags.map(function (t) { return '<li><b>' + t.n + '×</b> ' + esc(TAGS[t.tag] || t.tag) + '</li>'; }).join('') + '</ul>' : '<p class="muted">None yet.</p>') + '</div>';
+      app.innerHTML = html;
+    }).catch(function (e) { app.innerHTML = crumbs(back) + '<div class="card msg bad">Could not load the student: ' + esc(e.message) + '</div>'; });
+  }
+  app.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-tab],[data-kid],[data-cls],[data-home],[data-hide],#ref'); if (!t) return;
+    if (t.id === 'ref') return load();
+    if (t.dataset.tab) { tab = t.dataset.tab; delete app.dataset.cls; return overview(); }
+    if (t.dataset.home) { delete app.dataset.cls; return overview(); }
+    if (t.dataset.hide) return guestbook(t.dataset.hide, t.dataset.h === '1');
+    if (t.dataset.cls) return openClass(t.dataset.cls);
+    if (t.dataset.kid) return openKid(t.dataset.kid);
+  });
+  app.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('tr.click')) { e.preventDefault(); e.target.click(); } });
+  out.onclick = function () { key = ''; data = null; try { sessionStorage.removeItem('somo-admin'); } catch (e) {} login(); };
+  if (key) load(); else login();
+})();
+</script>
+</body>
+</html>
