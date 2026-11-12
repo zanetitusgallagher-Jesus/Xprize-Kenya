@@ -1,6 +1,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Somo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2F7D4F">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap">
@@ -10381,6 +10385,86 @@ $('#stage').addEventListener('click', e => {
   document.head.appendChild(el);
 }
 window.__ky = Object.assign(window.__ky || {}, { dueSkills, practiceBoost, reviewDays, Warm });
+
+/* ============================================================================
+   OFFLINE INSTALL (Nov 2026)
+   - Registers somo2/sw.js (scope /Xprize-Kenya/somo2/): it caches the app shell for somo2/, letters/, trail/ and
+     setup/ (network first, so a new push shows at once when online).
+   - The first time, the one voice pack this device uses (audio/en.json or audio/en-mp3.json) is downloaded with a
+     progress bar and kept in the cache "somo-audio-v1"; then the home screen shows a "Ready for offline" badge.
+   - Supabase and the AI relay always go to the network; Somo already works without them.
+   - A grown-up prompt to add Somo to the home screen (grown-ups panel, and a small chip on the home screen).
+   ========================================================================== */
+const OFF_AUDIO = 'somo-audio-v1';
+const OfflineApp = {
+  pct: null, ready: false, sw: false, prompt: null, hidden: false,
+  standalone() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; },
+  ios() { return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); },
+  bar() {
+    let el = document.getElementById('offbar'); if (this.pct == null || this.pct >= 100) { if (el) el.remove(); return; }
+    if (!el) { el = document.createElement('div'); el.id = 'offbar'; el.setAttribute('role', 'progressbar'); el.setAttribute('aria-label', 'Getting Somo ready for offline'); $('#stage').appendChild(el); }
+    el.setAttribute('aria-valuenow', this.pct); el.innerHTML = `<span>Getting Somo ready for offline… ${this.pct}%</span><i style="width:${this.pct}%"></i>`;
+  },
+  badge() {
+    const tr = document.querySelector('#screen .toprow'); if (!tr || App.state !== 'hub') return; tr.querySelectorAll('.offok,.offadd').forEach(x => x.remove());
+    if (this.ready && this.sw) tr.insertAdjacentHTML('beforeend', `<span class="offok" title="Somo works without internet on this device">✓ Ready for offline</span>`);
+    if (!this.standalone() && !KY().noInstallChip && (this.prompt || this.ios())) tr.insertAdjacentHTML('afterend', `<button class="offadd" data-k="offadd">Grown-up: add Somo to the home screen</button>`);
+  },
+  /* the voice pack, from the cache or downloaded with progress (then cached) */
+  async audio(file) {
+    const abs = new URL(file, location.href).href; let c = null;
+    try { if ('caches' in window) { c = await caches.open(OFF_AUDIO); const hit = await c.match(abs, { ignoreSearch: true }); if (hit) { this.ready = true; return await hit.json(); } } } catch (e) { c = null; }
+    const r = await fetch(file); if (!r.ok) return null;
+    const total = +r.headers.get('content-length') || 0; let body;
+    if (r.body && r.body.getReader && total) {
+      const rd = r.body.getReader(), parts = []; let got = 0; this.pct = 0; this.bar();
+      for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; const p = Math.min(99, Math.floor(100 * got / total)); if (p !== this.pct) { this.pct = p; this.bar(); } }
+      body = new Blob(parts, { type: 'application/json' });
+    } else body = await r.blob();
+    this.pct = 100; this.bar();
+    try { if (c) { await c.put(abs, new Response(body, { headers: { 'content-type': 'application/json' } })); this.ready = true; } } catch (e) { }
+    if (App.state === 'hub') this.badge();
+    return JSON.parse(await body.text());
+  },
+};
+/* Speech loads its voice pack through the offline cache (same choice of pack as before) */
+Speech.load = async function (force) {
+  let ogg = ''; try { ogg = document.createElement('audio').canPlayType('audio/ogg; codecs="opus"'); } catch (e) { }
+  const ua = navigator.userAgent, safari = /iP(hone|ad|od)/.test(ua) || (/Safari/.test(ua) && !/Chrome|Chromium|Android|Firefox/.test(ua));
+  this.fmt = force || (ogg && !safari ? 'ogg' : 'mp3');
+  const file = (window.AUDIO_BASE || '') + (this.fmt === 'ogg' ? 'audio/en.json' : 'audio/en-mp3.json');
+  try { const j = await OfflineApp.audio(file); if (j && typeof j === 'object') { this.pack = j; this.cache.clear(); } else if (this.fmt === 'mp3' && !force) this.load('ogg'); } catch (e) { OfflineApp.pct = null; OfflineApp.bar(); }
+};
+if ('serviceWorker' in navigator && !VIEW && !(window.claude && window.claude.use) && (location.protocol === 'https:' || location.hostname === 'localhost') && !/\/somo-arcade\.html$/.test(location.pathname)) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').then(reg => { OfflineApp.sw = true; OfflineApp.reg = reg; if (App.state === 'hub') OfflineApp.badge(); }).catch(() => { }); });
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); OfflineApp.prompt = e; if (App.state === 'hub') OfflineApp.badge(); });
+window.addEventListener('appinstalled', () => { OfflineApp.prompt = null; KY().noInstallChip = true; kSave(); });
+{ const _sh = showHome; showHome = function () { _sh(); OfflineApp.badge(); OfflineApp.bar(); }; }
+function installHelp() {
+  if (OfflineApp.prompt) { const p = OfflineApp.prompt; OfflineApp.prompt = null; p.prompt(); p.userChoice.then(r => { if (r.outcome === 'accepted') { KY().noInstallChip = true; kSave(); } if (App.state === 'hub') showHome(); }).catch(() => { }); return; }
+  showParent(); setTimeout(() => { const el = document.getElementById('installhelp'); if (el) el.scrollIntoView(); }, 50);
+}
+{ const _sp = showParent; showParent = function () { _sp(); const el = $('#parent'), h = el.querySelector('h3'); if (!h) return;
+    h.insertAdjacentHTML('beforebegin', `<h3 id="installhelp">Use Somo offline</h3><p class="muted">${OfflineApp.ready && OfflineApp.sw ? 'Somo is <b>ready for offline</b> on this device: the pages and the voice are saved.' : OfflineApp.pct != null && OfflineApp.pct < 100 ? `Saving Somo for offline: ${OfflineApp.pct}%.` : 'Open Somo once with internet and it saves itself for offline (about 15 MB).'} Progress is kept on the phone and sent online when there is internet.</p>
+      ${OfflineApp.standalone() ? '<p class="muted">Somo is on the home screen.</p>' : OfflineApp.prompt ? '<p><button class="close" style="float:none" data-act="offinstall">Add Somo to the home screen</button></p>' : OfflineApp.ios() ? '<p class="muted">To add Somo to the home screen on an iPhone or iPad: tap the Share button, then "Add to Home Screen".</p>' : '<p class="muted">To add Somo to the home screen: open the browser menu (⋮), then "Add to Home screen" or "Install app".</p>'}
+      ${!OfflineApp.standalone() && !KY().noInstallChip ? '<p><button class="close" style="float:none" data-act="offhide">Hide the home-screen reminder</button></p>' : ''}`);
+  }; }
+$('#stage').addEventListener('click', e => {
+  const k = e.target.closest('[data-k="offadd"]'), a = e.target.closest('[data-act="offinstall"],[data-act="offhide"]');
+  if (k) { Sfx.unlock(); installHelp(); }
+  if (a) { if (a.dataset.act === 'offinstall') installHelp(); else { KY().noInstallChip = true; kSave(); showParent(); } }
+});
+{
+  const u = n => `calc(var(--u)*${n})`;
+  const el = document.createElement('style'); el.textContent = `
+#offbar{position:absolute;left:${u(10)};right:${u(10)};top:${u(6)};z-index:40;background:rgba(20,12,8,.9);color:#FFF8EC;border-radius:${u(10)};padding:${u(3)} ${u(8)} ${u(7)};font-weight:800;font-size:${u(12)};pointer-events:none}
+#offbar i{position:absolute;left:${u(8)};bottom:${u(3)};height:${u(4)};border-radius:${u(2)};background:#F2B829;max-width:calc(100% - ${u(16)})}
+.offok{background:#2F7D4F;color:#fff;border-radius:${u(10)};padding:${u(2)} ${u(8)};font-weight:800;font-size:${u(11)};white-space:nowrap}
+.offadd{background:rgba(255,248,236,.94);color:#2B1E17;border-radius:${u(12)};padding:${u(4)} ${u(10)};font-weight:800;font-size:${u(12)}}`;
+  document.head.appendChild(el);
+}
+window.__ky = Object.assign(window.__ky || {}, { OfflineApp });
 
 boot();
 

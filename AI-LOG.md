@@ -161,3 +161,13 @@
   - In lessons: miss 1 gives the nudge and the picture help (as before); miss 2 now shows a worked example (a different question of the same kind, solved, read aloud, with its picture panel) and lets the child try again; after a miss, a twin question on the same skill follows; at the end, a fix-it round replays the questions missed on the first try (no penalty: fix-it answers do not change mastery).
   - "Practice Boost" on the home screen: 6 questions from the 3 weakest skills, 5 coins at the end (normal rewards).
   - Tested in a headless browser: no page or console errors.
+
+## Feature 3: offline install
+- **Date:** Nov 12, 2026
+- **Goal:** Somo works with no internet and can be added to the home screen like an app.
+- **Prompt:** "Add a manifest and a service worker scoped to /Xprize-Kenya/somo2/. Cache the app shell for somo2/, letters/, trail/ and setup/. On first load, cache the one audio file this device uses, showing a progress bar and then a Ready for offline badge. Versioned cache... Supabase and the AI relay go to the network first... a grown-up prompt to add Somo to the home screen."
+- **What Claude Did:**
+  - `somo2/sw.js`: caches the shell when it installs; pages are network-first (a new push shows at once when online, the cached copy when offline); the voice pack is cache-first in its own cache (`somo-audio-v1`) so new versions of the pages do not download it again; Supabase and the AI relay are never cached. Versioned caches (`somo-shell-v1`); old ones are deleted on update.
+  - `somo2/manifest.webmanifest` and icons drawn in code (192, 512, maskable, Apple touch icon).
+  - `somo2/` (source `src/b2/offline.js`): the voice pack downloads once with a progress bar, then a "Ready for offline" badge on the home screen; "Grown-up: add Somo to the home screen" chip (install prompt on Android and desktop, instructions on iPhone), also in the grown-ups panel, which can hide the reminder.
+  - Tested in a headless browser: shell and voice cached, the app, letters, trail and setup open offline; no page or console errors.
