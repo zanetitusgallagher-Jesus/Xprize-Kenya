@@ -103,3 +103,13 @@
   - `somo3/`: the admin page. It logs in with the admin key and shows totals, all students (searchable), teachers and classes, any class as its teacher sees it, any student's view, and guestbook moderation.
   - `somo2/trail/`: its guestbook and polls now use Supabase through a stand-in for the old helper.
   - Tested in a browser against a stand-in server that mirrors the function: the teacher makes a class, a family joins and plays, and the teacher sees the student. The admin view (a wrong key is refused, then overview, class and student) and hiding a note work. Guestbook and polls work in the app and on Turi's trail, subtitles show, and there were no page errors.
+
+## Remove the egg stuff
+- **Date:** Nov 12, 2026
+- **Prompt:** "I don't like the egg stuff." Asked which part: "Remove all of it."
+- **What Claude Did:**
+  - Removed the egg basket rewards (egg cracking, gifts, the gift shelf) and the Egg Farm game from the Somo app (`somo2/`).
+  - Brought back Somo's original treasure chests (after a step, a finished skill, a level-up and a daily gift) with stickers, coins and the sticker book. The closet still dresses whichever stage friend is on duty.
+  - Updated the welcome video, the student instructions and the delete-account screen to talk about chests and stickers instead of eggs.
+  - Left untouched: the Humpty Dumpty rhyme picture (it is part of the nursery rhyme), and Turi's trail, which is the partner's own page with its own surprise eggs.
+  - Tested in a browser: Egg Farm and the basket are gone, a finished step pops a chest with a sticker, the sticker book and closet are on the home screen, and there were no page errors.

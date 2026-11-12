@@ -13,7 +13,7 @@ Its learning model is **Internalize/Inspire → Interpret → Impart**: children
 
 | Path | What it is | Who made it |
 |---|---|---|
-| `somo2/index.html` | **Somo main page: the learning path.** It looks like the original Somo, plus a row of feature buttons. Four stage tutors with Swahili names, numbers and reading paths, 21 games, lessons, egg basket, rhymes, stories, tracing, grown-up mode and AI tutor chat. Also: welcome video, accounts, parent and teacher page, guestbook and polls, safari or village music, a safari roadmap background, and at-home activities. | Zane's Somo, extended with the team's ideas |
+| `somo2/index.html` | **Somo main page: the learning path.** It looks like the original Somo, plus a row of feature buttons. Four stage tutors with Swahili names, numbers and reading paths, 20 games, lessons, treasure chests, rhymes, stories, tracing, grown-up mode and AI tutor chat. Also: welcome video, accounts, parent and teacher page, guestbook and polls, safari or village music, a safari roadmap background, and at-home activities. | Zane's Somo, extended with the team's ideas |
 | `somo2/audio/` | Recorded Kenyan-English voice clips (`en.json` Opus for most browsers, `en-mp3.json` for iPhone/iPad). The app picks the right file by itself. | Generated |
 | `somo2/trail/index.html` | **Turi's trail** (the team's Somo page): Turi the lion, the treasure trail, surprise eggs, guestbook, polls and a grown-ups' tracker. Opened from the "Turi's trail" button. | Team (partner file) |
 | `somo2/letters/index.html` | **Jambo Letters.** Letter tracing, capital and small letters, phonics, books, rhymes, a quiz and games for 5-year-olds. | Team (partner file), plus links at the top |
@@ -62,7 +62,7 @@ The pages try these routes **in this order**:
   - **Inspire:** a nursery rhyme or story, then a lesson (Watch → Together → You).
   - **Interpret:** up to three games that train that skill.
   - **Impart:** the child teaches the tutor, who has made a mistake, then gets an activity to show a grown-up at home, in English and Kiswahili.
-- **Egg basket rewards:** finishing steps earns eggs (hen, guinea-fowl, duck, ostrich). The child cracks an egg, finds a Kenyan gift and learns one true fact about that egg, then gives the gift to the tutor ("Asante!" / "Karibu!").
+- **Treasure chests:** finishing steps and skills, levelling up and a daily gift each pop a treasure chest with a sticker and coins (Somo's original rewards). Stickers go in the sticker book; coins buy outfits in the closet.
 - **Story corner:** public-domain nursery rhymes, some with tunes; Aesop fables and an East African hare tale, retold; a tracing book for all 52 letters.
 - **Learning with a grown-up:** a switch on the home screen shows a tip in English or Kiswahili before each activity.
 - **Grown-ups panel:** press and hold the people icon. It shows progress, mistakes, the AI status and its own key box.
