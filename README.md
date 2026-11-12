@@ -31,6 +31,12 @@ Every page is a **single self-contained HTML file**: no build step, no npm, no f
 
 ---
 
+## Somo as an app
+
+- **Mac:** download [`apps/Somo-for-Mac.zip`](https://zanetitusgallagher-jesus.github.io/Xprize-Kenya/apps/Somo-for-Mac.zip), unzip it, and drag **Somo** (the mango icon) into Applications. The first time, right-click it and choose "Open" (or System Settings → Privacy & Security → "Open Anyway"), because it is not from the App Store. It opens Somo in its own window (Chrome, Edge or Brave app mode when one is installed, which also works offline; Safari otherwise). The app's files are in `apps/mac/Somo.app` (a small launcher, `Contents/MacOS/Somo`); after changing them, zip `Somo.app` and `HOW-TO-INSTALL.txt` again into `apps/Somo-for-Mac.zip`.
+- **Any computer with Chrome or Edge:** open Somo, then the install icon in the address bar (or menu → "Install Somo"). It becomes a real app in Applications or the Start menu, works offline and updates itself.
+- **Phones and tablets:** open Somo, then "Add to Home Screen" (Android: browser menu; iPhone: the Share button). The home screen also shows a reminder for grown-ups.
+
 ## How the AI works (and the API key)
 
 The AI never decides whether a child's answer is right. The app's own code does that; the AI only coaches, hints and writes short notes.

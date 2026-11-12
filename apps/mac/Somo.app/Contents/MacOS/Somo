@@ -1,0 +1,14 @@
+#!/bin/bash
+# Somo for Mac: opens Somo in its own app window (no tabs, no address bar).
+# It uses Chrome, Edge, Brave or Chromium if one is installed (their "app mode", which also keeps Somo working
+# offline after the first visit), and Safari otherwise. Somo itself is the website, so it is always up to date.
+URL="https://zanetitusgallagher-jesus.github.io/Xprize-Kenya/somo2/"
+for B in "Google Chrome" "Microsoft Edge" "Brave Browser" "Chromium"; do
+  for D in "/Applications" "$HOME/Applications"; do
+    if [ -d "$D/$B.app" ]; then
+      open -na "$D/$B.app" --args --app="$URL" --window-size=460,860
+      exit 0
+    fi
+  done
+done
+open -a Safari "$URL" 2>/dev/null || open "$URL"

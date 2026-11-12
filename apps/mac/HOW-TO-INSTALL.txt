@@ -1,0 +1,13 @@
+SOMO FOR MAC
+
+1. Double-click "Somo-for-Mac.zip" to unzip it. You get "Somo" (the app, with the mango icon).
+2. Drag "Somo" into your Applications folder.
+3. The first time only: right-click (or Control-click) Somo, choose "Open", then click "Open" again.
+   (Somo is not from the App Store, so the Mac asks once. After that, open it like any app,
+   or keep it in the Dock.)
+
+Somo opens in its own window. If Chrome, Edge or Brave is on the Mac, Somo also works offline
+after the first visit. Otherwise it opens in Safari.
+
+If the Mac says the app "is damaged" or "cannot be opened": open System Settings, then
+Privacy & Security, scroll down, and click "Open Anyway" next to Somo.

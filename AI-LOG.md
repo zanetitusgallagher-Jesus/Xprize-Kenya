@@ -198,3 +198,9 @@
 - **Goal:** Use the team's new Somo logo everywhere.
 - **Prompt:** "This is the logo of Somo. Add this into Somo." (a design-system zip with the wordmark, mono and reverse versions, and the app icon)
 - **What Claude Did:** saved the logo files in `somo2/art/` (the content-credential metadata was taken out to keep them small); new app icons (192, 512, maskable, Apple touch) drawn from `somo-icon.svg`; the wordmark on the Somo home screen (source `src/b2/brand.js` in Chronicle) and in the headers of the teacher (`somo4/`) and admin (`somo3/`) pages; the icon as the browser-tab icon. The service worker cache version went up so phones pick up the new icons. Checked in a headless browser: no page or console errors.
+
+## Somo as a Mac app
+- **Date:** Nov 12, 2026
+- **Goal:** Somo as "a literal app" to drag into Applications.
+- **Prompt:** "Create this into an app, a literal app... Put it into a file and then I'll drag it to Applications."
+- **What Claude Did:** made `apps/Somo-for-Mac.zip` (with `HOW-TO-INSTALL.txt`): a small Mac app, `Somo.app`, with the new mango icon. It opens Somo in its own window (Chrome, Edge or Brave app mode, else Safari), so it is always the newest Somo and works offline after the first visit in Chrome or Edge. It is not signed by Apple, so the first launch needs right-click → Open (or "Open Anyway" in Privacy & Security). README: "Somo as an app" (Mac, install from Chrome/Edge, phones).
