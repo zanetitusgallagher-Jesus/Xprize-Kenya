@@ -72,3 +72,15 @@
   - Fixed the doubled full stop in error messages.
   - Tested in a browser with a stand-in server: refused while not enrolled (kept on the device), then sent and cleared once enrolled.
 - **Still needed:** the teacher must enroll the site id `zanetitusgallagher-jesus` in the QuestX class database.
+
+## Delete account (parent control)
+- **Date:** Nov 12, 2026
+- **Goal:** Add a delete-account feature that the parent controls (from Tiffany's website).
+- **Prompt:** "Can you add a delete account feature for the parent to control?"
+- **What Claude Did:**
+  - Added "Delete account" under "Account settings" on the Parent page, which is behind the parent PIN.
+  - A confirmation screen lists exactly what will be erased from the device: the student and parent accounts and the PIN, all progress (stars, lessons, games, eggs, gifts, closet), the progress story, chart and plan, and guestbook notes and poll votes still waiting on the device. A tick box also removes the saved AI key.
+  - The "Delete forever" button only works after the parent types the child's first name.
+  - After deleting, the app starts fresh (welcome video, then account set-up). Only KenyAI's own saved data is removed, nothing else in the browser.
+  - Notes already shared in the class guestbook stay there (the class database has no delete), and the screen says so.
+  - Tested in a browser: the button stays locked until the right name is typed, then the account, the PIN and the progress are erased. Unticking the box keeps the AI key, and data saved by other websites is untouched.

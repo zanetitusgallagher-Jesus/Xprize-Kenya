@@ -9964,6 +9964,32 @@ function rulePlan(d) {
   const out = []; for (const x of g.slice(0, 3)) { const o = OFFLINE[x.id]; out.push({ step: `${x.name}: replay its lesson, then play one of its games together.`, when: 'Next session' }); if (o) out.push({ step: `At home: ${o.t}. ${o.s[0]}`, when: 'This week' }); }
   out.push({ step: 'Open this page again after three sessions to see if the gaps are closing.', when: 'In 3 days' }); return out.slice(0, 5);
 }
+/* ---------------- delete account (parent only: the parent page is behind the PIN) ---------------- */
+const DeleteAcct = {
+  show() {
+    App.state = 'pdelete'; const name = (KY().account && KY().account.student && KY().account.student.name) || '';
+    const word = name || 'DELETE'; this.word = word;
+    setScreen(`<div class="scr jr"><div class="toprow"><button class="hb" data-k="pdelno" aria-label="Back">${BACK_SVG}</button><div class="h2" style="flex:1">Delete account</div></div>
+      <div class="kcard"><h3>This will erase, from this device:</h3>
+        <ul class="kgaps"><li>the student and parent accounts, and the parent PIN</li><li>all progress: stars, lessons, games, eggs, gifts and closet items</li><li>the progress story, the gap chart and the plan</li><li>guestbook notes and poll votes still waiting on this device</li></ul>
+        <label class="kchk"><input type="checkbox" id="pdkey" checked> Also remove the AI key saved on this device</label>
+        <p class="kfine">Notes already shared in the class guestbook stay there. To remove one of those, ask your teacher. This cannot be undone.</p>
+        <label for="pdconf">To confirm, type <b>${esc(word)}</b></label><input id="pdconf" class="kin" autocomplete="off" maxlength="30">
+        <button class="btn kdel" data-k="pdelgo" id="pdgo" disabled>Delete forever</button><button class="btn ghost" data-k="pdelno">Keep my account</button></div>${grownBtn()}</div>`);
+    const inp = $('#pdconf'); inp.addEventListener('keydown', e => e.stopPropagation());
+    inp.addEventListener('input', () => { $('#pdgo').disabled = inp.value.trim().toLowerCase() !== word.toLowerCase(); });
+    Speech.say('Delete account. This erases the account and all progress from this device.');
+  },
+  run() {
+    const inp = $('#pdconf'); if (!inp || inp.value.trim().toLowerCase() !== this.word.toLowerCase()) return;
+    const dropKey = !!($('#pdkey') && $('#pdkey').checked);
+    Speech.stop(); Music.stop(); S = freshState(); Store.save();
+    try { for (const k of Object.keys(localStorage)) if (k.startsWith('kenyai-') && (dropKey || k !== 'kenyai-key')) localStorage.removeItem(k); } catch (e) { }
+    if (dropKey) AI.key = ''; Parent.unlocked = false; LEARNER = 'Achieng';
+    setScreen(`<div class="scr dim jr"><div class="h2" style="text-align:center">The account is deleted.</div><div class="sub" style="text-align:center">Starting fresh…</div></div>`);
+    setTimeout(() => location.reload(), 1500);
+  },
+};
 const Parent = {
   busy: false, lang: 'en', unlocked: false,
   open() { const pin = KY().account && KY().account.parent && KY().account.parent.pin; if (pin && !this.unlocked) return this.pinPad(); this.show(); },
@@ -10015,6 +10041,7 @@ Data: ${JSON.stringify(data)}` }], { timeout: 15000, maxTokens: 900 });
       <div class="kcard"><h3>Learning gaps and the plan <small>${src(p)}</small></h3>${(p.gaps || []).length ? `<ul class="kgaps">${p.gaps.map(g => `<li><b>${esc(g.name)}</b>${g.mastery != null ? ` <span class="kpill">${g.mastery}%</span>` : ''}<br>${esc(g.why || '')}</li>`).join('')}</ul>` : '<p>No learning gaps right now.</p>'}
         <h4>Recommended plan</h4><ol class="kplan">${(p.plan || []).map(x => `<li>${esc(x.step)}${x.when ? ` <span class="kpill">${esc(x.when)}</span>` : ''}</li>`).join('')}</ol></div>
       <button class="btn go" data-k="prefresh">${this.busy ? 'Updating…' : 'Update with AI now'}</button>
+      <div class="kcard"><h3>Account settings</h3><p class="kfine">Only a grown-up should do this. Deleting the account erases ${esc(LEARNER)}'s account and all progress from this device.</p><button class="btn kdel" data-k="pdel">Delete account</button></div>
       <p class="kfine">The story, gaps and plan update by themselves after each session. The app, not the AI, decides right and wrong; the AI only writes the words. Saved on this device only.</p>${grownBtn()}</div>`);
   },
 };
@@ -10150,7 +10177,7 @@ const SUN_SVG = '<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12"
 { const _sh2 = showHome; showHome = function () { if (JR.loaded && J().placed && !KY().seenVideo && !KY().noVideo) { KY().seenVideo = true; kSave(); return Video.open(() => showHome()); } return _sh2(); }; }
 
 $('#stage').addEventListener('click', e => {
-  const el = e.target.closest('[data-k]'); if (!el || el.closest('.jopt,.tile,.letters,.pairs,.yn')) return; const a = el.dataset.k, v = el.dataset.v; if (!['video', 'accounts', 'parent', 'guest', 'music', 'vplay', 'vreplay', 'vskip', 'atab', 'akind', 'aav', 'asave', 'asay', 'accback', 'pin', 'plang', 'pread', 'prefresh', 'gbsave', 'pvote', 'offsay', 'offdone', 'offlater'].includes(a)) return;
+  const el = e.target.closest('[data-k]'); if (!el || el.closest('.jopt,.tile,.letters,.pairs,.yn')) return; const a = el.dataset.k, v = el.dataset.v; if (!['video', 'accounts', 'parent', 'guest', 'music', 'vplay', 'vreplay', 'vskip', 'atab', 'akind', 'aav', 'asave', 'asay', 'accback', 'pin', 'plang', 'pread', 'prefresh', 'gbsave', 'pvote', 'offsay', 'offdone', 'offlater', 'pdel', 'pdelgo', 'pdelno'].includes(a)) return;
   Sfx.unlock();
   switch (a) {
     case 'video': Sfx.play('click'); Video.open(); break;
@@ -10169,6 +10196,9 @@ $('#stage').addEventListener('click', e => {
     case 'plang': Parent.lang = v; Parent.show(); break;
     case 'pread': { const n = KY().narr || ruleNarrative(progressData()); sayLang(Parent.lang === 'sw' ? n.sw : n.en, Parent.lang); break; }
     case 'prefresh': Parent.show(true); break;
+    case 'pdel': Sfx.play('click'); DeleteAcct.show(); break;
+    case 'pdelgo': DeleteAcct.run(); break;
+    case 'pdelno': Sfx.play('click'); Parent.show(); break;
     case 'guest': Sfx.play('click'); Guest.open(); break;
     case 'gbsave': Guest.save(); break;
     case 'pvote': Guest.castVote(el.dataset.p, el.dataset.c); break;
@@ -10179,7 +10209,7 @@ $('#stage').addEventListener('click', e => {
   }
 });
 /* the floating Help button stays out of the way on these screens */
-{ const _fs = fabSync; fabSync = function () { const b = $('#kidiFab'); if (b && ['video', 'accounts', 'pin', 'parentpage', 'guestbook', 'offline'].includes(App.state)) { b.hidden = true; return; } _fs(); }; }
+{ const _fs = fabSync; fabSync = function () { const b = $('#kidiFab'); if (b && ['video', 'accounts', 'pin', 'parentpage', 'guestbook', 'offline', 'pdelete'].includes(App.state)) { b.hidden = true; return; } _fs(); }; }
 /* grown-ups panel: link to the new pages */
 { const _sp = showParent; showParent = function () { _sp(); const el = $('#parent'), h = el.querySelector('h3'); if (!h) return; h.insertAdjacentHTML('beforebegin', `<h3>KenyAI</h3><p class="muted">Account: ${esc(KY().account && KY().account.student ? KY().account.student.name : 'not set up')}. Music style: ${S.musicStyle === 'safari' ? 'safari' : 'village'}. Welcome video: ${KY().noVideo ? 'will not play by itself' : 'plays by itself once'}. Offline activities done: ${Object.keys(KY().off).length}. <button class="close" style="float:none" data-k="video">Play the welcome video</button> <button class="close" style="float:none" data-k="parent">Parent page</button></p>`); }; }
 
@@ -10243,10 +10273,11 @@ $('#stage').addEventListener('click', e => {
 .prow{display:grid;grid-template-columns:${u(90)} 1fr auto;gap:${u(6)};align-items:center;font-size:${u(12)};margin:${u(3)} 0}.ptr{height:${u(12)};border-radius:${u(6)};background:#EADBC4;overflow:hidden}.ptr i{display:block;height:100%;background:var(--leaf);transition:width .5s}
 .offc{background:rgba(255,248,236,.97);color:var(--ink);border-radius:${u(16)};padding:${u(12)}}.offc .ot{display:flex;align-items:center;gap:${u(8)};font-size:${u(22)}}.offc .ot i{font-size:${u(14)};opacity:.7}
 .offc .om{font-size:${u(15)};margin:${u(6)} 0}.offc ol{margin:0;padding-left:${u(22)};font-size:${u(16)};line-height:1.4}.offc li{margin:${u(5)} 0}.offc .osw{font-size:${u(13)};font-style:italic;opacity:.8;margin-top:${u(6)}}
-.node.offline .disc{background:#E3F3E6}`;
+.node.offline .disc{background:#E3F3E6}
+.btn.kdel{background:#C42E6F;color:#fff;box-shadow:0 ${u(4)} 0 #8A1F4D;font-size:${u(20)};min-height:${u(52)}}.btn.kdel:disabled{opacity:.45}.kchk{display:flex;align-items:center;gap:${u(8)};font-weight:700;font-size:${u(14)}}`;
   document.head.appendChild(el);
 }
-window.__ky = { KY, Video, Accounts, Parent, Guest, Offline, OFFLINE, progressData, gapsOf, ruleNarrative, rulePlan, setMusicStyle, POLLS };
+window.__ky = { DeleteAcct, KY, Video, Accounts, Parent, Guest, Offline, OFFLINE, progressData, gapsOf, ruleNarrative, rulePlan, setMusicStyle, POLLS };
 
 boot();
 

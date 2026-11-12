@@ -69,6 +69,7 @@ The pages try these routes **in this order**:
   - **Welcome video:** plays by itself on first launch. It explains why to use KenyAI and how. A grown-up can turn off the autoplay.
   - **Accounts:** a student part (first name, age, boy or girl, favourite animal friend) and a parent part (first name, relationship, 4-digit PIN, notes language), with set-up instructions for parents, students and teachers.
   - **Parent page:** PIN-protected. It shows an AI progress story (English and Kiswahili), a learning-gap chart (mastery per skill plus answers per day), the mistakes that repeat, and an AI-recommended plan. It updates by itself after each session and falls back to written text when there is no AI.
+  - **Delete account:** on the parent page (behind the PIN). It erases the accounts, the PIN and all progress from the device after the parent types the child's first name. It can also remove the saved AI key. Notes already shared in the class guestbook stay there, because the class database has no delete.
   - **Guestbook and polls:** use the class database (`questx-data.js`, site `livtreaux`), so notes and votes are shared with Turi's trail. First names only; links, emails and phone numbers are refused; text is shown with `textContent`.
   - **Music:** switch between the village beat and the team's safari groove (kalimba, hand drum, drone).
   - **Turi's trail:** opens `somo2/trail/`.
