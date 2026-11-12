@@ -1,6 +1,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>KenyAI</title>
+<title>Somo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap">
@@ -206,7 +206,7 @@ button:focus-visible{outline:calc(var(--u)*3) solid var(--sun);outline-offset:ca
    ADAPTIVE = false: one fixed difficulty ladder for everyone, no tips.
    ========================================================================== */
 const ADAPTIVE = true;
-let LEARNER = 'Achieng'; /* the child's first name: set from the KenyAI account (src/b2/kenyai.js) */
+let LEARNER = 'Achieng'; /* the child's first name: set from the Somo account (src/b2/kenyai.js) */
 /* the tutor on duty: Build 2 gives every learning stage its own animal friend (src/b2/friends.js swaps these) */
 const Friend = { id: 'kidi', name: 'Kidi', kind: 'a friendly baby goat', style: '' };
 const W = 360, H = 640;
@@ -822,7 +822,7 @@ const THUMBS = {};
 function showHub() {
   App.state = 'hub'; Round.game = null; HUD.show(false); Card.hide(); $('#chips').hidden = true; Sfx.engineOn(false);
   App.attract = GAMES[0]; if (Sfx.ctx) Music.start('menu');
-  setScreen(`<div class="scr"><div class="toprow"><div class="logo" style="flex:1">KenyAI Arcade<small>Play fast. Think smart.</small></div>${coinsHTML()}</div>
+  setScreen(`<div class="scr"><div class="toprow"><div class="logo" style="flex:1">Somo Arcade<small>Play fast. Think smart.</small></div>${coinsHTML()}</div>
     <div class="grid">${GAMES.map(g => { if (!THUMBS[g.id]) THUMBS[g.id] = thumb(g); const b = Math.max(0, ...Object.values(gstate(g.id).best || {})); return `<button class="gcard" data-act="game" data-id="${g.id}" aria-label="${esc(g.name)}"><img src="${THUMBS[g.id]}" alt="" style="width:100%;aspect-ratio:16/10;display:block"><b>${esc(g.name)}</b><span>${b ? 'Best ' + b : esc(g.tag)}</span></button>`; }).join('')}</div>
     <div class="row"><button class="btn ghost" data-act="music">${S.music ? 'Music on' : 'Music off'}</button></div>${grownBtn()}</div>`);
 }
@@ -994,7 +994,7 @@ const AI = {
     if (Tutor.forceFail) throw { code: 'forced', message: 'forced off in the grown-ups panel' };
     const errs = [];
     if (this.key) { try { const t = await this.viaKey(turns, timeout, maxTokens); this.route = 'your Claude API key'; return t; } catch (e) { errs.push('API key: ' + e.message); this.keyStatus = 'failed: ' + e.message; } }
-    if (Store.mode === 'local' || /github\.io$/.test(location.hostname)) { try { const t = await this.viaRelay(turns, timeout, maxTokens); this.route = 'the KenyAI relay'; return t; } catch (e) { errs.push('relay: ' + e.message); } }
+    if (Store.mode === 'local' || /github\.io$/.test(location.hostname)) { try { const t = await this.viaRelay(turns, timeout, maxTokens); this.route = 'the Somo relay'; return t; } catch (e) { errs.push('relay: ' + e.message); } }
     try { const t = await this.viaSample(turns, this.sampleOk ? timeout : Math.max(timeout, 45000)); this.route = 'Claude through claude.ai'; this.sampleOk = true; return t; } catch (e) { errs.push('claude.ai: ' + e.message); }
     this.lastError = errs.join('; '); throw { code: 'unavailable', message: this.lastError };
   },
@@ -1025,7 +1025,7 @@ const AI = {
       if (!r.ok || !j) throw { code: 'http', message: (j && j.error) || ('HTTP ' + r.status) };
       if (j.stop_reason === 'refusal') throw { code: 'refusal', message: 'Claude declined' };
       return (j.content || []).map(b => b.text || '').join('');
-    } catch (e) { if (e && e.name === 'AbortError') throw { code: 'timeout', message: `no reply within ${timeout / 1000} s` }; if (e && e.code) throw e; throw { code: 'network', message: 'could not reach the KenyAI relay' }; }
+    } catch (e) { if (e && e.name === 'AbortError') throw { code: 'timeout', message: `no reply within ${timeout / 1000} s` }; if (e && e.code) throw e; throw { code: 'network', message: 'could not reach the Somo relay' }; }
     finally { clearTimeout(tm); }
   },
   async viaSample(turns, timeout) {
@@ -1243,7 +1243,7 @@ function showParent() {
     <p class="muted">Adaptive mode is <b>${ADAPTIVE ? 'ON' : 'OFF'}</b> (the ADAPTIVE flag at the top of the file). ${ADAPTIVE ? 'Items are pitched at her level, misconceptions get extra practice, and repeated mistakes trigger a 10-second coach tip between rounds.' : 'Everyone follows the same fixed difficulty ladder; no coach tips.'}</p>
     <p class="muted">Rounds played: ${S.rounds}. Progress is saved ${Store.mode === 'account' ? 'to this viewer’s account' : Store.mode === 'local' ? 'in this browser on this device' : 'in memory only (closing the page clears it)'}. Voice: ${esc(Speech.name())}. Claude coach line: ${esc(Coach.status)}.</p>
     <p class="muted">Kidi the tutor: ${Tutor.calls} of ${TUTOR_CAP} calls this visit, ${Tutor.ok} answered by Claude; last: ${esc(Tutor.status)}. Claude route: ${esc(AI.route)}.${AI.lastError ? ' Last problem: ' + esc(AI.lastError) + '.' : ''} <button class="close" style="float:none" data-act="forceFail">${Tutor.forceFail ? 'Claude forced off (tap to allow)' : 'Force Claude off'}</button></p>
-    <h3>Claude API key (optional)</h3><p class="muted">${Store.mode === 'local' ? 'On this website ' + Friend.name + ' talks through the KenyAI relay, so nobody needs a key. A key entered here is used instead of the relay (handy if the relay is busy).' : 'Without a key, ' + Friend.name + ' uses Claude through this viewer\'s claude.ai account (it asks once for permission). With your own key, Kidi calls the Claude API directly.'} Model: claude-opus-5-5. ${Store.mode === 'local' ? 'Tick "Remember" to keep it in this browser on this device only; otherwise it is gone when the page closes.' : 'The key stays in this page\'s memory only: it is never saved and is gone when the page closes.'} Status: <b>${esc(AI.keyStatus)}</b>.</p>
+    <h3>Claude API key (optional)</h3><p class="muted">${Store.mode === 'local' ? 'On this website ' + Friend.name + ' talks through the Somo relay, so nobody needs a key. A key entered here is used instead of the relay (handy if the relay is busy).' : 'Without a key, ' + Friend.name + ' uses Claude through this viewer\'s claude.ai account (it asks once for permission). With your own key, Kidi calls the Claude API directly.'} Model: claude-opus-5-5. ${Store.mode === 'local' ? 'Tick "Remember" to keep it in this browser on this device only; otherwise it is gone when the page closes.' : 'The key stays in this page\'s memory only: it is never saved and is gone when the page closes.'} Status: <b>${esc(AI.keyStatus)}</b>.</p>
     <p><input id="akey" type="password" autocomplete="off" placeholder="sk-ant-…" style="width:60%;padding:6px;border:1px solid #C9B49A;border-radius:8px;font:inherit;background:#fff;color:#2B1B12;color-scheme:light"> <button class="close" style="float:none" data-act="saveKey">Use key</button>${Store.mode === 'local' ? ' <label><input id="akeyrem" type="checkbox"> Remember</label>' : ''} ${AI.key ? '<button class="close" style="float:none" data-act="clearKey">Forget key</button>' : ''}</p>
     <h3>Skills practised</h3>${rows ? `<table><tr><th>Skill</th><th>Tries</th><th>Right</th><th>Mastery (last 10)</th><th>Level</th><th>Time</th></tr>${rows}</table>` : '<p class="muted">Nothing yet. Play a round first.</p>'}
     <h3>Misconceptions detected</h3>${tags.length ? `<table>${tags.map(([t, n]) => { const e = S.examples[t]; return `<tr><td><span class="tag">${esc(TAGS[t] || t)}</span></td><td>${n}×</td><td class="muted">${e ? `e.g. ${esc(e.display)} → chose ${esc(e.chosen)} (answer ${esc(e.correct)})` : ''}</td></tr>`; }).join('')}</table>` : '<p class="muted">None yet.</p>'}
@@ -8146,7 +8146,7 @@ function showHome() {
   if (Sfx.ctx && S.music) Music.start('menu');
   if (JR.loaded && !J().placed) return showPlaceIntro();
   const j = J(), m = j.strand, nx = nextStep(m); const g = greeting(); const s = unitSteps(nx.id)[nx.i];
-  setScreen(`<div class="scr jr"><div class="toprow"><div class="logo" style="flex:1">KenyAI<small>Learn it. Play it.</small></div>${coinsHTML()}</div>
+  setScreen(`<div class="scr jr"><div class="toprow"><div class="logo" style="flex:1">Somo<small>Learn it. Play it.</small></div>${coinsHTML()}</div>
     <div class="kb">${kidiMini('happy', 48)}<div class="bub">${esc(g)}</div><button class="spk2" data-j="say" data-t="${esc(g)}" aria-label="Hear it">${SPEAKER_SVG}</button></div>
     <div class="quick"><button class="qbtn cont" data-j="continue"><span class="disc">${stepDisc(nx.id, s)}</span><span>${nx.review ? 'Review' : 'Continue'}<small>${esc(SHORT[nx.id])}: ${esc(stepLabel(nx.id, nx.i))}</small></span></button></div>
     <div class="seg" role="group" aria-label="Path"><button data-j="strand" data-m="num" aria-pressed="${m === 'num'}"><span class="mini">${skillIcon('rec', 30)}</span>Numbers</button><button data-j="strand" data-m="lit" aria-pressed="${m === 'lit'}"><span class="mini">${skillIcon('cvc', 30)}</span>Reading</button></div>
@@ -9111,7 +9111,7 @@ mapHTML = function (m) {
 { const _sh = showHome; showHome = function () {
     if (JR.loaded && J().placed) { const f = friendForStrand(J().strand); setFriend(f.id); const met = J().met || (J().met = {}); if (!met[f.id]) { met[f.id] = todayKey(); Store.save(); return meetFriend(f); } }
     _sh(); if (App.state !== 'hub') return;
-    const lg = document.querySelector('#screen .logo'); if (lg) lg.innerHTML = 'KenyAI<small>Inspire · Interpret · Impart</small>';
+    const lg = document.querySelector('#screen .logo'); if (lg) lg.innerHTML = 'Somo<small>Inspire · Interpret · Impart</small>';
   }; }
 function meetFriend(f) {
   App.state = 'meet'; Round.game = null; App.attract = null; HUD.show(false); Card.hide(); const stg = STAGES.find(s => s.friend === f.id); const prev = STAGES[stg.n - 2]; const pf = prev ? FRIENDS[prev.friend] : null;
@@ -9398,11 +9398,11 @@ const RHYME_LIB = [
     art: ['shoe', 'door', 'sticks', 'sticks', 'hen'], q: [{ ask: 'Which word rhymes with "shoe"?', ans: 'two', opts: ['two', 'six', 'hen'] }, { ask: 'What number comes after five?', ans: '6', opts: ['6', '4', '10'] }] },
   { id: 'fish', skill: 'rec', title: 'Once I Caught a Fish Alive', from: 'Traditional rhyme', lines: ['One, two, three, four, five,', 'once I caught a fish alive.', 'Six, seven, eight, nine, ten,', 'then I let it go again.', 'Why did you let it go?', 'Because it bit my finger so!'],
     art: ['fish', 'fish', 'fish', 'river', 'fish', 'fish'], q: [{ ask: 'Which word rhymes with "five"?', ans: 'alive', opts: ['alive', 'four', 'fish'] }, { ask: 'Find the number seventeen.', ans: '17', opts: ['17', '71', '7'] }] },
-  { id: 'maketen', skill: 'bond', title: 'Make Ten', from: 'A new KenyAI rhyme', lines: ['Six in my hand and four on the mat,', 'that makes ten, and that is that!', 'Seven and three, under the tree,', 'that makes ten for you and me!', 'Eight and two, one more for you?', 'No! That makes ten, so we are through!'],
+  { id: 'maketen', skill: 'bond', title: 'Make Ten', from: 'A new Somo rhyme', lines: ['Six in my hand and four on the mat,', 'that makes ten, and that is that!', 'Seven and three, under the tree,', 'that makes ten for you and me!', 'Eight and two, one more for you?', 'No! That makes ten, so we are through!'],
     art: ['caps', 'caps', 'tree', 'caps', 'caps', 'caps'], q: [{ ask: 'Six and what make ten?', ans: '4', opts: ['4', '3', '5'] }, { ask: 'Which word rhymes with "three"?', ans: 'tree', opts: ['tree', 'ten', 'two'] }] },
-  { id: 'baskets', skill: 'mul', title: 'Three Little Baskets', from: 'A new KenyAI rhyme', lines: ['Three little baskets under the tree,', 'two ripe mangoes in each, I see.', 'Count them by twos: two, four, six,', 'six sweet mangoes, what a mix!'],
+  { id: 'baskets', skill: 'mul', title: 'Three Little Baskets', from: 'A new Somo rhyme', lines: ['Three little baskets under the tree,', 'two ripe mangoes in each, I see.', 'Count them by twos: two, four, six,', 'six sweet mangoes, what a mix!'],
     art: ['baskets', 'baskets', 'baskets', 'mango'], q: [{ ask: 'Three baskets, with two mangoes in each. How many mangoes?', ans: '6', opts: ['6', '5', '8'] }, { ask: 'Which word rhymes with "six"?', ans: 'mix', opts: ['mix', 'see', 'two'] }] },
-  { id: 'tengreen', skill: 'sub', title: 'Ten Green Mangoes', from: 'A new KenyAI rhyme (after "Ten Green Bottles")', lines: ['Ten green mangoes hanging on the tree,', 'ten green mangoes, one for me!', 'One green mango falls down, plop!', 'How many mangoes are left on top?', 'Nine green mangoes hanging on the tree!'],
+  { id: 'tengreen', skill: 'sub', title: 'Ten Green Mangoes', from: 'A new Somo rhyme (after "Ten Green Bottles")', lines: ['Ten green mangoes hanging on the tree,', 'ten green mangoes, one for me!', 'One green mango falls down, plop!', 'How many mangoes are left on top?', 'Nine green mangoes hanging on the tree!'],
     art: ['mangotree', 'mangotree', 'mangofall', 'mangotree', 'mangotree'], q: [{ ask: 'Ten mangoes. One falls down. How many are left?', ans: '9', opts: ['9', '11', '8'] }, { ask: 'Which word rhymes with "plop"?', ans: 'top', opts: ['top', 'tree', 'ten'] }] },
   { id: 'baabaa', skill: 'snd', title: 'Baa, Baa, Black Sheep', from: 'Traditional rhyme', tune: [ph('C4 C4 G4 G4 A4 A4 A4 A4 G4:2'), ph('F4 F4 E4 E4 D4 D4 C4:2'), ph('G4 G4 G4 F4 F4 F4 E4 E4 E4 D4:2'), ph('G4 G4 G4 F4 F4 F4 E4 E4 E4 D4:2')],
     lines: ['Baa, baa, black sheep, have you any wool?', 'Yes sir, yes sir, three bags full.', 'One for the master, one for the dame,', 'and one for the little boy who lives down the lane.'],
@@ -9463,7 +9463,7 @@ const STORIES = [
     [() => A.savanna() + A.pot(180, 140, 1.1, .8) + A.crow(170, 80, 1.1) + A.stones(30, 182, 10), 'Six, seven, eight, nine, ten stones! Now she could drink.'],
     [() => A.savanna() + A.acacia(80, 132) + A.crow(200, 110, 1.3) + A.bubble(150, 50, 'Pole pole!'), 'Little by little, the crow got what she needed. One stone at a time!'],
   ], q: [{ ask: 'The crow put in 6 stones, then 4 more. How many stones?', ans: '10', opts: [{ v: '10' }, { v: '9' }, { v: '2' }] }, { ask: 'What made the water go up?', ans: 'stones', opts: [{ v: 'stones', art: () => A.stones(12, 44, 5) }, { v: 'sun', pic: 'sun' }, { v: 'fish', pic: 'fish' }] }] },
-  { id: 'bundles', skill: 'pv', title: 'Tembo\'s Bundles', from: 'A new KenyAI story', pages: [
+  { id: 'bundles', skill: 'pv', title: 'Tembo\'s Bundles', from: 'A new Somo story', pages: [
     [() => A.village() + A.elephant(170, 140, 1), 'Tembo the elephant was going to the market with sticks to sell.'],
     [() => A.village() + A.elephant(240, 140, .8) + Array.from({ length: 16 }, (_, i) => `<path d="M${20 + i * 9} ${150 + (i % 3) * 8}l${(i % 2 ? 6 : -6)} -30" stroke="#D29A54" stroke-width="4" stroke-linecap="round"/>`).join(''), 'He had lots and lots of sticks. Counting them one by one was too slow!'],
     [() => A.village() + A.bundles(30, 100, 3, 0), 'So Tembo tied the sticks in bundles of ten. One bundle, two bundles, three bundles.'],
@@ -9854,8 +9854,8 @@ const Offline = {
    2. THE WELCOME VIDEO: animated scenes, narrated, with captions; plays by itself the first time
    ========================================================================== */
 const VID = [
-  { art: () => `<div class="vstage sunrise">${safariBG()}<div class="vlogo">Keny<b>AI</b><small>Kenya Accelerates Intelligence</small></div></div>`, say: `Jambo! Welcome to KenyAI, where Kenyan children learn to read and count, the Kenyan way.` },
-  { art: () => `<div class="vstage"><div class="vfriends">${['kuku', 'kobe', 'twiga', 'tembo'].map((f, i) => `<span style="animation-delay:${i * .35}s">${friendFace(f, 'happy', 84)}<b>${FRIENDS[f].name}</b></span>`).join('')}</div></div>`, say: 'Why KenyAI? Kuku, Kobe, Twiga and Tembo are your learning friends. Each one is a real AI tutor who gets to know how you learn.' },
+  { art: () => `<div class="vstage sunrise">${safariBG()}<div class="vlogo">Somo<small>Somo means study</small></div></div>`, say: `Jambo! Welcome to Somo, where Kenyan children learn to read and count, the Kenyan way.` },
+  { art: () => `<div class="vstage"><div class="vfriends">${['kuku', 'kobe', 'twiga', 'tembo'].map((f, i) => `<span style="animation-delay:${i * .35}s">${friendFace(f, 'happy', 84)}<b>${FRIENDS[f].name}</b></span>`).join('')}</div></div>`, say: 'Why Somo? Kuku, Kobe, Twiga and Tembo are your learning friends. Each one is a real AI tutor who gets to know how you learn.' },
   { art: () => `<div class="vstage"><div class="vbig">15<small>minutes a day</small></div><div class="vbars">${[30, 45, 60, 72, 85].map((h, i) => `<i style="height:${h}%;animation-delay:${i * .25}s"></i>`).join('')}</div></div>`, say: 'Just fifteen minutes a day helps you read better and count faster. Your grown-ups can see your progress every day.' },
   { art: () => `<div class="vstage"><div class="vcard">${iconSVG('mango').replace('<svg ', '<svg width="80" height="80" ')}<div class="vq"><span>5</span><span>7</span><span>9</span></div></div></div>`, say: 'How to use it. First, a grown-up sets up your account. Then a quick game finds the right place for you to start. There is no right or wrong, just do your best.' },
   { art: () => `<div class="vstage"><div class="vpath"><span class="p1">Inspire<small>rhyme or story</small></span><span class="p2">Interpret<small>games</small></span><span class="p3">Impart<small>teach a friend</small></span><span class="p4">At home<small>no screen</small></span></div></div>`, say: 'Every day, tap Continue. Each skill has four parts: Inspire, with a rhyme or a story. Interpret, with games. Impart, where you teach your friend. And an activity at home, away from the screen.' },
@@ -9869,7 +9869,7 @@ const Video = {
   open(then) { this.then = then || null; this.i = 0; this.playing = true; App.state = 'video'; Music.stop(); let el = $('#kvid'); if (!el) { el = document.createElement('div'); el.id = 'kvid'; $('#stage').appendChild(el); } el.hidden = false; this.run(); },
   render() {
     const sc = VID[this.i], el = $('#kvid');
-    el.innerHTML = `<div class="vscreen" role="dialog" aria-label="KenyAI welcome video">${sc.art()}<div class="vcap" aria-live="polite">${esc(sc.say)}</div>
+    el.innerHTML = `<div class="vscreen" role="dialog" aria-label="Somo welcome video">${sc.art()}<div class="vcap" aria-live="polite">${esc(sc.say)}</div>
       <div class="vbar"><i style="width:${Math.round((this.i + 1) / VID.length * 100)}%"></i></div>
       <div class="vctl"><button data-k="vplay">${this.playing ? 'Pause' : 'Play'}</button><button data-k="vreplay">Replay</button><button data-k="vskip" class="go">${this.i >= VID.length - 1 ? 'Start' : 'Skip'}</button></div>
       <label class="vno"><input type="checkbox" id="vno" ${KY().noVideo ? 'checked' : ''}> Don't play this by itself again</label></div>`;
@@ -9892,14 +9892,14 @@ const Video = {
    ========================================================================== */
 const AVATARS = [['kuku', 'Hen'], ['kobe', 'Tortoise'], ['twiga', 'Giraffe'], ['tembo', 'Elephant']];
 const GUIDE_STEPS = {
-  parent: ['Open KenyAI on the phone or tablet your child will use, and add it to the home screen (browser menu, then "Add to Home Screen") so it opens like an app.',
+  parent: ['Open Somo on the phone or tablet your child will use, and add it to the home screen (browser menu, then "Add to Home Screen") so it opens like an app.',
     'Tap "Accounts". Fill in the Parent part: your first name, how you are related to the child, and a 4-digit PIN. The PIN keeps the parent page for grown-ups.',
     'Fill in the Student part with your child: first name only, age, boy or girl, and their favourite animal friend.',
     'Let your child play the short starting game. It finds the right level. Do not help with the answers.',
     'Every day, sit with your child for about 15 minutes. Tap "Continue". Turn on "Learning with a grown-up" to see a tip before each activity.',
     'Do the "At home" activity in each unit together, away from the screen, then tap "We did it together!".',
     'Once a week, open "Parent page" with your PIN. Read the progress story, look at the learning-gap chart, and follow the plan.',
-    'Optional: to use your own Claude key, open "AI key setup" from the KenyAI home page. Never share the key or put it in any file.'],
+    'Optional: to use your own Claude key, open "AI key setup" from the Somo home page. Never share the key or put it in any file.'],
   student: ['Pick your animal friend.', 'Tap the big green Continue button.', 'Listen to your friend, then try! It is fine to make mistakes: that is how we learn.', 'Stuck? Tap Help for a hint.', 'Finish a step to get an egg. Crack it and give a gift to your friend.', 'When you are done, tap Finish and show your grown-up the note.'],
   teacher: ['Open the Parent page with the family\'s PIN (or set up a class device with your own PIN).', 'The progress story and the gap chart update after every session, so check them before you plan a lesson.', 'Use the plan steps as small-group activities. The "At home" activities work in class too, with beans, sticks and bottle caps.'],
 };
@@ -9970,7 +9970,7 @@ const DeleteAcct = {
     App.state = 'pdelete'; const name = (KY().account && KY().account.student && KY().account.student.name) || '';
     const word = name || 'DELETE'; this.word = word;
     setScreen(`<div class="scr jr"><div class="toprow"><button class="hb" data-k="pdelno" aria-label="Back">${BACK_SVG}</button><div class="h2" style="flex:1">Delete account</div></div>
-      <div class="kcard"><h3>This will erase, from this device:</h3>
+      <div class="kcard"><h3>This will erase, from this device${KY().cloud && KY().cloud.child_id ? ' and from online saving' : ''}:</h3>
         <ul class="kgaps"><li>the student and parent accounts, and the parent PIN</li><li>all progress: stars, lessons, games, eggs, gifts and closet items</li><li>the progress story, the gap chart and the plan</li><li>guestbook notes and poll votes still waiting on this device</li></ul>
         <label class="kchk"><input type="checkbox" id="pdkey" checked> Also remove the AI key saved on this device</label>
         <p class="kfine">Notes already shared in the class guestbook stay there. To remove one of those, ask your teacher. This cannot be undone.</p>
@@ -10041,8 +10041,8 @@ Data: ${JSON.stringify(data)}` }], { timeout: 15000, maxTokens: 900 });
       <div class="kcard"><h3>Learning gaps and the plan <small>${src(p)}</small></h3>${(p.gaps || []).length ? `<ul class="kgaps">${p.gaps.map(g => `<li><b>${esc(g.name)}</b>${g.mastery != null ? ` <span class="kpill">${g.mastery}%</span>` : ''}<br>${esc(g.why || '')}</li>`).join('')}</ul>` : '<p>No learning gaps right now.</p>'}
         <h4>Recommended plan</h4><ol class="kplan">${(p.plan || []).map(x => `<li>${esc(x.step)}${x.when ? ` <span class="kpill">${esc(x.when)}</span>` : ''}</li>`).join('')}</ol></div>
       <button class="btn go" data-k="prefresh">${this.busy ? 'Updating…' : 'Update with AI now'}</button>
-      <div class="kcard"><h3>Account settings</h3><p class="kfine">Only a grown-up should do this. Deleting the account erases ${esc(LEARNER)}'s account and all progress from this device.</p><button class="btn kdel" data-k="pdel">Delete account</button></div>
-      <p class="kfine">The story, gaps and plan update by themselves after each session. The app, not the AI, decides right and wrong; the AI only writes the words. Saved on this device only.</p>${grownBtn()}</div>`);
+      <div class="kcard"><h3>Account settings</h3><p class="kfine">Only a grown-up should do this. Deleting the account erases ${esc(LEARNER)}'s account and all progress from this device${KY().cloud && KY().cloud.child_id ? ' and from online saving' : ''}.</p><button class="btn kdel" data-k="pdel">Delete account</button></div>
+      <p class="kfine">The story, gaps and plan update by themselves after each session. The app, not the AI, decides right and wrong; the AI only writes the words. ${KY().cloud && KY().cloud.on && KY().cloud.child_id ? 'Saved on this device and online.' : 'Saved on this device only.'}</p>${grownBtn()}</div>`);
   },
 };
 
@@ -10211,7 +10211,7 @@ $('#stage').addEventListener('click', e => {
 /* the floating Help button stays out of the way on these screens */
 { const _fs = fabSync; fabSync = function () { const b = $('#kidiFab'); if (b && ['video', 'accounts', 'pin', 'parentpage', 'guestbook', 'offline', 'pdelete'].includes(App.state)) { b.hidden = true; return; } _fs(); }; }
 /* grown-ups panel: link to the new pages */
-{ const _sp = showParent; showParent = function () { _sp(); const el = $('#parent'), h = el.querySelector('h3'); if (!h) return; h.insertAdjacentHTML('beforebegin', `<h3>KenyAI</h3><p class="muted">Account: ${esc(KY().account && KY().account.student ? KY().account.student.name : 'not set up')}. Music style: ${S.musicStyle === 'safari' ? 'safari' : 'village'}. Welcome video: ${KY().noVideo ? 'will not play by itself' : 'plays by itself once'}. Offline activities done: ${Object.keys(KY().off).length}. <button class="close" style="float:none" data-k="video">Play the welcome video</button> <button class="close" style="float:none" data-k="parent">Parent page</button></p>`); }; }
+{ const _sp = showParent; showParent = function () { _sp(); const el = $('#parent'), h = el.querySelector('h3'); if (!h) return; h.insertAdjacentHTML('beforebegin', `<h3>Somo</h3><p class="muted">Account: ${esc(KY().account && KY().account.student ? KY().account.student.name : 'not set up')}. Music style: ${S.musicStyle === 'safari' ? 'safari' : 'village'}. Welcome video: ${KY().noVideo ? 'will not play by itself' : 'plays by itself once'}. Offline activities done: ${Object.keys(KY().off).length}. <button class="close" style="float:none" data-k="video">Play the welcome video</button> <button class="close" style="float:none" data-k="parent">Parent page</button></p>`); }; }
 
 /* ---------------- styles (Somo's palette; only the home background is new) ---------------- */
 {
@@ -10278,6 +10278,121 @@ $('#stage').addEventListener('click', e => {
   document.head.appendChild(el);
 }
 window.__ky = { DeleteAcct, KY, Video, Accounts, Parent, Guest, Offline, OFFLINE, progressData, gapsOf, ruleNarrative, rulePlan, setMusicStyle, POLLS };
+
+/* ============================================================================
+   SAVE PROGRESS ONLINE (Supabase, through the somo-progress Edge Function)
+   The phone keeps working offline as before; when a grown-up turns online saving on (Accounts → Parent, on by
+   default), the child's whole progress is also saved in Supabase:
+   - register once: the server makes a child id, a secret write key and a family code (only their hashes are stored)
+   - save: a minute after progress changes, when the app is hidden, and at "Finish"; load: when the app opens
+     (the newer copy wins), and on a new phone with the restore code from the Parent page
+   - a small daily summary is also sent (numbers only) for the family link and a future teacher view
+   - Delete account deletes the online copy too. Nothing is sent until a grown-up says yes.
+   ========================================================================== */
+const PROG_URL = 'https://obyudvdunzuyyskxujrt.supabase.co/functions/v1/somo-progress';
+const Cloud = {
+  timer: null, dirty: false, busy: false, status: '',
+  c() { const k = KY(); return k.cloud || (k.cloud = {}); }, /* on: undefined = not decided yet (the box starts ticked), false = a grown-up said no */
+  linked() { const c = this.c(); return !!(c.on && c.child_id && c.write_key); },
+  async call(action, body = {}, keepalive = false) {
+    const r = await fetch(PROG_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, keepalive, body: JSON.stringify({ action, ...body }) });
+    const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status)); return d;
+  },
+  who() { const a = KY().account && KY().account.student; return { first_name: a && a.name ? a.name : '', avatar: a && a.av ? a.av : 'kuku' }; },
+  /* the state to save: everything except the secret keys themselves */
+  pack() { const d = JSON.parse(JSON.stringify(S)); if (d.kenyai && d.kenyai.cloud) d.kenyai.cloud = { on: true }; return d; },
+  enable() { return this._en || (this._en = this._enable().finally(() => { this._en = null; })); },
+  async _enable() {
+    const c = this.c(); c.on = true; kSave();
+    if (!c.child_id) { const r = await this.call('register', this.who()); Object.assign(c, { child_id: r.child_id, write_key: r.write_key, family_token: r.family_token }); kSave(); }
+    await this.push(true);
+  },
+  async disable() { const c = this.c(); if (c.child_id && c.write_key) { try { await this.call('delete', { child_id: c.child_id, write_key: c.write_key }); } catch (e) { this.status = 'could not delete the online copy: ' + e.message; throw e; } } KY().cloud = { on: false }; kSave(); this.status = 'off'; },
+  async push(force, keepalive) {
+    if (!this.linked() || (this.busy && !keepalive) || (!this.dirty && !force)) return; const c = this.c(); this.busy = true; this.dirty = false;
+    try {
+      const r = await this.call('save_state', { child_id: c.child_id, write_key: c.write_key, data: this.pack(), version: 2, ...this.who() }, !!keepalive);
+      c.last = r.updated_at; S.savedAt = Date.parse(r.updated_at) || Date.now(); this.status = 'saved'; kSaveLocal();
+      this.summary().catch(() => { });
+    } catch (e) { this.dirty = true; this.status = 'not saved yet (' + e.message + ')'; } finally { this.busy = false; }
+  },
+  /* today's numbers for the family link / teacher view (no names, no timestamps longer than a date) */
+  async summary() {
+    const c = this.c(), h = KY().hist[todayKey()]; if (!h) return; const d = new Date(); const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const skills = {}; for (const id of Object.keys(SKILL)) if (S.skills[id] && S.skills[id].n) skills[id] = { n: S.skills[id].n, m: Math.round(mastery(id) * 100), s: stars(id) };
+    await this.call('sync', { child_id: c.child_id, write_key: c.write_key, day, data: { answers: h.n, right: h.c, skills, coins: S.coins, offline: Object.keys(KY().off || {}).length } });
+  },
+  async pull() {
+    if (!this.linked()) return false; const c = this.c();
+    try {
+      const r = await this.call('load_state', { child_id: c.child_id, write_key: c.write_key }); if (!r.data) { this.dirty = true; return false; }
+      /* another phone saved after this phone's last sync: that copy is newer */
+      const remote = Date.parse(r.updated_at) || 0, mine = Date.parse(c.last || '') || 0;
+      if (remote > mine + 1000) { this.adopt(r.data, r.updated_at); this.status = 'loaded the newest progress'; return true; }
+      this.status = 'saved'; return false;
+    } catch (e) { this.status = 'offline (' + e.message + ')'; return false; }
+  },
+  adopt(data, at) { const keys = this.c(); S = Object.assign(freshState(), data); S.kenyai = S.kenyai || {}; S.kenyai.cloud = { ...keys, on: true, last: at }; S.savedAt = Date.parse(at) || Date.now(); applyAccount(); kSaveLocal(); },
+  code() { const c = this.c(); return c.child_id && c.write_key ? btoa(c.child_id + '.' + c.write_key).replace(/=+$/, '') : ''; },
+  async restore(code) {
+    let id, key; try { [id, key] = atob(String(code).trim().replace(/\s+/g, '')).split('.'); } catch (e) { } if (!id || !key) throw new Error('that is not a restore code');
+    const r = await this.call('load_state', { child_id: id, write_key: key }); if (!r.data) throw new Error('no saved progress for that code yet');
+    KY().cloud = { on: true, child_id: id, write_key: key }; this.adopt(r.data, r.updated_at); return true;
+  },
+};
+/* every local save marks the online copy as out of date; it is sent at most once a minute */
+const kSaveLocal = () => { Cloud._quiet = true; try { Store.save(); } finally { Cloud._quiet = false; } };
+{ const _s = Store.save; Store.save = function () { if (!Cloud._quiet && S) { S.savedAt = Date.now(); Cloud.dirty = true; } return _s.apply(this, arguments); }; }
+setInterval(() => { if (Cloud.dirty) Cloud.push(); }, 60000);
+document.addEventListener('visibilitychange', () => { if (document.hidden && Cloud.dirty) Cloud.push(false, true); });
+{ const _sn = showNote; showNote = function () { _sn(); Cloud.push(true); }; }
+/* when the app opens, the newer of the phone's copy and the online copy wins */
+{ const _load = Store.load; Store.load = async function () { const r = await _load.call(this); setTimeout(async () => { if (await Cloud.pull()) { if (App.state === 'hub') showHome(); } }, 50); return r; }; }
+
+/* ---------------- Accounts → Parent: the yes/no for online saving, and restoring on a new phone ---------------- */
+{ const _r = Accounts.render; Accounts.render = function () {
+    _r.call(this); const c = Cloud.c();
+    if (this.tab === 'parent') { const fine = document.querySelector('.acc .kfine'); if (fine) fine.insertAdjacentHTML('beforebegin', `<label class="kchk"><input type="checkbox" id="apcloud" ${c.on !== false ? 'checked' : ''}> Save progress online (recommended): it is kept safe if this phone is lost, and can continue on another phone</label>`); }
+    if (this.tab === 'student' && !(KY().account && KY().account.student && KY().account.student.name)) { const acc = document.querySelector('.acc'); if (acc) acc.insertAdjacentHTML('afterend', `<div class="acc"><b>Already using Somo on another phone?</b><label for="arestore">Restore code (from the Parent page on the other phone)</label><input id="arestore" class="kin" autocomplete="off" spellcheck="false"><button class="btn ghost" data-k="crestore">Restore my progress</button><p class="kmsg" id="armsg"></p></div>`); const i = $('#arestore'); if (i) i.addEventListener('keydown', e => e.stopPropagation()); }
+  }; }
+{ const _rd = Accounts.read; Accounts.read = function () {
+    const box = this.tab === 'parent' ? $('#apcloud') : null; const err = _rd.call(this); if (err || !box) return err;
+    const want = box.checked, c = Cloud.c();
+    if (want && !Cloud.linked()) Cloud.enable().catch(e => { Cloud.status = 'could not turn on: ' + e.message; });
+    else if (!want && c.on) { Cloud.disable().catch(() => { }); }
+    else if (!want) { c.on = false; kSave(); }
+    return null;
+  }; }
+/* ---------------- Parent page: online saving status, save now, restore code ---------------- */
+{ const _rn = Parent.render; Parent.render = function (d, n, p) {
+    _rn.call(this, d, n, p); const anchor = document.querySelector('[data-k="prefresh"]'); if (!anchor) return; const c = Cloud.c();
+    const when = c.last ? new Date(c.last).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'not yet';
+    anchor.insertAdjacentHTML('afterend', `<div class="kcard"><h3>Saved online</h3>${Cloud.linked() ? `<p>Progress is saved online (Supabase). Last saved: <b>${esc(when)}</b>.${Cloud.status && Cloud.status !== 'saved' ? ` <span class="kfine">(${esc(Cloud.status)})</span>` : ''}</p>
+      <button class="btn ghost" data-k="csave">Save now</button>
+      <p class="kfine">Restore code: use it to continue ${esc(LEARNER)}'s progress on another phone (Accounts, then "Restore my progress"). Keep it private, like a password.</p>
+      <div class="kcode" id="ccode">${Cloud.code() ? '••••••••••••' : ''}</div><button class="btn ghost" data-k="cshow">Show the restore code</button>`
+      : `<p>Progress is saved on this phone only.</p><button class="btn ghost" data-k="con">Save progress online</button><p class="kfine">Online saving keeps progress safe if the phone is lost, and lets it continue on another phone. Only the first name and learning progress are saved; no contact details.</p>`}</div>`);
+  }; }
+/* ---------------- Delete account also deletes the online copy ---------------- */
+{ const _run = DeleteAcct.run; DeleteAcct.run = async function () {
+    const inp = $('#pdconf'); if (!inp || inp.value.trim().toLowerCase() !== this.word.toLowerCase()) return;
+    if (Cloud.linked()) { const b = $('#pdgo'); if (b) { b.disabled = true; b.textContent = 'Deleting the online copy…'; }
+      try { await Cloud.disable(); } catch (e) { if (b) { b.disabled = false; b.textContent = 'Delete forever'; } const m = document.createElement('p'); m.className = 'kmsg bad'; m.textContent = 'Could not delete the online copy right now (' + e.message + '). Connect to the internet and try again.'; b.after(m); return; } }
+    return _run.call(this);
+  }; }
+$('#stage').addEventListener('click', async e => {
+  const el = e.target.closest('[data-k]'); if (!el) return; const a = el.dataset.k; if (!['csave', 'cshow', 'con', 'crestore'].includes(a)) return; Sfx.unlock(); Sfx.play('click');
+  if (a === 'csave') { el.textContent = 'Saving…'; await Cloud.push(true); Parent.show(); }
+  else if (a === 'cshow') { const c = $('#ccode'); if (c) c.textContent = Cloud.code(); el.remove(); }
+  else if (a === 'con') { el.textContent = 'Turning on…'; try { await Cloud.enable(); } catch (x) { Cloud.status = 'could not turn on: ' + x.message; } Parent.show(); }
+  else if (a === 'crestore') { const m = $('#armsg'); if (m) { m.textContent = 'Looking…'; m.className = 'kmsg'; } try { await Cloud.restore(($('#arestore') || {}).value || ''); Speech.say(`Welcome back, ${LEARNER}!`); Sfx.play('fanfare'); setTimeout(() => { Accounts.then = null; JR.loaded && J().placed ? showHome() : showPlaceIntro(); }, 600); } catch (x) { if (m) { m.textContent = 'Could not restore: ' + x.message + '.'; m.className = 'kmsg bad'; } } }
+});
+{
+  const u = n => `calc(var(--u)*${n})`;
+  const el = document.createElement('style'); el.textContent = `.kcode{font-family:monospace;font-size:${u(13)};background:#fff;border:${u(2)} dashed #C9B49A;border-radius:${u(10)};padding:${u(6)};word-break:break-all;user-select:all;min-height:${u(10)}}`;
+  document.head.appendChild(el);
+}
+window.__ky = Object.assign(window.__ky || {}, { Cloud });
 
 boot();
 

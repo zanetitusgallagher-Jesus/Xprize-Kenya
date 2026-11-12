@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KenyAI key setup</title>
+<title>Somo key setup</title>
 <style>
   :root { --g: #1B6B35; --sand: #FFF4DA; --sun: #F5A623; --clay: #C8481A; --ink: #3A2410; --card: #fff; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --g: #8FE0A2; --sand: #18221A; --ink: #F3E4C4; --card: #243326; } }
@@ -26,9 +26,9 @@
 </head>
 <body>
 <main>
-  <p><a href="../">&larr; KenyAI home</a></p>
+  <p><a href="../">&larr; Somo home</a></p>
   <h1>AI key setup (for grown-ups)</h1>
-  <p>KenyAI's tutors (Kuku, Kobe, Twiga, Tembo and Turi) already work through the KenyAI relay, which holds a Claude key on a server. Add your own Claude API key here if the relay is busy or you want the AI to use your account.</p>
+  <p>Somo's tutors (Kuku, Kobe, Twiga, Tembo and Turi) already work through the Somo relay, which holds a Claude key on a server. Add your own Claude API key here if the relay is busy or you want the AI to use your account.</p>
 
   <div class="card">
     <label for="k">Claude API key</label>
@@ -46,7 +46,7 @@
     <h2 style="margin-top:0;font-size:1.2rem">Where the key is kept</h2>
     <ul>
       <li>It is saved <b>in this browser on this device only</b> (browser storage for this website). It stays until you press "Forget", or until someone clears the browser's site data.</li>
-      <li>Every KenyAI page on this device uses it: the home page, the learning path and Jambo Letters.</li>
+      <li>Every Somo page on this device uses it: the home page, the learning path and Jambo Letters.</li>
       <li>It is <b>never</b> put in the website files or the GitHub repo. The repo is public, and GitHub automatically reports Claude keys found in public code to Anthropic, which switches them off. A key in the repo would stop working within minutes.</li>
       <li>Do this once on each phone or computer the children use. On a shared device, anyone using that browser can use the key, so set a monthly spending limit in the Anthropic Console.</li>
     </ul>
@@ -58,7 +58,7 @@
   var $ = function (s) { return document.querySelector(s); };
   function get() { try { return localStorage.getItem(KEY) || ''; } catch (e) { return ''; } }
   function put(v) { try { if (v) localStorage.setItem(KEY, v); else localStorage.removeItem(KEY); return true; } catch (e) { return false; } }
-  function state() { var k = get(); $('#state').textContent = k ? 'A key is saved on this device (ends in …' + k.slice(-4) + ').' : 'No key saved on this device. The tutors use the KenyAI relay.'; }
+  function state() { var k = get(); $('#state').textContent = k ? 'A key is saved on this device (ends in …' + k.slice(-4) + ').' : 'No key saved on this device. The tutors use the Somo relay.'; }
   function msg(t, ok) { var m = $('#msg'); m.textContent = t; m.className = ok ? 'ok' : 'bad'; }
   /* one-time setup link: …/setup/#key=sk-ant-… saves the key, then removes it from the address bar */
   var hk = (location.hash.match(/[#&]key=([^&]+)/) || [])[1];
@@ -93,7 +93,7 @@
       var detail = e && e.name === 'AbortError' ? 'no answer within 20 seconds' : ((e && (e.name + ': ' + e.message)) || 'unknown error');
       var net = await relayOk();
       msg('Saved, but this browser could not reach Claude (' + detail + '). ' + (net
-        ? 'The internet works, so something is blocking api.anthropic.com: an ad blocker or privacy extension, a school or office network filter, or an in-app browser. Try a normal browser such as Chrome or Safari with extensions off, or another network. The tutors still work through the KenyAI relay meanwhile.'
+        ? 'The internet works, so something is blocking api.anthropic.com: an ad blocker or privacy extension, a school or office network filter, or an in-app browser. Try a normal browser such as Chrome or Safari with extensions off, or another network. The tutors still work through the Somo relay meanwhile.'
         : 'This device seems to be offline or on a very restricted network. Try again on another connection.'), false);
     } finally { clearTimeout(tm); }
   };

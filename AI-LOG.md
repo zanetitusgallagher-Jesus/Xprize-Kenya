@@ -84,3 +84,12 @@
   - After deleting, the app starts fresh (welcome video, then account set-up). Only KenyAI's own saved data is removed, nothing else in the browser.
   - Notes already shared in the class guestbook stay there (the class database has no delete), and the screen says so.
   - Tested in a browser: the button stays locked until the right name is typed, then the account, the PIN and the progress are erased. Unticking the box keeps the AI key, and data saved by other websites is untouched.
+
+## Save progress to Supabase; rename everything to Somo
+- **Date:** Nov 12, 2026
+- **Prompt:** "Can KenyAI save student progress to Supabase instead? And rename all to Somo."
+- **What Claude Did:**
+  - Supabase (project "AI Tutor", PostgreSQL 17): added the table `somo_state`, one row per child with their full progress. Row-level security is on with no policies, and the row is deleted along with the child. Updated the existing `somo-progress` Edge Function (version 2) with "save progress" and "load progress" actions, this site's address, and a higher limit so a class sharing one school connection isn't blocked. Everything it did before still works.
+  - The app saves to the device first (it still works offline), and also online when a grown-up keeps "Save progress online" ticked (Accounts → Parent, ticked by default). It saves about once a minute after changes, when the app is closed and at "Finish". When the app opens, the newer online copy wins. A restore code on the Parent page moves progress to a new phone. Delete account also deletes the online copy.
+  - Renamed everything visible from KenyAI back to Somo: the app, the welcome video, Turi's trail, the key setup page, Jambo Letters' links and this README. Internal names such as the `kenyai-key` saved-data key stay the same, so existing progress and keys keep working.
+  - Tested in a browser against a stand-in server that behaves like the function. A new family is signed up and saved; the secret key is never stored inside the saved progress. Restoring on a second phone works, the first phone picks up the newer progress when it reopens, and deleting removes the online copy. No page errors. The live function couldn't be called from Claude's sandbox, so the first real test happens on the live site.

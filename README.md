@@ -1,4 +1,4 @@
-# KenyAI: Kenya Accelerates Intelligence
+# Somo
 
 A literacy and numeracy website for young children in Kenya (about ages 5 to 9), built by our XPRIZE team.
 Its learning model is **Internalize/Inspire → Interpret → Impart**: children take in a new idea, make sense of it through play, then teach it to someone else.
@@ -13,9 +13,9 @@ Its learning model is **Internalize/Inspire → Interpret → Impart**: children
 
 | Path | What it is | Who made it |
 |---|---|---|
-| `somo2/index.html` | **KenyAI main page: the learning path.** It looks like the original Somo, plus a row of feature buttons. Four stage tutors with Swahili names, numbers and reading paths, 21 games, lessons, egg basket, rhymes, stories, tracing, grown-up mode and AI tutor chat. Also: welcome video, accounts, parent and teacher page, guestbook and polls, safari or village music, a safari roadmap background, and at-home activities. | Zane's Somo, extended with the team's ideas |
+| `somo2/index.html` | **Somo main page: the learning path.** It looks like the original Somo, plus a row of feature buttons. Four stage tutors with Swahili names, numbers and reading paths, 21 games, lessons, egg basket, rhymes, stories, tracing, grown-up mode and AI tutor chat. Also: welcome video, accounts, parent and teacher page, guestbook and polls, safari or village music, a safari roadmap background, and at-home activities. | Zane's Somo, extended with the team's ideas |
 | `somo2/audio/` | Recorded Kenyan-English voice clips (`en.json` Opus for most browsers, `en-mp3.json` for iPhone/iPad). The app picks the right file by itself. | Generated |
-| `somo2/trail/index.html` | **Turi's trail** (the team's KenyAI page): Turi the lion, the treasure trail, surprise eggs, guestbook, polls and a grown-ups' tracker. Opened from the "Turi's trail" button. | Team (partner file) |
+| `somo2/trail/index.html` | **Turi's trail** (the team's Somo page): Turi the lion, the treasure trail, surprise eggs, guestbook, polls and a grown-ups' tracker. Opened from the "Turi's trail" button. | Team (partner file) |
 | `somo2/letters/index.html` | **Jambo Letters.** Letter tracing, capital and small letters, phonics, books, rhymes, a quiz and games for 5-year-olds. | Team (partner file), plus links at the top |
 | `somo2/setup/index.html` | **AI key setup** for grown-ups (see below). | Added Nov 6, 2026 |
 | `somo2/learn/index.html` | An old address that now sends visitors to `somo2/`. | |
@@ -32,8 +32,8 @@ The AI never decides whether a child's answer is right. The app's own code does 
 
 The pages try these routes **in this order**:
 
-1. **A key saved on this device.** A grown-up opens `somo2/setup/`, pastes a Claude API key and taps "Save and test". The key is stored in that browser only (localStorage, name `kenyai-key`) and stays until someone taps "Forget". Every KenyAI page on that device uses it. A one-time setup link also works: `…/somo2/setup/#key=sk-ant-…`.
-2. **The KenyAI relay.** A Supabase Edge Function (`somo-kidi`, project "AI Tutor") holds a Claude key as a server secret, so the tutors work for everyone with no key on the device. It only accepts requests from this site and from `rgallaghertt.github.io`, only tutor-style prompts, with rate and daily limits. The learning path (`somo2/`) uses it; Turi's trail does not yet.
+1. **A key saved on this device.** A grown-up opens `somo2/setup/`, pastes a Claude API key and taps "Save and test". The key is stored in that browser only (localStorage, name `kenyai-key`) and stays until someone taps "Forget". Every Somo page on that device uses it. A one-time setup link also works: `…/somo2/setup/#key=sk-ant-…`.
+2. **The Somo relay.** A Supabase Edge Function (`somo-kidi`, project "AI Tutor") holds a Claude key as a server secret, so the tutors work for everyone with no key on the device. It only accepts requests from this site and from `rgallaghertt.github.io`, only tutor-style prompts, with rate and daily limits. The learning path (`somo2/`) uses it; Turi's trail does not yet.
 3. **Inside Claude.** When a page is opened as a Claude artifact, it uses the viewer's Claude account.
 4. **No AI.** Every feature has a written fallback (pre-written hints, a template caregiver note), so the site never breaks.
 
@@ -66,7 +66,7 @@ The pages try these routes **in this order**:
 - **Learning with a grown-up:** a switch on the home screen shows a tip in English or Kiswahili before each activity.
 - **Grown-ups panel:** press and hold the people icon. It shows progress, mistakes, the AI status and its own key box.
 - **Feature buttons on the home screen** (added Nov 7, 2026):
-  - **Welcome video:** plays by itself on first launch. It explains why to use KenyAI and how. A grown-up can turn off the autoplay.
+  - **Welcome video:** plays by itself on first launch. It explains why to use Somo and how. A grown-up can turn off the autoplay.
   - **Accounts:** a student part (first name, age, boy or girl, favourite animal friend) and a parent part (first name, relationship, 4-digit PIN, notes language), with set-up instructions for parents, students and teachers.
   - **Parent page:** PIN-protected. It shows an AI progress story (English and Kiswahili), a learning-gap chart (mastery per skill plus answers per day), the mistakes that repeat, and an AI-recommended plan. It updates by itself after each session and falls back to written text when there is no AI.
   - **Delete account:** on the parent page (behind the PIN). It erases the accounts, the PIN and all progress from the device after the parent types the child's first name. It can also remove the saved AI key. Notes already shared in the class guestbook stay there, because the class database has no delete.
@@ -78,6 +78,19 @@ The pages try these routes **in this order**:
 - Test hooks for automated testing: `window.__arc`, `window.__jr`, `window.__rw`, `window.__b2`.
 
 `somo2/index.html` is a **built file**. Its source lives in a separate, private repo (`rgallagherTT/Chronicle`, folder `prototypes/somo-arcade/`, built with `python3 build.py`). Small edits directly in `somo2/index.html` are fine. For big changes to the learning path, ask Zane or the repo owner, so the source and this copy don't drift apart.
+
+---
+
+## Where progress is saved (Supabase)
+
+- **On the device, always.** The app works offline, and every change is saved in the browser first.
+- **Online, when a grown-up says yes.** In Accounts → Parent, "Save progress online" is ticked by default. With it on, the child's whole progress is also saved in Supabase, a PostgreSQL database (project "AI Tutor").
+  - It saves about once a minute after changes, when the app is closed or hidden, and at "Finish".
+  - When the app opens, it checks the online copy. If another phone saved newer progress, that copy is used.
+  - **New phone:** on the Parent page, "Show the restore code", then on the new phone go to Accounts → "Restore my progress".
+  - Only the child's first name and learning progress are saved. No contact details, and the secret keys are never stored in plain text.
+- **How it connects.** The page calls the `somo-progress` Edge Function, never the database directly. Tables: `somo_children` (one row per child; the key and family code are stored only as hashes), `somo_state` (full progress) and `somo_snapshots` (a small daily summary, numbers only). Row-level security is on with no policies, so the function is the only way in. The function's source is in the Chronicle repo, at `prototypes/somo-arcade/relay/progress/index.ts`.
+- **Delete account** (Parent page) deletes the online copy too, then everything on the device.
 
 ---
 
