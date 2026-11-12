@@ -10051,7 +10051,7 @@ const Guest = {
       <div class="sect">Newest notes <span id="gbTotal"></span></div><div id="gbList"></div>
       <div class="sect">Polls</div><div class="sub">Vote on each question. The results update right away!</div><div id="pollBox"></div>${grownBtn()}</div>`);
     const msg = $('#gbMsg'); msg.addEventListener('input', () => { $('#gbCount').textContent = msg.value.length + ' / 300'; }); msg.addEventListener('keydown', e => e.stopPropagation()); $('#gbName').addEventListener('keydown', e => e.stopPropagation());
-    Speech.say('Guestbook. Leave a friendly note, and vote in the polls!'); this.buildPolls(); this.load(); this.refreshPolls();
+    Speech.say('Guestbook. Leave a friendly note, and vote in the polls!'); this.buildPolls(); this.flush().finally(() => { this.load(); this.refreshPolls(); });
   },
   status(t, bad) { const s = $('#gbStatus'); if (s) { s.textContent = t; s.className = 'kmsg' + (bad ? ' bad' : ''); } },
   card(n) {
@@ -10063,9 +10063,12 @@ const Guest = {
   },
   async load() {
     const list = $('#gbList'); if (!list) return; list.textContent = 'Loading notes…';
-    try { const Q = await this.helper(); const notes = (await Q.list('guestbook', 20)) || []; if (App.state !== 'guestbook') return; list.textContent = ''; $('#gbTotal').textContent = notes.length ? `(latest ${Math.min(20, notes.length)})` : '';
-      if (!notes.length) { list.textContent = 'No notes yet. Be the first to say hello!'; return; } notes.slice(0, 20).forEach(n => list.appendChild(this.card(n))); }
-    catch (e) { if (App.state === 'guestbook') list.textContent = 'The guestbook could not connect right now. Please try again later.'; }
+    const waiting = this.queue().filter(x => x.coll === 'guestbook').map(x => ({ data: x.rec, created_at: x.t, waiting: true })).reverse();
+    const show = notes => { list.textContent = ''; const all = [...waiting, ...notes].slice(0, 20); $('#gbTotal').textContent = all.length ? `(latest ${all.length})` : '';
+      if (!all.length) { list.textContent = 'No notes yet. Be the first to say hello!'; return; }
+      all.forEach(n => { const c = this.card(n); if (n.waiting) { const w = document.createElement('small'); w.className = 'gbwait'; w.textContent = 'On this device, waiting to be shared'; c.querySelector('.gbbody').appendChild(w); } list.appendChild(c); }); };
+    try { const Q = await this.helper(); const notes = (await Q.list('guestbook', 20)) || []; if (App.state !== 'guestbook') return; show(notes); }
+    catch (e) { if (App.state !== 'guestbook') return; if (waiting.length) show([]); else list.textContent = 'The guestbook could not connect right now. Please try again later.'; }
   },
   async save() {
     const name = ($('#gbName').value || '').trim().slice(0, 40), message = ($('#gbMsg').value || '').trim().slice(0, 300);
@@ -10073,7 +10076,19 @@ const Guest = {
     if (/@|\d{6,}|https?:/i.test(name + ' ' + message)) { this.status('Please do not write emails, phone numbers or links.', true); return; }
     const b = $('#gbSave'); b.disabled = true; this.status('Saving…');
     try { const Q = await this.helper(); await Q.save('guestbook', { name, message }); $('#gbMsg').value = ''; $('#gbCount').textContent = '0 / 300'; this.status('Thank you! Your note was saved.'); Sfx.play('good'); await this.load(); }
-    catch (e) { this.status('Could not save your note: ' + ((e && e.message) || 'please try again later') + '.', true); } finally { b.disabled = false; }
+    catch (e) {
+      if (this.notEnrolled(e)) { this.queue().push({ coll: 'guestbook', rec: { name, message }, t: new Date().toISOString() }); kSave(); $('#gbMsg').value = ''; $('#gbCount').textContent = '0 / 300'; this.status('Your note is saved on this device. It will be shared with everyone as soon as your teacher adds this site to the class database.'); Sfx.play('good'); this.load(); }
+      else this.status('Could not save your note: ' + this.why(e) + '.', true);
+    } finally { b.disabled = false; }
+  },
+  /* the server's own reason, without a doubled full stop */
+  why: e => String((e && e.message) || 'please try again later').trim().replace(/[.!?]+$/, ''),
+  notEnrolled: e => /enrol/i.test(String(e && e.message)),
+  /* notes and votes the class database would not take yet (site not enrolled): kept on this device and sent later */
+  queue() { const k = KY(); return k.gbq || (k.gbq = []); },
+  async flush() {
+    const q = this.queue(); if (!q.length) return; let Q; try { Q = await this.helper(); } catch (e) { return; }
+    for (const item of q.slice()) { try { await Q.save(item.coll, item.rec); q.splice(q.indexOf(item), 1); kSave(); } catch (e) { break; } }
   },
   vote: id => { try { return localStorage.getItem('kenyai-poll-' + id); } catch (e) { return null; } },
   buildPolls() {
@@ -10096,7 +10111,10 @@ const Guest = {
   async castVote(pid, choice) {
     const p = POLLS.find(x => x.id === pid); if (!p || this.vote(pid)) return; const st = $('#pst-' + pid); document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => { b.disabled = true; }); if (st) st.textContent = 'Saving your vote…';
     try { const Q = await this.helper(); await Q.save(p.coll, { choice }); try { localStorage.setItem('kenyai-poll-' + pid, choice); } catch (e) { } document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => b.classList.toggle('on', b.dataset.c === choice)); if (st) st.textContent = 'Thanks for voting!'; Sfx.play('pop'); this.refreshPolls(); }
-    catch (e) { document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => { b.disabled = false; }); if (st) { st.textContent = 'Could not save your vote: ' + ((e && e.message) || 'please try again later') + '.'; st.className = 'kmsg bad'; } }
+    catch (e) {
+      if (this.notEnrolled(e)) { this.queue().push({ coll: p.coll, rec: { choice }, t: new Date().toISOString() }); kSave(); try { localStorage.setItem('kenyai-poll-' + pid, choice); } catch (x) { } document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => b.classList.toggle('on', b.dataset.c === choice)); if (st) { st.textContent = 'Your vote is saved on this device. It will be counted as soon as your teacher adds this site to the class database.'; st.className = 'kmsg'; } Sfx.play('pop'); }
+      else { document.querySelectorAll(`[data-p="${pid}"]`).forEach(b => { b.disabled = false; }); if (st) { st.textContent = 'Could not save your vote: ' + this.why(e) + '.'; st.className = 'kmsg bad'; } }
+    }
   },
 };
 
@@ -10220,7 +10238,7 @@ $('#stage').addEventListener('click', e => {
 .kpill{display:inline-block;background:#F2B829;color:#2B1E17;border-radius:${u(8)};padding:0 ${u(6)};font-size:${u(11)};font-weight:800}
 .ktip{font-size:${u(13)};background:#FFF3C4;border-radius:${u(10)};padding:${u(6)} ${u(10)};margin:0}
 .gbn{display:flex;gap:${u(10)};background:rgba(255,248,236,.97);color:var(--ink);border-radius:${u(16)};padding:${u(10)};margin-bottom:${u(8)};overflow-wrap:anywhere}.gbav{flex:none;width:${u(40)};height:${u(40)};border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:${u(20)}}.gbbody p{margin:${u(2)} 0;white-space:pre-wrap}.gbbody small{opacity:.65}
-#gbList{color:var(--paper);font-size:${u(14)}}
+#gbList{color:var(--paper);font-size:${u(14)}}.gbwait{display:block;color:#B5462A;font-weight:800;opacity:1 !important}
 .pbtns{display:flex;flex-wrap:wrap;gap:${u(6)}}.pbtns button{min-height:${u(40)};padding:0 ${u(12)};border-radius:${u(20)};background:var(--leaf);color:#fff;font-weight:800;font-size:${u(14)}}.pbtns button.on{background:var(--soil)}.pbtns button:disabled:not(.on){opacity:.5}
 .prow{display:grid;grid-template-columns:${u(90)} 1fr auto;gap:${u(6)};align-items:center;font-size:${u(12)};margin:${u(3)} 0}.ptr{height:${u(12)};border-radius:${u(6)};background:#EADBC4;overflow:hidden}.ptr i{display:block;height:100%;background:var(--leaf);transition:width .5s}
 .offc{background:rgba(255,248,236,.97);color:var(--ink);border-radius:${u(16)};padding:${u(12)}}.offc .ot{display:flex;align-items:center;gap:${u(8)};font-size:${u(22)}}.offc .ot i{font-size:${u(14)};opacity:.7}

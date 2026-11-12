@@ -62,3 +62,13 @@
   - Turi's trail (`somo2/trail/`) no longer hard-codes `data-site`, so the helper picks the right site id from the page's address on any host.
   - If a save still fails, the page now shows the server's actual reason instead of a generic message.
   - Tested in a browser with a stand-in server that enforces the same rule: saving a note and a vote both work, and the team's old note still shows.
+
+## Guestbook and polls: keep notes until the site is enrolled
+- **Date:** Nov 12, 2026
+- **Goal:** The class database answers "The site "zanetitusgallagher-jesus" isn't enrolled yet. Ask your teacher to add it." Notes and votes should not be lost while we wait.
+- **What Claude Did:**
+  - Until the teacher enrolls the site, a note or vote that the database refuses for that reason is kept on the device. It shows in the list as "On this device, waiting to be shared".
+  - Every time the guestbook opens, waiting notes and votes are sent again. Once the site is enrolled they reach the class database by themselves.
+  - Fixed the doubled full stop in error messages.
+  - Tested in a browser with a stand-in server: refused while not enrolled (kept on the device), then sent and cleared once enrolled.
+- **Still needed:** the teacher must enroll the site id `zanetitusgallagher-jesus` in the QuestX class database.
