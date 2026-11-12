@@ -171,3 +171,14 @@
   - `somo2/manifest.webmanifest` and icons drawn in code (192, 512, maskable, Apple touch icon).
   - `somo2/` (source `src/b2/offline.js`): the voice pack downloads once with a progress bar, then a "Ready for offline" badge on the home screen; "Grown-up: add Somo to the home screen" chip (install prompt on Android and desktop, instructions on iPhone), also in the grown-ups panel, which can hide the reminder.
   - Tested in a headless browser: shell and voice cached, the app, letters, trail and setup open offline; no page or console errors.
+
+## Feature 4: several children on one phone
+- **Date:** Nov 12, 2026
+- **Goal:** Brothers and sisters can share one phone, each with their own Somo.
+- **Prompt:** "A Who's learning? screen. A grown-up can add a child (first name, age, animal friend). Each child has separate progress, rewards, certificates and fluency history, their own somo_children row... per-child delete. Migrate the existing single account to child 1 with zero data loss (keep the existing kenyai-* storage keys working)."
+- **What Claude Did:** (`somo2/`, source `src/b2/kids.js` in Chronicle)
+  - "Who's learning?" at the start of each session when a phone has more than one child, and a "Who's learning?" button on the home screen.
+  - Adding a child is in the grown-ups panel (press and hold the people icon), because there is no parent PIN any more. Name, age and animal friend are filled in for the new child; online saving registers a separate `somo_children` row for each child, and the admin puts each one with a teacher (class codes were replaced by admin assignment).
+  - Separate progress, rewards, certificates and reading history: the first child keeps the existing `kenyai-state` key (no migration needed, nothing lost); other children use `kenyai-state-<id>`; the list is in `kenyai-kids`.
+  - "Remove from this phone" per child (tap twice). Online progress stays until a teacher or the admin deletes it.
+  - Tested in a headless browser (old single-child phone, add a child, new session, switch back, remove): no data lost, no page or console errors.

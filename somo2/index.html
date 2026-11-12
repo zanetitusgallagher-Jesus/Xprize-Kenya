@@ -10466,6 +10466,100 @@ $('#stage').addEventListener('click', e => {
 }
 window.__ky = Object.assign(window.__ky || {}, { OfflineApp });
 
+/* ============================================================================
+   SEVERAL CHILDREN ON ONE PHONE (Nov 2026)
+   - "Who's learning?": when a phone has more than one child, Somo asks at the start (and from the home screen).
+   - A grown-up adds a child (first name, age, animal friend) in the grown-ups panel (press and hold the people icon),
+     because there is no parent PIN any more; the press-and-hold keeps it away from little fingers.
+   - Each child has separate progress, rewards, certificates and reading history (their own saved state), and their
+     own row in Supabase (online saving registers each child on its own); the admin puts each one with a teacher.
+   - Remove a child from this phone (grown-ups panel). Online progress stays: a teacher or the admin deletes it.
+   - Zero data loss: the first child keeps the existing storage key "kenyai-state"; other children use
+     "kenyai-state-<id>". The list of children is in "kenyai-kids".
+   ========================================================================== */
+const KIDS_KEY = 'kenyai-kids';
+const Kids = {
+  get() { let d = null; try { d = JSON.parse(localStorage.getItem(KIDS_KEY) || 'null'); } catch (e) { } if (!d || !Array.isArray(d.list) || !d.list.length) d = { active: 'c1', list: [{ id: 'c1' }] }; return d; },
+  set(d) { try { localStorage.setItem(KIDS_KEY, JSON.stringify(d)); } catch (e) { } },
+  key(id) { return id === 'c1' ? 'kenyai-state' : 'kenyai-state-' + id; },
+  active() { return this.get().active || 'c1'; },
+  /* the profile list mirrors each child's own account, so the picker can show names without loading every state */
+  sync() { if (VIEW) return; const d = this.get(), me = d.list.find(k => k.id === d.active); const s = (KY().account && KY().account.student) || {}; if (me && s.name) { Object.assign(me, { name: s.name, age: s.age || me.age, av: s.av || me.av || 'kuku' }); this.set(d); } },
+  switchTo(id) {
+    const d = this.get(); if (!d.list.some(k => k.id === id)) return; try { sessionStorage.setItem('somo-who', '1'); } catch (e) { }
+    if (id === d.active) return showHome();
+    Store.save(); try { Cloud.push(true, true); } catch (e) { } d.active = id; this.set(d); this.leaving = true; setTimeout(() => location.reload(), 250);
+  },
+  add(name, age, av) {
+    const d = this.get(); const id = 'c' + Date.now().toString(36); d.list.push({ id, name, age, av, fresh: true }); this.set(d); return id;
+  },
+  remove(id) {
+    const d = this.get(); if (d.list.length < 2) return false; d.list = d.list.filter(k => k.id !== id);
+    try { localStorage.removeItem(this.key(id)); } catch (e) { }
+    if (id === 'c1') { /* keep the first child's storage key for whoever is first now */ const n = d.list[0]; try { const v = localStorage.getItem(this.key(n.id)); if (v != null) localStorage.setItem('kenyai-state', v); localStorage.removeItem(this.key(n.id)); } catch (e) { } if (d.active === n.id) d.active = 'c1'; n.id = 'c1'; }
+    if (!d.list.some(k => k.id === d.active)) d.active = d.list[0].id; this.set(d); return true;
+  },
+};
+if (!VIEW) {
+  /* every read and write of the progress goes to the active child's own key */
+  const _gi = Storage.prototype.getItem, _si = Storage.prototype.setItem, _ri = Storage.prototype.removeItem;
+  const mapKey = (st, k) => { if (st !== window.localStorage || k !== 'kenyai-state') return k; let a = 'c1'; try { a = (JSON.parse(_gi.call(st, KIDS_KEY) || 'null') || {}).active || 'c1'; } catch (e) { } return a === 'c1' ? k : 'kenyai-state-' + a; };
+  Storage.prototype.getItem = function (k) { return _gi.call(this, mapKey(this, k)); };
+  Storage.prototype.setItem = function (k, v) { if (Kids.leaving && this === window.localStorage && k === 'kenyai-state') return; return _si.call(this, mapKey(this, k), v); };
+  Storage.prototype.removeItem = function (k) { return _ri.call(this, mapKey(this, k)); };
+}
+/* a newly added child starts with their name, age and animal friend already in Accounts */
+{ const _load = Store.load; Store.load = async function () {
+    const r = await _load.call(this); if (VIEW) return r;
+    const d = Kids.get(), me = d.list.find(k => k.id === d.active);
+    if (me && me.fresh) { const st = r && r.v === 1 ? r : null; const target = st || {}; const k = target.kenyai || (target.kenyai = {}); k.account = k.account || { student: {}, parent: {} };
+      k.account.student = Object.assign({ name: me.name, age: me.age, av: me.av, kind: me.kind || 'girl' }, k.account.student && k.account.student.name ? k.account.student : {}); k.seenVideo = true;
+      delete me.fresh; Kids.set(d); if (st) return st; setTimeout(() => { S.kenyai = Object.assign(S.kenyai || {}, { account: k.account, seenVideo: true }); applyAccount(); Store.save(); if (App.state === 'hub') showHome(); }, 30); }
+    setTimeout(() => Kids.sync(), 40); return r;
+  }; }
+{ const _rd = Accounts.read; Accounts.read = function () { const e = _rd.call(this); if (!e) Kids.sync(); return e; }; }
+const Who = {
+  show() {
+    App.state = 'who'; Round.game = null; App.attract = null; HUD.show(false); Card.hide(); const d = Kids.get();
+    setScreen(`<div class="scr jr who"><div class="logo" style="text-align:center">Who's learning?<small>Tap your name</small></div>
+      <div class="whogrid">${d.list.map(k => `<button class="whok${k.id === d.active ? ' on' : ''}" data-k="whopick" data-v="${esc(k.id)}">${friendFace(['kuku', 'kobe', 'twiga', 'tembo'].includes(k.av) ? k.av : 'kuku', 'happy', 80)}<b>${esc(k.name || 'Child ' + (d.list.indexOf(k) + 1))}</b>${k.age ? `<small>age ${esc(k.age)}</small>` : ''}</button>`).join('')}</div>
+      <p class="kfine" style="text-align:center">Grown-ups: to add a child, press and hold the people icon.</p>${grownBtn()}</div>`);
+    Speech.say("Who's learning? Tap your name.");
+  },
+};
+/* at the start, and the home button, when the phone has more than one child */
+{ const _sh = showHome; showHome = function () {
+    let chosen = false; try { chosen = !!sessionStorage.getItem('somo-who'); } catch (e) { chosen = true; }
+    if (!VIEW && Kids.get().list.length > 1 && !chosen && JR.loaded) return Who.show();
+    _sh(); if (App.state !== 'hub' || VIEW || Kids.get().list.length < 2) return; const f = document.querySelector('#screen .kfeat'); if (!f) return;
+    f.insertAdjacentHTML('beforeend', `<button data-k="who"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="8" cy="8" r="3.4" fill="#E8577A"/><circle cx="16.5" cy="9" r="3" fill="#56B4E9"/><path d="M2 20q.5-7 6-7t6 7zM12 20q.6-6 4.5-6t4.5 6z" fill="#2B1E17"/></svg><span>Who's learning?</span></button>`);
+  }; }
+/* grown-ups panel: the children on this phone */
+{ const _sp = showParent; showParent = function () { _sp(); if (VIEW) return; const el = $('#parent'), h = el.querySelector('h3'); if (!h) return; const d = Kids.get();
+    h.insertAdjacentHTML('beforebegin', `<h3>Children on this phone</h3><p class="muted">Each child has their own progress, rewards, certificates and reading history, and their own online record. The Somo admin puts each child with a teacher.</p>
+      <table>${d.list.map((k, i) => `<tr><td><b>${esc(k.name || 'Child ' + (i + 1))}</b>${k.age ? ' · age ' + esc(k.age) : ''}${k.id === d.active ? ' · <i>learning now</i>' : ''}</td><td>${k.id === d.active ? '' : `<button class="close" style="float:none" data-act="kidgo" data-v="${esc(k.id)}">Switch</button>`} ${d.list.length > 1 ? `<button class="close" style="float:none" data-act="kidrm" data-v="${esc(k.id)}">${App.kidRm === k.id ? 'Tap again to remove' : 'Remove from this phone'}</button>` : ''}</td></tr>`).join('')}</table>
+      <p><b>Add a child</b></p><p><input id="kidn" maxlength="20" placeholder="First name only" style="padding:6px;border:1px solid #C9B49A;border-radius:8px;font:inherit;background:#fff;color:#2B1B12"> <select id="kida" style="padding:6px;border-radius:8px;font:inherit">${[5, 6, 7, 8, 9, 10, 11].map(n => `<option>${n}</option>`).join('')}</select>
+      <select id="kidv" style="padding:6px;border-radius:8px;font:inherit">${AVATARS.map(([f, n]) => `<option value="${f}">${n}</option>`).join('')}</select> <button class="close" style="float:none" data-act="kidadd">Add</button></p>
+      <p class="muted">Removing a child deletes their progress from this phone only. Their online progress stays until a teacher or the admin deletes it.</p>`);
+    const n = $('#kidn'); if (n) n.addEventListener('keydown', e => e.stopPropagation());
+  }; }
+$('#stage').addEventListener('click', e => {
+  const k = e.target.closest('[data-k="whopick"],[data-k="who"]'); if (k) { Sfx.unlock(); Sfx.play('click'); if (k.dataset.k === 'who') { try { sessionStorage.removeItem('somo-who'); } catch (x) { } Who.show(); } else Kids.switchTo(k.dataset.v); return; }
+  const a = e.target.closest('[data-act="kidadd"],[data-act="kidgo"],[data-act="kidrm"]'); if (!a) return;
+  if (a.dataset.act === 'kidadd') { const nm = String(($('#kidn') || {}).value || '').trim().replace(/[^\p{L}' -]/gu, '').slice(0, 20); if (!nm) return; const id = Kids.add(nm.charAt(0).toUpperCase() + nm.slice(1), +$('#kida').value, $('#kidv').value); hideParent(); Kids.switchTo(id); }
+  else if (a.dataset.act === 'kidgo') { hideParent(); Kids.switchTo(a.dataset.v); }
+  else if (a.dataset.act === 'kidrm') { if (App.kidRm !== a.dataset.v) { App.kidRm = a.dataset.v; return showParent(); } App.kidRm = null; const wasActive = a.dataset.v === Kids.active(); Kids.remove(a.dataset.v); if (wasActive) { Kids.leaving = true; location.reload(); } else showParent(); }
+});
+{ const _fs = fabSync; fabSync = function () { const b = $('#kidiFab'); if (b && App.state === 'who') { b.hidden = true; return; } _fs(); }; }
+{
+  const u = n => `calc(var(--u)*${n})`;
+  const el = document.createElement('style'); el.textContent = `
+.who{justify-content:center}.whogrid{display:grid;grid-template-columns:1fr 1fr;gap:${u(10)}}.whok{display:flex;flex-direction:column;align-items:center;gap:${u(4)};background:rgba(255,248,236,.94);color:#2B1E17;border-radius:${u(18)};padding:${u(10)};box-shadow:0 ${u(5)} 0 rgba(0,0,0,.4)}
+.whok b{font-size:${u(20)}}.whok small{opacity:.7}.whok.on{outline:${u(3)} solid #F2B829}`;
+  document.head.appendChild(el);
+}
+window.__ky = Object.assign(window.__ky || {}, { Kids, Who });
+
 boot();
 
 </script>
