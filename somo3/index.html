@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Somo admin</title>
-<meta name="description" content="Somo admin: every teacher, class and student, from the Somo Supabase database.">
+<meta name="description" content="Somo admin: every teacher (people and AI), every student, assigning students to teachers, and what each teacher and child sees.">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
 <style>
   :root { --bg: #1E140E; --panel: #2E1F16; --paper: #FFF8EC; --ink: #2B1E17; --soil: #B5462A; --mango: #F07A2A; --sun: #F2B829; --sky: #236FA6; --leaf: #2F7D4F; --rose: #C42E6F; --line: #EADBC4; --muted: #6E5644; }
@@ -50,14 +50,22 @@
   .crumbs { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; color: #FFF8EC; }
   .crumbs button { background: var(--panel); }
   .hidden-note { opacity: .55; }
+  select { font: inherit; padding: 6px 8px; border-radius: 10px; border: 2px solid var(--line); background: #fff; color: #2B1E17; max-width: 100%; }
+  label { font-weight: 800; display: block; margin-top: 8px; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+  textarea { font: 600 .9rem/1.4 ui-monospace, monospace; width: 100%; min-height: 160px; padding: 10px; border-radius: 12px; border: 2px solid var(--line); background: #fff; color: #2B1E17; }
+  button.danger { background: var(--rose); }
+  .frame { width: 100%; max-width: 440px; height: 760px; border: 0; border-radius: 18px; box-shadow: 0 4px 0 rgba(0,0,0,.35); background: #000; display: block; }
+  .ai { background: #E3D7F7; color: #4B2A8A; }
   @media (max-width: 640px) { .hide-sm { display: none; } main { padding: 12px; } }
 </style>
 </head>
 <body>
 <header>
-  <h1>Somo admin<small>every teacher, class and student</small></h1>
+  <h1>Somo admin<small>Somo 3 · every teacher and student</small></h1>
   <span class="sp"></span>
   <a href="../somo2/">Open the Somo app</a>
+  <a href="../somo4/">Teacher page</a>
   <button class="ghost small" id="out" hidden>Log out</button>
 </header>
 <main id="app" aria-live="polite"></main>
@@ -67,7 +75,7 @@
   var URL_ = 'https://obyudvdunzuyyskxujrt.supabase.co/functions/v1/somo-progress';
   var SKILL = { cnt: 'Counting', rec: 'Big numbers', facts: 'Quick sums', bond: 'Make ten', pv: 'Tens and ones', mul: 'Equal groups', add: 'Adding', sub: 'Taking away', snd: 'Letter sounds', abc: 'Letter partners', rhy: 'Rhyming', cvc: 'Blending', sight: 'Tricky words', pic: 'Read and find', sent: 'Sentences' };
   var TAGS = { smallerFromLarger: 'Took the smaller digit from the larger', forgotCarry: 'Forgot to carry the ten', reversal: 'Swapped tens and ones', offByTen: 'Off by ten', offByOne: 'Off by one', wrongOp: 'Used the wrong operation', addedDigits: 'Added the tens and ones digits', addedInstead: 'Added instead of making equal groups', groupOff: 'One group too many or too few', bothTo10: 'Made each digit up to 10', letterReversal: 'Letter reversal (b/d, p/q)', similarSound: 'Mixed up similar sounds', vowel: 'Vowel confusion', onset: 'Changed the first sound', firstLetter: 'Guessed from the first letter', smallWord: 'Missed the small word (on/in/by)', overshoot: 'Collected past the target', miscount: 'Lost count', countedStart: 'Counted the starting number too', sameStart: 'Same first sound, not a rhyme', sameEnd: 'Only the same last sound', caseShape: 'Mixed up look-alike small letters' };
-  var app = document.getElementById('app'), out = document.getElementById('out');
+  var app = document.getElementById('app'), out = document.getElementById('out'), ui = {};
   var key = ''; try { key = sessionStorage.getItem('somo-admin') || ''; } catch (e) {}
   var data = null, tab = 'students', q = '';
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -85,34 +93,63 @@
     return { mastery: m, answers: ans, gaps: sk.filter(function (x) { return x[1].n >= 4 && x[1].mastery < 70; }).map(function (x) { return SKILL[x[0]] || x[0]; }), stars: sk.reduce(function (a, x) { return a + (x[1].stars || 0); }, 0), last: p.last_active, active7: p.last_active && (Date.now() - Date.parse(p.last_active)) < 7 * 864e5 };
   }
   function pill(m) { return m == null ? '<span class="pill">—</span>' : '<span class="pill ' + (m < 50 ? 'low' : m < 70 ? 'mid' : 'ok') + '">' + m + '%</span>'; }
-  function studentsTable(list, showClass) {
-    if (!list.length) return '<p class="muted">No students yet. Children appear when a family turns on "Save progress online" in Somo.</p>';
-    return '<div class="wrap"><table class="tbl"><thead><tr><th>Student</th>' + (showClass ? '<th>Class</th>' : '') + '<th class="num">Mastery</th><th class="num hide-sm">Answers (7 days)</th><th>Learning gaps</th><th class="hide-sm">Last active</th></tr></thead><tbody>' +
-      list.map(function (s) { var r = prog(s.progress); return '<tr class="click" tabindex="0" data-kid="' + esc(s.id) + '"><td><b>' + esc(s.first_name || 'Student') + '</b>' + (s.progress && s.progress.age ? ' <span class="muted">age ' + s.progress.age + '</span>' : '') + '</td>' + (showClass ? '<td>' + esc(s.class || 'no class') + '</td>' : '') + '<td class="num">' + pill(r.mastery) + '</td><td class="num hide-sm">' + r.answers + '</td><td class="' + (r.gaps.length ? 'gap' : '') + '">' + esc(r.gaps.length ? r.gaps.join(', ') : 'none') + '</td><td class="hide-sm">' + esc(ago(r.last || s.last_sync)) + '</td></tr>'; }).join('') + '</tbody></table></div>';
+  var teachers = [];
+  function teacherSelect(s) { return '<select data-assign="' + esc(s.id) + '" aria-label="Teacher for ' + esc(s.first_name) + '"><option value="">No teacher yet</option>' + teachers.map(function (t) { var fits = s.age && s.age >= t.age_min && s.age <= t.age_max; return '<option value="' + esc(t.id) + '"' + (s.teacher_id === t.id ? ' selected' : '') + '>' + esc(t.name) + (t.is_ai ? ' (AI)' : '') + ' · ages ' + t.age_min + '–' + t.age_max + (fits ? ' ✓' : '') + '</option>'; }).join('') + '</select>'; }
+  function studentsTable(list) {
+    if (!list.length) return '<p class="muted">No students yet. A child appears here once they type their name in Accounts in the Somo app.</p>';
+    return '<div class="wrap"><table class="tbl"><thead><tr><th>Student</th><th class="num">Age</th><th>Teacher</th><th class="num">Mastery</th><th class="num hide-sm">Answers (7 days)</th><th class="hide-sm">Learning gaps</th><th class="hide-sm">Last active</th></tr></thead><tbody>' +
+      list.map(function (s) { var r = prog(s.progress); return '<tr class="click" tabindex="0" data-kid="' + esc(s.id) + '"><td><b>' + esc(s.first_name || 'Student') + '</b>' + (s.kind ? ' <span class="muted">' + esc(s.kind) + '</span>' : '') + '</td><td class="num">' + esc(s.age || '—') + '</td><td>' + teacherSelect(s) + '</td><td class="num">' + pill(r.mastery) + '</td><td class="num hide-sm">' + r.answers + '</td><td class="hide-sm ' + (r.gaps.length ? 'gap' : '') + '">' + esc(r.gaps.length ? r.gaps.join(', ') : 'none') + '</td><td class="hide-sm">' + esc(ago(r.last || s.last_sync)) + '</td></tr>'; }).join('') + '</tbody></table></div>';
   }
   function login(msg) {
     out.hidden = true;
-    app.innerHTML = '<div class="card" style="max-width:460px"><h2>Admin log in</h2><p class="muted">The admin sees every teacher, class and student saved in the Somo database. Teachers use the Teacher page inside the Somo app instead.</p><label for="k"><b>Admin key</b></label><input id="k" type="password" autocomplete="current-password"><div class="row" style="margin-top:10px"><button id="go">Log in</button></div><p class="msg ' + (msg ? 'bad' : '') + '" id="m">' + esc(msg || '') + '</p></div>';
+    app.innerHTML = '<div class="card" style="max-width:460px"><h2>Admin log in</h2><p class="muted">The admin sees every teacher and student, puts students with teachers, and can see what any teacher or child sees. Teachers log in on the teacher page (somo4/) with their PIN.</p><label for="k"><b>Admin key</b></label><input id="k" type="password" autocomplete="current-password"><div class="row" style="margin-top:10px"><button id="go">Log in</button></div><p class="msg ' + (msg ? 'bad' : '') + '" id="m">' + esc(msg || '') + '</p></div>';
     var k = document.getElementById('k'); k.focus();
     var go = function () { key = k.value.trim(); load(); };
     document.getElementById('go').onclick = go; k.onkeydown = function (e) { if (e.key === 'Enter') go(); };
   }
   function load() {
     app.innerHTML = '<div class="card">Loading…</div>';
-    call('admin_overview').then(function (d) { data = d; try { sessionStorage.setItem('somo-admin', key); } catch (e) {} out.hidden = false; overview(); })
+    return Promise.all([call('admin_overview'), call('admin_teachers')]).then(function (x) { var d = x[0]; teachers = x[1].teachers; data = d; try { sessionStorage.setItem('somo-admin', key); } catch (e) {} out.hidden = false; overview(); })
       .catch(function (e) { key = ''; try { sessionStorage.removeItem('somo-admin'); } catch (x) {} login(/admin key/.test(e.message) ? 'That admin key is not right.' : 'Could not connect: ' + e.message); });
   }
   function overview() {
     var st = data.students, active = st.filter(function (s) { return prog(s.progress).active7; }).length, gaps = st.filter(function (s) { return prog(s.progress).gaps.length; }).length;
-    var list = st.filter(function (s) { return !q || (s.first_name + ' ' + (s.class || '')).toLowerCase().indexOf(q) >= 0; });
+    var list = st.filter(function (s) { return !q || (s.first_name + ' ' + (s.teacher || '')).toLowerCase().indexOf(q) >= 0; });
     var body = '';
-    if (tab === 'students') body = '<div class="card"><h2>All students (' + st.length + ')</h2><input id="q" placeholder="Search by first name or class" value="' + esc(q) + '" aria-label="Search students"><div style="height:8px"></div>' + studentsTable(list, true) + '</div>';
-    else if (tab === 'classes') body = '<div class="card"><h2>Teachers and classes (' + data.classes.length + ')</h2>' + (data.classes.length ? '<div class="wrap"><table class="tbl"><thead><tr><th>Teacher</th><th>Class</th><th>Class code</th><th class="num">Students</th></tr></thead><tbody>' + data.classes.map(function (c) { return '<tr class="click" tabindex="0" data-cls="' + esc(c.id) + '"><td><b>' + esc(c.teacher_name || '—') + '</b></td><td>' + esc(c.name) + '</td><td><code>' + esc(c.code) + '</code></td><td class="num">' + c.students + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="muted">No classes yet. A teacher makes one from the Teacher page in the Somo app.</p>') + '</div>';
+    var unassigned = st.filter(function (s) { return !s.teacher_id; }).length;
+    if (tab === 'students') body = '<div class="card"><h2>All students (' + st.length + ')</h2><p class="muted">Only the admin puts students with teachers. Pick a teacher for each student, or let Somo do it by age: every student without a teacher goes to a teacher whose ages fit (people first, then AI teachers), the one with the fewest students. ✓ marks a teacher whose ages fit.</p><div class="row"><button id="auto"' + (unassigned ? '' : ' disabled') + '>Assign by age (' + unassigned + ' without a teacher)</button><span class="msg" id="am"></span></div><div style="height:8px"></div><input id="q" placeholder="Search by first name or teacher" value="' + esc(q) + '" aria-label="Search students"><div style="height:8px"></div>' + studentsTable(list) + '</div>';
+    else if (tab === 'teachers') body = teachersCard();
     else body = '<div class="card"><h2>Guestbook</h2><p class="muted">Hide a note to take it off the guestbook; you can show it again.</p><div id="gb">Loading…</div></div>';
-    app.innerHTML = '<div class="stats"><div class="stat"><b>' + data.classes.length + '</b><span>teachers and classes</span></div><div class="stat"><b>' + st.length + '</b><span>students saving online</span></div><div class="stat"><b>' + active + '</b><span>active in the last 7 days</span></div><div class="stat"><b>' + gaps + '</b><span>with a learning gap</span></div><div class="stat"><b>' + data.guestbook_notes + '</b><span>guestbook notes</span></div></div>' +
-      '<div class="tabs" role="group" aria-label="View">' + [['students', 'All students'], ['classes', 'Teachers and classes'], ['guestbook', 'Guestbook']].map(function (t) { return '<button data-tab="' + t[0] + '" aria-pressed="' + (tab === t[0]) + '">' + t[1] + '</button>'; }).join('') + '<button class="small ghost" id="ref" style="color:#FFF8EC">Refresh</button></div>' + body;
+    app.innerHTML = '<div class="stats"><div class="stat"><b>' + teachers.length + '</b><span>teachers (' + teachers.filter(function (t) { return t.is_ai; }).length + ' AI)</span></div><div class="stat"><b>' + st.length + '</b><span>students</span></div><div class="stat"><b>' + unassigned + '</b><span>without a teacher</span></div><div class="stat"><b>' + active + '</b><span>active in the last 7 days</span></div><div class="stat"><b>' + gaps + '</b><span>with a learning gap</span></div><div class="stat"><b>' + data.guestbook_notes + '</b><span>guestbook notes</span></div></div>' +
+      '<div class="tabs" role="group" aria-label="View">' + [['students', 'All students'], ['teachers', 'Teachers'], ['guestbook', 'Guestbook (Turi\'s trail)']].map(function (t) { return '<button data-tab="' + t[0] + '" aria-pressed="' + (tab === t[0]) + '">' + t[1] + '</button>'; }).join('') + '<button class="small ghost" id="ref" style="color:#FFF8EC">Refresh</button></div>' + body;
     var qi = document.getElementById('q'); if (qi) { qi.oninput = function () { q = qi.value.trim().toLowerCase(); var pos = qi.selectionStart; overview(); var n = document.getElementById('q'); n.focus(); n.setSelectionRange(pos, pos); }; }
     if (tab === 'guestbook') guestbook();
+    if (tab === 'teachers') loadSkills();
+  }
+  /* ---------------- teachers: people (with a PIN) and AI teachers (with a skill file) ---------------- */
+  var skills = null, editing = null;
+  function teachersCard() {
+    var e = editing || {}, isAi = !!e.is_ai;
+    return '<div class="card"><h2>Teachers (' + teachers.length + ')</h2>' + (teachers.length ? '<div class="wrap"><table class="tbl"><thead><tr><th>Teacher</th><th>Kind</th><th class="num">Ages</th><th class="num">Students</th><th></th></tr></thead><tbody>' + teachers.map(function (t) { return '<tr><td><b>' + esc(t.name) + '</b></td><td>' + (t.is_ai ? '<span class="pill ai">AI · ' + esc(t.skill_file || 'custom') + '</span>' : '<span class="pill">Person' + (t.has_pin ? '' : ' · no PIN') + '</span>') + '</td><td class="num">' + t.age_min + '–' + t.age_max + '</td><td class="num">' + t.students + '</td><td><div class="row"><a class="btn small" style="text-decoration:none;display:inline-flex;align-items:center" href="../somo4/?as=' + encodeURIComponent(t.id) + '">See what they see</a><button class="ghost small" data-edit="' + esc(t.id) + '">Edit</button><button class="ghost small" data-tdel="' + esc(t.id) + '">Remove</button></div></td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="muted">No teachers yet. Add a person or an AI teacher below.</p>') + '</div>' +
+      '<div class="card" id="tform"><h2>' + (e.id ? 'Edit ' + esc(e.name) : 'Add a teacher') + '</h2><div class="tabs" role="group" aria-label="Kind of teacher"><button class="small" data-kind="person" aria-pressed="' + !isAi + '">A person (logs in with a PIN)</button><button class="small" data-kind="ai" aria-pressed="' + isAi + '">An AI teacher (a skill file)</button></div><div class="grid2">' +
+      '<div><label for="tn">Name (what the children call them)</label><input id="tn" maxlength="40" value="' + esc(e.name || '') + '" placeholder="for example Mwalimu Wanjiru"></div>' +
+      '<div><label for="ta">Youngest age</label><input id="ta" type="number" min="3" max="14" value="' + esc(e.age_min || 5) + '"></div><div><label for="tb">Oldest age</label><input id="tb" type="number" min="3" max="14" value="' + esc(e.age_max || 9) + '"></div>' +
+      (isAi ? '' : '<div><label for="tp">' + (e.id ? 'New PIN (leave empty to keep it)' : 'PIN (4 to 6 numbers)') + '</label><input id="tp" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></div>') + '</div>' +
+      (isAi ? '<label for="ts">Skill file</label><select id="ts"><option value="">Pick a skill file…</option>' + (skills || []).map(function (k) { return '<option value="' + esc(k.file) + '"' + (e.skill_file === k.file ? ' selected' : '') + '>' + esc(k.name + ': ' + k.for) + '</option>'; }).join('') + '<option value="custom"' + (e.skill_file === 'custom' ? ' selected' : '') + '>Custom (write it below)</option></select><label for="tsk">What the AI teacher is told (from the skill file; you can change it)</label><textarea id="tsk" maxlength="12000">' + esc(e.skill || '') + '</textarea><p class="muted">Skill files live in the repo at somo4/teachers/. Somo always adds its safety rules after the skill: short replies read aloud, never give away answers, never ask for personal details, and tell a trusted grown-up if a child seems unsafe. The AI teacher hears a child only through the words the child\'s phone recognised (or their picture reply).</p>' : '') +
+      '<div class="row" style="margin-top:10px"><button id="tsave">' + (e.id ? 'Save' : 'Add the teacher') + '</button>' + (e.id ? '<button class="ghost" id="tcancel" style="color:inherit">Cancel</button>' : '') + '</div><p class="msg" id="tm"></p></div>';
+  }
+  function loadSkills() { if (skills) return; fetch('../somo4/teachers/index.json').then(function (r) { return r.json(); }).then(function (d) { skills = d.skills || []; if (tab === 'teachers') { var keep = formVals(); overview(); setForm(keep); } }).catch(function () { skills = []; }); }
+  function formVals() { var g = function (id) { var el = document.getElementById(id); return el ? el.value : undefined; }; return { name: g('tn'), age_min: g('ta'), age_max: g('tb'), skill_file: g('ts'), skill: g('tsk') }; }
+  function setForm(v) { var s = function (id, x) { var el = document.getElementById(id); if (el && x !== undefined) el.value = x; }; s('tn', v.name); s('ta', v.age_min); s('tb', v.age_max); s('ts', v.skill_file); s('tsk', v.skill); }
+  function saveTeacher() {
+    var m = document.getElementById('tm'), e = editing || {}, isAi = !!e.is_ai, v = formVals(), pin = (document.getElementById('tp') || {}).value || '';
+    if (!v.name.trim()) { m.textContent = 'Type the teacher\'s name.'; m.className = 'msg bad'; return; }
+    if (!isAi && !e.id && !/^\d{4,6}$/.test(pin)) { m.textContent = 'Give the teacher a PIN of 4 to 6 numbers.'; m.className = 'msg bad'; return; }
+    if (isAi && !(v.skill || '').trim()) { m.textContent = 'Pick a skill file (or write one).'; m.className = 'msg bad'; return; }
+    m.textContent = 'Saving…'; m.className = 'msg';
+    call('admin_teacher_save', { id: e.id, name: v.name, is_ai: isAi, age_min: +v.age_min, age_max: +v.age_max, pin: isAi ? undefined : pin, skill_file: isAi ? v.skill_file : undefined, skill: isAi ? v.skill : undefined })
+      .then(function () { editing = null; return call('admin_teachers'); }).then(function (d) { teachers = d.teachers; overview(); var n = document.getElementById('tm'); if (n) { n.textContent = 'Saved.' + (isAi ? '' : ' Tell the teacher their PIN privately.'); n.className = 'msg'; } })
+      .catch(function (x) { m.textContent = 'Could not save: ' + x.message; m.className = 'msg bad'; });
   }
   function guestbook(hideId, hide) {
     call('admin_gb', hideId ? { hide_id: hideId, hide: hide } : {}).then(function (d) {
@@ -125,15 +162,20 @@
     app.innerHTML = '<div class="card">Loading the class…</div>';
     call('admin_class', { class_id: id }).then(function (d) {
       app.innerHTML = crumbs([{ t: d.class.name }]) + '<div class="card"><h2>' + esc(d.class.name) + '</h2><p>Teacher: <b>' + esc(d.class.teacher_name || '—') + '</b> · Class code: <code>' + esc(d.class.code) + '</code> · Students: <b>' + d.children.length + '</b></p><p class="muted">This is what the teacher sees on their Teacher page.</p></div><div class="card"><h2>Students</h2>' + studentsTable(d.children, false) + '</div>';
-      app.dataset.cls = id; app.dataset.clsName = d.class.name;
+      ui.cls = id; ui.clsName = d.class.name;
     }).catch(function (e) { app.innerHTML = crumbs([]) + '<div class="card msg bad">Could not load the class: ' + esc(e.message) + '</div>'; });
   }
   function openKid(id) {
-    var back = app.dataset.cls ? [{ t: app.dataset.clsName, cls: app.dataset.cls }] : [];
+    var back = ui.cls ? [{ t: ui.clsName, cls: ui.cls }] : [];
     app.innerHTML = '<div class="card">Loading the student…</div>';
-    call('admin_child', { child_id: id }).then(function (d) {
-      var c = d.child, p = c.progress, r = prog(p);
-      var html = crumbs(back.concat([{ t: c.first_name || 'Student' }])) + '<div class="card"><h2>' + esc(c.first_name || 'Student') + (p && p.age ? ' <span class="muted">age ' + p.age + '</span>' : '') + '</h2><p>' + (c.in_class ? 'In a class' : 'Not in a class') + ' · last active <b>' + esc(ago(r.last || c.last_sync)) + '</b>' + (p ? ' · steps done <b>' + p.steps_done + '</b> · at-home activities <b>' + p.offline_done + '</b> · stars <b>' + r.stars + '</b> · coins <b>' + p.coins + '</b>' : '') + '</p><p class="muted">This is the student\'s progress as their teacher and family see it.</p></div>';
+    call('admin_child_full', { child_id: id }).then(function (d) {
+      var c = d.child, p = c.progress, r = prog(p); ui.state = JSON.stringify(c.state || {}); ui.kidName = c.first_name || 'Student';
+      var html = crumbs(back.concat([{ t: c.first_name || 'Student' }])) + '<div class="card"><h2>' + esc(c.first_name || 'Student') + '</h2><div class="wrap"><table class="tbl"><tbody>' +
+        '<tr><th>Age</th><td>' + esc(c.age || '—') + '</td></tr><tr><th>Boy or girl</th><td>' + esc(c.kind || '—') + '</td></tr><tr><th>Animal friend</th><td>' + esc(c.avatar || '—') + '</td></tr><tr><th>Joined Somo</th><td>' + esc(c.created_at ? new Date(c.created_at).toLocaleDateString() : '—') + '</td></tr><tr><th>Last saved</th><td>' + esc(ago(c.last_sync)) + '</td></tr>' +
+        '<tr><th>Teacher</th><td>' + teacherSelect({ id: c.id, first_name: c.first_name, age: c.age, teacher_id: c.teacher_id }) + ' <span class="msg" id="am"></span></td></tr>' +
+        (p ? '<tr><th>Progress</th><td>last active <b>' + esc(ago(r.last)) + '</b> · steps done <b>' + p.steps_done + '</b> · at-home activities <b>' + p.offline_done + '</b> · stars <b>' + r.stars + '</b> · coins <b>' + p.coins + '</b></td></tr>' : '') + '</tbody></table></div>' +
+        '<div class="row" style="margin-top:10px"><button data-see="1">See what ' + esc(c.first_name) + ' sees</button><button data-see="report">Progress report</button>' + (c.teacher_id ? '<a class="btn" style="text-decoration:none;display:inline-flex;align-items:center" href="../somo4/?as=' + encodeURIComponent(c.teacher_id) + '">Their teacher\'s view</a>' : '') + '</div><div id="viewer"></div></div>';
+      html += '<div class="card"><h2>Grown-up tools</h2><div class="row"><button class="ghost" style="color:inherit" data-restore="' + esc(id) + '">New restore code (for a new phone)</button><button class="danger" data-delkid="' + esc(id) + '">Delete this account</button></div><div id="tools"></div></div>';
       if (!p) { app.innerHTML = html + '<div class="card">No progress saved online yet.</div>'; return; }
       var sk = Object.keys(p.skills).map(function (id) { return [id, p.skills[id]]; }).sort(function (a, b) { return a[1].mastery - b[1].mastery; });
       var W = 520, L = 130, H = 28, bars = sk.map(function (x, i) { var v = x[1], w = Math.max(2, (W - L - 44) * v.mastery / 100), col = v.mastery < 50 ? '#C42E6F' : v.mastery < 70 ? '#F07A2A' : '#2F7D4F'; return '<text x="' + (L - 8) + '" y="' + (i * H + 18) + '" font-size="13" font-weight="700" text-anchor="end" fill="currentColor">' + esc(SKILL[x[0]] || x[0]) + '</text><rect x="' + L + '" y="' + (i * H + 6) + '" width="' + (W - L - 44) + '" height="16" rx="8" fill="#EADBC4"/><rect x="' + L + '" y="' + (i * H + 6) + '" width="' + w + '" height="16" rx="8" fill="' + col + '"/><text x="' + (L + w + 6) + '" y="' + (i * H + 18) + '" font-size="12" font-weight="800" fill="currentColor">' + v.mastery + '%</text>'; }).join('');
@@ -141,18 +183,48 @@
       var spark = days.map(function (d, i) { var hh = 60 * d.n / mx, rh = 60 * d.c / mx; return '<rect x="' + (10 + i * bw) + '" y="' + (66 - hh) + '" width="' + (bw - 6) + '" height="' + hh + '" rx="3" fill="#EADBC4"/><rect x="' + (10 + i * bw) + '" y="' + (66 - rh) + '" width="' + (bw - 6) + '" height="' + rh + '" rx="3" fill="#2F7D4F"/><text x="' + (10 + i * bw + (bw - 6) / 2) + '" y="82" font-size="10" text-anchor="middle" fill="currentColor">' + esc(String(d.day).split('-').slice(1).join('/')) + '</text>'; }).join('');
       html += '<div class="card"><h2>Skills</h2><p class="muted">How often the last 10 answers were right. Red: a learning gap. Orange: almost there. Green: secure.</p>' + (sk.length ? '<svg class="chart" viewBox="0 0 ' + W + ' ' + (sk.length * H + 6) + '" role="img" aria-label="Mastery of each skill">' + bars + '</svg>' : '<p class="muted">No answers yet.</p>') + '<h3>Answers per day</h3>' + (days.length ? '<svg class="chart" viewBox="0 0 ' + W + ' 88" role="img" aria-label="Answers per day: all answers light, first-time right green">' + spark + '</svg>' : '<p class="muted">No days yet.</p>') + '</div>';
       html += '<div class="card"><h2>Learning gaps</h2>' + (r.gaps.length ? '<ul>' + r.gaps.map(function (g) { return '<li class="gap">' + esc(g) + '</li>'; }).join('') + '</ul>' : '<p>No learning gaps right now.</p>') + '<h3>Mistakes that repeat</h3>' + ((p.tags || []).length ? '<ul>' + p.tags.map(function (t) { return '<li><b>' + t.n + '×</b> ' + esc(TAGS[t.tag] || t.tag) + '</li>'; }).join('') + '</ul>' : '<p class="muted">None yet.</p>') + '</div>';
-      app.innerHTML = html;
+      app.innerHTML = html; ui.kid = id;
     }).catch(function (e) { app.innerHTML = crumbs(back) + '<div class="card msg bad">Could not load the student: ' + esc(e.message) + '</div>'; });
   }
   app.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-tab],[data-kid],[data-cls],[data-home],[data-hide],#ref'); if (!t) return;
+    if (e.target.closest('select')) return;
+    var t = e.target.closest('[data-tab],[data-kid],[data-cls],[data-home],[data-hide],#ref,#auto,[data-kind],[data-edit],[data-tdel],#tsave,#tcancel,[data-see],[data-restore],[data-delkid],#dodel'); if (!t) return;
+    if (t.id === 'auto') { t.disabled = true; return call('admin_auto_assign').then(function (d) { return load().then(function () { var m = document.getElementById('am'); if (m) m.textContent = d.assigned + ' assigned' + (d.skipped ? ', ' + d.skipped + ' left: no age yet, or no teacher for their age' : '') + '.'; }); }).catch(function (x) { alert('Could not assign: ' + x.message); }); }
+    if (t.dataset.kind) { var keep = formVals(); editing = Object.assign({}, editing || {}, { is_ai: t.dataset.kind === 'ai' }); overview(); setForm(keep); return; }
+    if (t.dataset.edit) { editing = Object.assign({}, teachers.filter(function (x) { return x.id === t.dataset.edit; })[0]); overview(); if (editing.is_ai) { if (editing.skill_file && editing.skill_file !== 'custom') pickSkill(editing.skill_file, true); else { var tm = document.getElementById('tm'); if (tm) tm.textContent = 'This AI teacher has a custom skill: write it again below, or pick a skill file.'; } } document.getElementById('tform').scrollIntoView({ behavior: 'smooth' }); return; }
+    if (t.id === 'tcancel') { editing = null; return overview(); }
+    if (t.id === 'tsave') return saveTeacher();
+    if (t.dataset.tdel) { var tt = teachers.filter(function (x) { return x.id === t.dataset.tdel; })[0]; if (!confirm('Remove ' + tt.name + '? Their ' + tt.students + ' student(s) go back to "No teacher yet", and their chats and challenges are deleted.')) return; return call('admin_teacher_del', { id: tt.id }).then(load); }
+    if (t.dataset.see) return see(t.dataset.see === 'report');
+    if (t.dataset.restore) { if (!confirm('Make a new restore code? Use it on the new phone (Accounts, then "Restore my progress"). The old phone stops saving.')) return; return call('admin_restore', { child_id: t.dataset.restore }).then(function (d) { document.getElementById('tools').innerHTML = '<p>New restore code (keep it private):</p><p><code style="word-break:break-all;user-select:all">' + esc(d.code) + '</code></p>'; }); }
+    if (t.dataset.delkid) { var nm = ui.kidName; document.getElementById('tools').innerHTML = '<p>This deletes ' + esc(nm) + '\'s progress, chats and challenge results for good. Type <b>' + esc(nm) + '</b> to confirm.</p><input id="delname" autocomplete="off" style="max-width:260px"><div class="row" style="margin-top:8px"><button class="danger" id="dodel" data-id="' + esc(t.dataset.delkid) + '">Delete forever</button></div>'; return; }
+    if (t.id === 'dodel') { if ((document.getElementById('delname').value || '').trim().toLowerCase() !== (ui.kidName || '').toLowerCase()) return; t.disabled = true; return call('admin_delete_child', { child_id: t.dataset.id }).then(function () { tab = 'students'; load(); }); }
     if (t.id === 'ref') return load();
-    if (t.dataset.tab) { tab = t.dataset.tab; delete app.dataset.cls; return overview(); }
-    if (t.dataset.home) { delete app.dataset.cls; return overview(); }
+    if (t.dataset.tab) { tab = t.dataset.tab; delete ui.cls; return overview(); }
+    if (t.dataset.home) { delete ui.cls; return overview(); }
     if (t.dataset.hide) return guestbook(t.dataset.hide, t.dataset.h === '1');
     if (t.dataset.cls) return openClass(t.dataset.cls);
     if (t.dataset.kid) return openKid(t.dataset.kid);
   });
+  app.addEventListener('change', function (e) {
+    var s = e.target.closest('[data-assign]'); if (!s) { if (e.target.id === 'ts') pickSkill(e.target.value); return; }
+    var m = document.getElementById('am'); s.disabled = true;
+    call('admin_assign', { child_id: s.dataset.assign, teacher_id: s.value || null }).then(function () { s.disabled = false; var k = data.students.filter(function (x) { return x.id === s.dataset.assign; })[0]; if (k) { k.teacher_id = s.value || null; } if (m) m.textContent = 'Saved.'; return call('admin_teachers'); }).then(function (d) { if (d) teachers = d.teachers; })
+      .catch(function (x) { s.disabled = false; alert('Could not assign: ' + x.message); });
+  });
+  function pickSkill(file, textOnly) {
+    if (!file || file === 'custom') return; var k = (skills || []).filter(function (x) { return x.file === file; })[0];
+    fetch('../somo4/teachers/' + encodeURIComponent(file)).then(function (r) { return r.text(); }).then(function (txt) { var a = document.getElementById('tsk'); if (a) a.value = txt; if (textOnly) return; var n = document.getElementById('tn'); if (n && !n.value && k) n.value = k.name; if (k) { var x = document.getElementById('ta'), y = document.getElementById('tb'); if (x) x.value = k.age_min; if (y) y.value = k.age_max; } });
+  }
+  /* the Somo app in a frame with this child's saved progress, read-only */
+  function see(report) {
+    var v = document.getElementById('viewer'); if (!v) return;
+    try { sessionStorage.setItem('somo-view-state', ui.state || '{}'); } catch (e) { return; }
+    v.innerHTML = '<p class="muted" style="margin-top:10px">The Somo app with ' + esc(ui.kidName) + '\'s saved progress. Nothing is saved and nothing is sent.</p><iframe class="frame" id="frame" title="' + esc(ui.kidName) + '\'s Somo, read-only" src="../somo2/?view=1&t=' + Date.now() + '"></iframe><div class="row" style="margin-top:8px"><button class="ghost small" id="vhome" style="color:inherit">Home screen</button><button class="ghost small" id="vreport" style="color:inherit">Progress report</button><button class="ghost small" id="vclose" style="color:inherit">Close</button></div>';
+    var f = document.getElementById('frame'), go = function (w) { try { var x = f.contentWindow; if (x && x.__view) { w === 'report' ? x.__view.report() : x.__view.home(); return true; } } catch (e) {} return false; };
+    if (report) f.addEventListener('load', function () { var n = 0, iv = setInterval(function () { if (go('report') || ++n > 40) clearInterval(iv); }, 250); });
+    document.getElementById('vhome').onclick = function () { go('home'); }; document.getElementById('vreport').onclick = function () { go('report'); }; document.getElementById('vclose').onclick = function () { v.innerHTML = ''; };
+  }
   app.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('tr.click')) { e.preventDefault(); e.target.click(); } });
   out.onclick = function () { key = ''; data = null; try { sessionStorage.removeItem('somo-admin'); } catch (e) {} login(); };
   if (key) load(); else login();

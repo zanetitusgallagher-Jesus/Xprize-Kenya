@@ -9855,6 +9855,268 @@ $('#stage').addEventListener('click', e => {
 }
 window.__ky = Object.assign(window.__ky || {}, { Certs, certSVG });
 
+/* ============================================================================
+   SCHOOL (Nov 2026, Somo 4): the child's teacher, chats, challenges and leaderboard, and a view-only mode.
+   - There is no parent view any more. The child's app keeps: the path, games, stories, certificates, accounts
+     (student only), welcome video, music, subtitles, Turi's trail. Guestbook, polls, the Parent page and the
+     Teacher page are gone from here: teachers use somo4/, the admin uses somo3/.
+   - Progress is always saved online (Supabase), so the teacher and the admin can see it.
+   - The admin puts each child with a teacher (a person, or an AI teacher with a skill file).
+   - "My teacher": a class chat (everyone in the group hears it) and a one-on-one chat with the teacher. Children
+     talk with voice notes or picture replies, never with typed text, and never privately to another child.
+     Voice notes are never turned into text for people. For an AI teacher only, the phone's own free speech
+     recogniser (when the browser has one) passes the words to the AI; they are not stored or shown.
+   - Challenges from the teacher (play a game N times, or finish a lesson) and a leaderboard (this week / all time).
+   - View-only mode (?view=1): the teacher or admin page opens this app in a frame with the child's saved state, so
+     they see exactly what the child sees. Nothing is saved and no chat is sent from it.
+   ========================================================================== */
+const VIEW = /[?&]view=1\b/.test(location.search);
+const VIEW_STATE = (() => { if (!VIEW) return null; try { return sessionStorage.getItem('somo-view-state'); } catch (e) { return null; } })();
+if (VIEW) {
+  /* the child's state comes from the page that opened this view; nothing is written to this device */
+  const _gi = Storage.prototype.getItem, _si = Storage.prototype.setItem;
+  Storage.prototype.getItem = function (k) { if (this === window.localStorage && k === 'kenyai-state') return VIEW_STATE; return _gi.call(this, k); };
+  Storage.prototype.setItem = function (k, v) { if (this === window.localStorage) return; return _si.call(this, k, v); };
+  Cloud.push = async () => { }; Cloud.enable = async () => { }; Cloud.pull = async () => false; Cloud.summary = async () => { };
+}
+
+/* ---------------- the old grown-up pages are gone from the child's app ---------------- */
+GUIDE_STEPS.parent = ['Open Somo on the phone or tablet your child will use, and add it to the home screen (browser menu, then "Add to Home Screen") so it opens like an app.',
+  'Tap "Accounts" and fill in the Student part with your child: first name only, age, boy or girl, and their favourite animal friend.',
+  'Progress is saved online by itself, so it is safe if the phone is lost. The school admin then puts your child with a teacher (by age).',
+  'Let your child play the short starting game. It finds the right level. Do not help with the answers.',
+  'Every day, sit with your child for about 15 minutes. Tap "Continue". Turn on "Learning with a grown-up" to see a tip before each activity.',
+  'Do the "At home" activity in each unit together, away from the screen, then tap "We did it together!".',
+  'Questions about progress? Ask your child\'s teacher: they see everything your child does in Somo.'];
+GUIDE_STEPS.teacher = ['Ask the Somo admin to add you as a teacher. They give you a PIN and put students with you by age.',
+  'Open somo4/ (the teacher page), pick your name and type your PIN.',
+  'See each student\'s progress, open "See what they see", read the progress report, and talk in the class chat or one-on-one.',
+  'Set challenges (a game or a lesson) and watch the leaderboard. Children answer with voice notes and picture replies.'];
+{ const _r = Accounts.render; Accounts.render = function () {
+    if (this.tab === 'parent') this.tab = 'student'; _r.call(this);
+    const pb = document.querySelector('[data-k="atab"][data-v="parent"]'); if (pb) pb.remove();
+    const rl = document.querySelector('label[for="arestore"]'); if (rl) rl.textContent = 'Restore code (from your teacher)';
+    if (VIEW) { const s = document.querySelector('[data-k="asave"]'); if (s) s.remove(); }
+  }; }
+Accounts.save = function () {
+  if (VIEW) return; const err = this.read(); const m = $('#amsg'); if (err) { if (m) { m.textContent = err; m.className = 'kmsg bad'; } Sfx.play('bump'); return; }
+  Sfx.play('good'); if (m) { m.textContent = 'Saved!'; m.className = 'kmsg'; }
+  if (this.tab === 'student') { Speech.say(`Hello ${LEARNER}!`); Cloud.enable().catch(e => { Cloud.status = 'could not save online yet: ' + e.message; }); }
+  if (this.then) { const f = this.then; this.then = null; setTimeout(f, 700); }
+};
+/* the server also learns the child's age (the admin assigns teachers by age) */
+{ const _who = Cloud.who; Cloud.who = function () { const s = (KY().account && KY().account.student) || {}; return { ..._who.call(this), age: s.age || null, kind: s.kind || null }; }; }
+/* online saving is always on once the child has a name */
+{ const _load = Store.load; Store.load = async function () { const r = await _load.call(this); setTimeout(() => { if (!VIEW && KY().account && KY().account.student && KY().account.student.name && !Cloud.linked()) Cloud.enable().catch(() => { }); School.check(); }, 1500); return r; }; }
+
+/* ---------------- My teacher ---------------- */
+const QUICK = [['Hello!', 'wave'], ['I need help', 'hand'], ['I did it!', 'star'], ['I am stuck', 'q'], ['Thank you!', 'heart'], ['Look at my work!', 'eye']];
+const QUICK_SVG = {
+  wave: '<path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V12M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V5.5a1.5 1.5 0 0 1 3 0V13q0 7-6 7-4 0-6-4l-2.5-4.5a1.5 1.5 0 0 1 2.6-1.5L8 13" fill="#F7C9A0" stroke="#7A4A2A" stroke-width="1.3" stroke-linejoin="round"/>',
+  hand: '<path d="M7 12V5.5a1.5 1.5 0 0 1 3 0V11M10 11V3.5a1.5 1.5 0 0 1 3 0V11M13 11V4.5a1.5 1.5 0 0 1 3 0V12M16 12V7.5a1.5 1.5 0 0 1 3 0V14q0 7-6 7-5 0-7-5l-1.5-3.5" fill="#F7C9A0" stroke="#7A4A2A" stroke-width="1.3" stroke-linejoin="round"/><path d="M3 3l2 2M21 3l-2 2" stroke="#F2B829" stroke-width="2" stroke-linecap="round"/>',
+  star: '<path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" fill="#F2B829" stroke="#C98A0C" stroke-width="1.3"/>',
+  q: '<circle cx="12" cy="12" r="10" fill="#236FA6"/><path d="M9 9.5a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="12" cy="18" r="1.5" fill="#fff"/>',
+  heart: '<path d="M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6-8 11-8 11z" fill="#C42E6F"/>',
+  eye: '<path d="M2 12q10-12 20 0-10 12-20 0z" fill="#fff" stroke="#2B1E17" stroke-width="1.6"/><circle cx="12" cy="12" r="3.6" fill="#2F7D4F"/><circle cx="12" cy="12" r="1.6" fill="#2B1E17"/>',
+};
+const qIcon = (k, s = 30) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true">${QUICK_SVG[k]}</svg>`;
+const MIC_SVG = '<svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="#fff"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5M8.5 21.5h7" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>';
+const STOP_SVG = '<svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="#fff"/></svg>';
+const PLAY_SM = '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg>';
+const TEACH_SVG = (s = 26) => `<svg viewBox="0 0 32 32" width="${s}" height="${s}" aria-hidden="true"><rect x="3" y="4" width="26" height="17" rx="2" fill="#2F7D4F" stroke="#7A4A2A" stroke-width="2"/><path d="M8 10h9M8 14h6" stroke="#FFF8EC" stroke-width="2" stroke-linecap="round"/><circle cx="23" cy="20" r="4.5" fill="#F7C9A0" stroke="#2B1E17" stroke-width="1.2"/><path d="M16 30q7-9 14 0" fill="#B5462A"/></svg>`;
+const MEDAL = ['#F2B829', '#C9C9C9', '#C98A4A'];
+const School = {
+  data: null, tab: 'group', timer: null, rec: null, clip: null, audioCache: {}, playing: null, sending: false, msg: '',
+  keys() { const c = Cloud.c(); return { child_id: c.child_id, write_key: c.write_key }; },
+  seen() { const k = KY(); return k.seenMsg || (k.seenMsg = {}); },
+  chal() { const k = KY(); return k.chal || (k.chal = {}); },
+  async fetch(light) { if (VIEW || !Cloud.linked()) return null; try { const d = await PROG('c_inbox', { ...this.keys(), light: !!light }); if (!light || !this.data) this.data = Object.assign(this.data || {}, d); else Object.assign(this.data, { teacher: d.teacher, challenges: d.challenges }); this.lastLight = d; return d; } catch (e) { this.msg = e.message; return null; } },
+  /* new things since the child last looked: messages from the teacher or classmates, and challenges not done */
+  unseen(d) {
+    if (!d || !d.teacher) return 0; const me = Cloud.c().child_id, s = this.seen(); let n = 0;
+    for (const [k, list] of [['group', d.group], ['dm', d.dm]]) { const last = (list || []).filter(m => m.from_child !== me).slice(-1)[0]; if (last && last.created_at > (s[k] || '')) n++; }
+    n += (d.challenges || []).filter(c => !c.done && !(s.chals || []).includes(c.id)).length; return n;
+  },
+  async check() { if (VIEW || !Cloud.linked()) return; const d = await this.fetch(true); if (d) { this.syncChallenges(d.challenges); if (App.state === 'hub') this.badge(); } },
+  badge() { const b = document.querySelector('[data-k="school"] .sbadge'), n = this.unseen(this.lastLight || this.data); if (b) { b.textContent = n; b.hidden = !n; } },
+  syncChallenges(list) { const c = this.chal(); c.list = (list || []).map(x => ({ id: x.id, kind: x.kind, target: x.target, goal: x.goal, title: x.title, points: x.points, done: x.done })); kSave(); },
+  open(tab) {
+    if (tab) this.tab = tab; App.state = 'school'; Round.game = null; App.attract = null; HUD.show(false); Card.hide(); Music.stop();
+    this.render(); clearInterval(this.timer);
+    if (VIEW) return;
+    this.fetch(false).then(d => { if (App.state !== 'school') return; if (d) this.syncChallenges(d.challenges); this.render(true); });
+    this.timer = setInterval(() => { if (App.state !== 'school') return clearInterval(this.timer); if (this.rec || this.clip) return; this.fetch(false).then(() => { if (App.state === 'school' && !this.rec && !this.clip) this.render(); }); }, 9000);
+  },
+  render(first) {
+    const d = this.data, t = d && d.teacher, me = Cloud.c().child_id; const tabs = [['group', 'Class chat'], ['dm', t ? t.name : 'My teacher'], ['chal', 'Challenges'], ['board', 'Leaderboard']];
+    let body = '';
+    if (VIEW) body = `<div class="kcard"><p>The chats are on the teacher page: open the student's "Chat" there.</p></div>`;
+    else if (!Cloud.linked()) body = `<div class="kcard"><h3>Almost there!</h3><p>Put your name in Accounts first. Then your progress is saved, and the school can give you a teacher.</p><button class="btn go" data-k="accounts">Accounts</button></div>`;
+    else if (!d) body = `<div class="kcard"><p>Loading…</p></div>`;
+    else if (!t) body = `<div class="kcard"><h3>Your teacher is coming soon!</h3><p>The school will put you with a teacher. Then you can talk with them here, see challenges and the leaderboard.</p></div>`;
+    else if (this.tab === 'group' || this.tab === 'dm') body = this.chatHTML(this.tab === 'group' ? d.group : d.dm, me, t);
+    else if (this.tab === 'chal') body = this.chalHTML(d.challenges || []);
+    else body = this.boardHTML(d.board || [], me);
+    setScreen(`<div class="scr jr school"><div class="toprow"><button class="hb" data-j="home" aria-label="Back">${BACK_SVG}</button><div class="h2" style="flex:1">${TEACH_SVG(30)} ${esc(t ? t.name : 'My teacher')}</div></div>
+      ${t && !VIEW ? `<div class="seg" role="group" aria-label="My teacher">${tabs.map(([k, n]) => `<button data-k="stab" data-v="${k}" aria-pressed="${this.tab === k}">${esc(n)}</button>`).join('')}</div>` : ''}
+      ${body}${this.msg ? `<p class="kmsg bad">${esc(this.msg)}</p>` : ''}${grownBtn()}</div>`);
+    const list = $('#schat'); if (list) list.scrollTop = list.scrollHeight;
+    if (t && (this.tab === 'group' || this.tab === 'dm')) this.markSeen(first);
+    if (t && this.tab === 'chal') { const s = this.seen(); s.chals = (d.challenges || []).map(c => c.id); kSave(); }
+    if (first && t) Speech.say(this.tab === 'group' ? `Class chat with ${t.name}. Tap the microphone to send a voice note.` : this.tab === 'dm' ? `Just you and ${t.name}. Tap the microphone to talk.` : this.tab === 'chal' ? 'Challenges from your teacher!' : 'The leaderboard!');
+  },
+  markSeen(first) {
+    const d = this.data, k = this.tab, list = (k === 'group' ? d.group : d.dm) || [], me = Cloud.c().child_id, s = this.seen();
+    const fresh = list.filter(m => m.from_child !== me && m.created_at > (s[k] || ''));
+    const last = list.slice(-1)[0]; if (last) { s[k] = last.created_at; kSave(); }
+    /* read the newest new words from the teacher aloud (children may not read yet) */
+    const t = fresh.filter(m => !m.from_child && m.kind === 'text').slice(-1)[0]; if (t && !first) Speech.say(`${d.teacher.name} says: ${t.body}`);
+  },
+  chatHTML(list, me, t) {
+    const isDm = this.tab === 'dm';
+    const msgs = (list || []).map(m => {
+      const mine = m.from_child === me, from = m.from_child ? (mine ? 'Me' : m.who) : t.name;
+      const face = m.from_child ? friendFace(['kuku', 'kobe', 'twiga', 'tembo'].includes(m.avatar) ? m.avatar : 'kuku', 'happy', 34) : TEACH_SVG(34);
+      const inner = m.kind === 'voice' ? `<button class="vnote" data-k="splay" data-v="${esc(m.id)}" aria-label="Play the voice note from ${esc(from)}">${PLAY_SM}<span class="wave">${'<i></i>'.repeat(9)}</span><b>${Math.max(1, Math.round(m.secs || 1))}s</b></button>`
+        : `<span class="mtext">${esc(m.body)}</span>${m.from_child ? '' : `<button class="spk3" data-k="ssay" data-v="${esc(m.id)}" aria-label="Hear it">${SPEAKER_SVG}</button>`}`;
+      return `<div class="msg ${mine ? 'me' : m.from_child ? 'kid' : 'teach'}">${mine ? '' : `<span class="mface">${face}</span>`}<div class="mb"><small>${esc(from)}</small>${inner}</div></div>`;
+    }).join('');
+    const rec = this.rec, clip = this.clip;
+    const bar = rec ? `<div class="srec"><span class="dot"></span><b id="rsecs">${rec.secs}s</b><button class="micb stop" data-k="sstop" aria-label="Stop">${STOP_SVG}</button></div>`
+      : clip ? `<div class="srec"><button class="btn ghost" data-k="sdel" aria-label="Delete it">Again</button><button class="vnote mine" data-k="sprev" aria-label="Listen">${PLAY_SM}<b>${clip.secs}s</b></button><button class="btn go" data-k="ssend">${this.sending ? 'Sending…' : 'Send'}</button></div>`
+      : `<div class="srec"><button class="micb" data-k="srec" aria-label="Record a voice note">${MIC_SVG}</button></div>`;
+    return `<div class="kcard sinfo">${isDm ? `Just you and ${esc(t.name)}.` : `Everyone in your group hears this chat.`}${t.is_ai ? ' Your teacher is an AI helper.' : ''}</div>
+      <div class="schat" id="schat">${msgs || `<p class="kfine" style="text-align:center">No messages yet. Say hello!</p>`}</div>
+      ${bar}<div class="squick">${QUICK.map(([w, k]) => `<button data-k="squick" data-v="${esc(w)}" aria-label="${esc(w)}">${qIcon(k)}<span>${esc(w)}</span></button>`).join('')}</div>`;
+  },
+  chalHTML(list) {
+    if (!list.length) return `<div class="kcard"><p>No challenges right now. Your teacher will add some!</p></div>`;
+    const c = this.chal();
+    return list.map(x => { const n = Math.min(x.goal, (c[x.id] || 0)), g = x.kind === 'game' ? GAME_BY[x.target] : null; if (g && !THUMBS[g.id]) THUMBS[g.id] = thumb(g);
+      const what = g ? `${g.name}: play ${x.goal} time${x.goal > 1 ? 's' : ''}` : `Lesson: ${SHORT[x.target] || x.target}${x.goal > 1 ? `, ${x.goal} times` : ''}`;
+      return `<div class="kcard schal ${x.done ? 'done' : ''}">${g ? `<img src="${THUMBS[g.id]}" alt="">` : `<span class="slesson">${kidiMini('happy', 54)}</span>`}<div><h3>${esc(x.title)}</h3><p class="kfine">${esc(what)} · <b>${x.points} points</b></p>
+        <div class="sprog"><i style="width:${x.done ? 100 : Math.round(100 * n / x.goal)}%"></i></div><p class="kfine">${x.done ? 'Done! Great work!' : `${n} of ${x.goal}`}</p></div>${x.done ? `<span class="stick">${QUICK_SVG.star ? qIcon('star', 40) : ''}</span>` : `<button class="btn go" data-k="sgo" data-v="${esc(x.id)}">Play</button>`}</div>`; }).join('');
+  },
+  boardHTML(list, me) {
+    const by = this.boardBy || 'week', rows = list.slice().sort((a, b) => b[by] - a[by]);
+    return `<div class="seg" role="group" aria-label="Leaderboard"><button data-k="sby" data-v="week" aria-pressed="${by === 'week'}">This week</button><button data-k="sby" data-v="all" aria-pressed="${by === 'all'}">All time</button></div>
+      <div class="kcard sboard">${rows.length ? rows.map((r, i) => `<div class="brow ${r.id === me ? 'me' : ''}"><span class="rank" style="${i < 3 ? `background:${MEDAL[i]}` : ''}">${i + 1}</span>${friendFace(['kuku', 'kobe', 'twiga', 'tembo'].includes(r.avatar) ? r.avatar : 'kuku', 'happy', 34)}<b>${esc(r.id === me ? r.first_name + ' (me)' : r.first_name)}</b><span class="pts">${r[by]}<small>points</small></span></div>`).join('') : '<p>No one yet.</p>'}</div>
+      <p class="kfine">${by === 'week' ? 'This week: answers right the first time in the last 7 days, plus challenge points.' : 'All time: 10 points for every star, plus challenge points.'}</p>`;
+  },
+  /* ---- voice notes ---- */
+  async record() {
+    if (this.rec) return; this.msg = '';
+    if (!navigator.mediaDevices || !window.MediaRecorder) { this.msg = 'This phone cannot record sound here. Tap a picture instead.'; return this.render(); }
+    let stream; try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { this.msg = 'Somo needs the microphone. A grown-up can allow it in the browser settings.'; Speech.say('Ask a grown-up to let Somo use the microphone.'); return this.render(); }
+    Speech.stop(); Music.stop();
+    const types = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/webm']; const type = types.find(x => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(x));
+    const mr = new MediaRecorder(stream, type ? { mimeType: type, audioBitsPerSecond: 24000 } : undefined); const chunks = [];
+    const rec = this.rec = { mr, stream, secs: 0, t0: Date.now(), heard: '' };
+    mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    mr.onstop = () => { stream.getTracks().forEach(x => x.stop()); clearInterval(rec.tick); const blob = new Blob(chunks, { type: mr.mimeType || type || 'audio/webm' }); const secs = Math.max(1, Math.round((Date.now() - rec.t0) / 1000));
+      const fr = new FileReader(); fr.onload = () => { this.clip = { url: fr.result, secs, heard: rec.heard }; this.rec = null; this.render(); }; fr.readAsDataURL(blob); };
+    /* an AI teacher cannot listen to sound: the phone's own speech recogniser (free, when there is one) gives it the words */
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SR && this.data && this.data.teacher && this.data.teacher.is_ai) { try { const r = new SR(); r.lang = 'en-KE'; r.interimResults = false; r.continuous = true; r.onresult = e => { rec.heard = [...e.results].map(x => x[0].transcript).join(' '); }; r.onerror = () => { }; r.start(); rec.sr = r; } catch (e) { } }
+    mr.start(); rec.tick = setInterval(() => { rec.secs = Math.round((Date.now() - rec.t0) / 1000); const el = $('#rsecs'); if (el) el.textContent = rec.secs + 's'; if (rec.secs >= 60) this.stop(); }, 250);
+    Sfx.play('pop'); this.render();
+  },
+  stop() { const r = this.rec; if (!r) return; try { if (r.sr) r.sr.stop(); } catch (e) { } setTimeout(() => { try { r.mr.stop(); } catch (e) { } }, r.sr ? 350 : 0); },
+  async send(extra) {
+    if (this.sending) return; const t = this.tab === 'dm' ? 'teacher' : 'group'; this.sending = true; this.msg = '';
+    const body = extra ? { kind: 'text', body: extra } : { kind: 'voice', audio: this.clip.url, secs: this.clip.secs, heard: this.clip.heard || '' };
+    if (!extra) this.render();
+    try { const d = await PROG('c_send', { ...this.keys(), to: t, ...body }); this.clip = null; Object.assign(this.data, { group: d.group, dm: d.dm }); Sfx.play('good'); this.sending = false; this.render(); if (this.data.teacher.is_ai) Speech.say('Sent!'); }
+    catch (e) { this.sending = false; this.msg = 'Could not send: ' + e.message + '.'; Sfx.play('bump'); this.render(); }
+  },
+  async play(id, el) {
+    if (this.playing) { this.playing.pause(); this.playing = null; }
+    let url = this.audioCache[id] || (this.clip && id === 'preview' ? this.clip.url : null);
+    if (!url) { if (el) el.classList.add('busy'); try { url = (VIEW ? null : (await PROG('audio', { ...this.keys(), message_id: id })).audio); this.audioCache[id] = url; } catch (e) { Speech.say('That voice note cannot play right now.'); } if (el) el.classList.remove('busy'); }
+    if (!url) return; Speech.stop(); Music.stop(); const a = new Audio(url); this.playing = a; if (el) el.classList.add('on'); a.onended = a.onpause = () => { if (el) el.classList.remove('on'); }; a.play().catch(() => { });
+  },
+  /* ---- challenges: rounds and lessons count by themselves ---- */
+  start(id) {
+    const x = (this.data && this.data.challenges || []).find(c => c.id === id); if (!x) return;
+    if (x.kind === 'game') { const g = GAME_BY[x.target]; if (!g) return Speech.say('That game is not here.'); App.sel = g; App.zone = 'hub'; startRound(g, gstate(g.id).lastMode || g.modes[0].id); }
+    else if (SHORT[x.target]) L.start(x.target);
+  },
+  progress(kind, target) {
+    if (VIEW) return; const c = this.chal(); let changed = false;
+    for (const x of c.list || []) { if (x.done || x.kind !== kind || x.target !== target) continue; c[x.id] = (c[x.id] || 0) + 1; changed = true;
+      if (c[x.id] >= x.goal) { x.done = true; setTimeout(() => { Sfx.play('fanfare'); confetti(50); Speech.say(`Challenge done! ${x.title}. Plus ${x.points} points!`); }, 1200);
+        PROG('c_done', { ...this.keys(), challenge_id: x.id }).catch(() => { x.done = false; }); } }
+    if (changed) kSave();
+  },
+};
+{ const _end = endRound; endRound = function (extra) { const g = Round.game, was = App.state; _end(extra); if (was === 'play' && g) School.progress('game', g.id); }; }
+{ const _fin = L.finish; L.finish = function () { const id = this.id; _fin.call(this); School.progress('lesson', id); }; }
+window.__arc.endRound = endRound;
+
+/* ---------------- home: remove the old grown-up buttons, add My teacher ---------------- */
+{ const _sh = showHome; showHome = function () {
+    _sh(); if (App.state !== 'hub') return; const f = document.querySelector('#screen .kfeat'); if (!f) return;
+    f.querySelectorAll('[data-k="guest"],[data-k="parent"],[data-k="teacher"]').forEach(b => b.remove());
+    f.insertAdjacentHTML('afterbegin', `<button data-k="school" class="sbtn">${TEACH_SVG(26)}<span>My teacher</span><i class="sbadge" hidden>0</i></button>`);
+    School.badge();
+    if (VIEW) { let vb = document.getElementById('viewbar'); if (!vb) { document.body.insertAdjacentHTML('afterbegin', '<div id="viewbar"></div>'); vb = document.getElementById('viewbar'); } vb.textContent = `Viewing ${LEARNER}'s Somo · read-only, nothing is saved`; }
+  }; }
+setInterval(() => { if (App.state === 'hub' && !document.hidden) School.check(); }, 60000);
+$('#stage').addEventListener('click', e => {
+  const el = e.target.closest('[data-k]'); if (!el) return; const a = el.dataset.k, v = el.dataset.v;
+  if (!['school', 'stab', 'srec', 'sstop', 'sdel', 'sprev', 'ssend', 'squick', 'splay', 'ssay', 'sgo', 'sby'].includes(a)) return; Sfx.unlock();
+  if (a === 'school') { Sfx.play('click'); School.open(); }
+  else if (a === 'stab') { Sfx.play('click'); School.tab = v; School.msg = ''; School.clip = null; School.render(true); }
+  else if (a === 'srec') School.record();
+  else if (a === 'sstop') School.stop();
+  else if (a === 'sdel') { School.clip = null; School.render(); }
+  else if (a === 'sprev') School.play('preview', el);
+  else if (a === 'ssend') School.send();
+  else if (a === 'squick') { Speech.say(v); School.send(v); }
+  else if (a === 'splay') School.play(v, el);
+  else if (a === 'ssay') { const m = [...(School.data.group || []), ...(School.data.dm || [])].find(x => x.id === v); if (m) Speech.say(m.body); }
+  else if (a === 'sgo') { Sfx.play('click'); School.start(v); }
+  else if (a === 'sby') { School.boardBy = v; School.render(); }
+});
+{ const _fs = fabSync; fabSync = function () { const b = $('#kidiFab'); if (b && App.state === 'school') { b.hidden = true; return; } _fs(); }; }
+/* stop recording if the child leaves the screen */
+{ const _ss = setScreen; setScreen = function (html) { if (App.state !== 'school' && School.rec) { School.stop(); School.clip = null; } return _ss(html); }; }
+/* view-only: the grown-up pages inside the frame (used by the teacher and admin pages) */
+if (VIEW) {
+  window.__view = { report() { Parent.unlocked = true; Parent.show(); setTimeout(() => { document.querySelectorAll('[data-k="pdel"]').forEach(b => b.remove()); document.querySelectorAll('[data-k="con"],[data-k="csave"]').forEach(b => { const c = b.closest('.kcard'); if (c) c.remove(); }); }, 30); }, home() { showHome(); }, name: () => LEARNER };
+  DeleteAcct.run = async () => { };
+}
+{
+  const u = n => `calc(var(--u)*${n})`;
+  const el = document.createElement('style'); el.textContent = `
+.sbtn{position:relative}.sbadge{position:absolute;top:${u(2)};right:${u(4)};min-width:${u(18)};height:${u(18)};border-radius:${u(9)};background:#C42E6F;color:#fff;font:800 ${u(11)}/${u(18)} inherit;font-style:normal;padding:0 ${u(4)}}
+.school .h2 svg{vertical-align:middle}.sinfo{font-size:${u(13)};padding:${u(6)} ${u(10)}}
+.schat{display:flex;flex-direction:column;gap:${u(8)};max-height:calc(var(--h,100vh) * .5);min-height:${u(140)};overflow-y:auto;padding:${u(4)}}
+.msg{display:flex;gap:${u(6)};align-items:flex-end}.msg.me{justify-content:flex-end}.mface{flex:none}
+.mb{background:#FFF8EC;color:#2B1E17;border-radius:${u(16)} ${u(16)} ${u(16)} ${u(4)};padding:${u(6)} ${u(10)};max-width:78%;box-shadow:0 ${u(2)} 0 rgba(0,0,0,.2)}
+.msg.me .mb{background:#DDF1E2;border-radius:${u(16)} ${u(16)} ${u(4)} ${u(16)}}.msg.teach .mb{background:#FFF1C9}
+.mb small{display:block;font-weight:800;opacity:.65;font-size:${u(11)}}.mtext{font-size:${u(15)};font-weight:700}
+.spk3{width:${u(30)};height:${u(30)};vertical-align:middle;margin-left:${u(4)};background:none;color:#236FA6;padding:0}.spk3 svg{width:100%;height:100%}
+.vnote{display:flex;align-items:center;gap:${u(6)};background:#2F7D4F;color:#fff;border-radius:${u(14)};padding:${u(4)} ${u(10)};min-height:${u(40)}}
+.vnote.on{background:#236FA6}.vnote.busy{opacity:.6}.vnote b{font-size:${u(12)}}.wave{display:flex;gap:${u(2)};align-items:center}.wave i{width:${u(3)};border-radius:${u(2)};background:currentColor;height:${u(10)}}
+.wave i:nth-child(2n){height:${u(16)}}.wave i:nth-child(3n){height:${u(6)}}.vnote.on .wave i{animation:wv .6s ease-in-out infinite alternate}.wave i:nth-child(2n){animation-delay:.2s}
+@keyframes wv{to{transform:scaleY(.4)}}
+.srec{display:flex;align-items:center;justify-content:center;gap:${u(10)}}.srec .btn{flex:1}
+.micb{width:${u(76)};height:${u(76)};border-radius:50%;background:#B5462A;display:grid;place-items:center;box-shadow:0 ${u(5)} 0 #7A3119}.micb.stop{background:#C42E6F;animation:pulse 1s infinite}
+.srec .dot{width:${u(14)};height:${u(14)};border-radius:50%;background:#C42E6F;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.08);opacity:.8}}
+.squick{display:grid;grid-template-columns:repeat(3,1fr);gap:${u(6)}}.squick button{display:flex;flex-direction:column;align-items:center;gap:${u(2)};background:rgba(255,248,236,.94);color:#2B1E17;border-radius:${u(12)};padding:${u(4)};font-weight:800;font-size:${u(11)}}
+.schal{display:flex;gap:${u(8)};align-items:center}.schal img{width:${u(76)};border-radius:${u(10)}}.schal>div{flex:1}.schal h3{margin:0}.schal.done{opacity:.8}
+.sprog{height:${u(10)};border-radius:${u(5)};background:#EADBC4;overflow:hidden}.sprog i{display:block;height:100%;background:#2F7D4F}
+.sboard{display:flex;flex-direction:column;gap:${u(6)}}.brow{display:flex;align-items:center;gap:${u(8)};padding:${u(4)} ${u(6)};border-radius:${u(12)}}.brow.me{background:#DDF1E2}
+.brow b{flex:1}.rank{width:${u(30)};height:${u(30)};border-radius:50%;display:grid;place-items:center;font-weight:800;background:#EADBC4}.pts{font-weight:800;font-size:${u(18)};text-align:right}.pts small{display:block;font-size:${u(10)};opacity:.6}
+${VIEW ? '[data-k="pdel"],[data-k="con"],[data-k="csave"],[data-k="cshow"],[data-k="asave"],.kcard:has([data-k="con"]),.kcard:has([data-k="csave"]){display:none!important}' : ''}
+#viewbar{position:fixed;top:0;left:0;right:0;z-index:99;background:#236FA6;color:#fff;font:800 13px/1.6 'Baloo 2',sans-serif;text-align:center;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.micb.stop,.srec .dot,.vnote.on .wave i{animation:none}}`;
+  document.head.appendChild(el);
+}
+window.__ky = Object.assign(window.__ky || {}, { School, VIEW });
+
 boot();
 
 </script>

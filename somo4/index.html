@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Somo teacher</title>
+<meta name="description" content="Somo 4, the teacher view: your students' progress, what each child sees, class and one-on-one chat with voice notes, challenges and the leaderboard.">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #1E140E; --panel: #2E1F16; --paper: #FFF8EC; --ink: #2B1E17; --soil: #B5462A; --mango: #F07A2A; --sun: #F2B829; --sky: #236FA6; --leaf: #2F7D4F; --rose: #C42E6F; --line: #EADBC4; --muted: #6E5644; --mine: #DDF1E2; --teach: #FFF1C9; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #2E1F16; --ink: #FFF1DD; --line: #4A3426; --muted: #CDB89E; --mine: #1F3B2A; --teach: #3D3017; } }
+  :root[data-theme="dark"] { --paper: #2E1F16; --ink: #FFF1DD; --line: #4A3426; --muted: #CDB89E; --mine: #1F3B2A; --teach: #3D3017; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 600 16px/1.4 "Baloo 2", system-ui, sans-serif; }
+  header { background: linear-gradient(180deg, #2F7D4F, #1E5631); color: #FFF8EC; padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 1.7rem; line-height: 1; color: var(--sun); text-shadow: 0 3px 0 #123A20; }
+  header h1 small { display: block; font-size: .8rem; color: #FFF8EC; text-shadow: none; }
+  header .sp { flex: 1; } header a, header button { color: #FFF8EC; }
+  .adminbar { background: var(--sky); color: #fff; padding: 6px 16px; font-weight: 800; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .adminbar a { color: #fff; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+  .card { background: var(--paper); border-radius: 18px; padding: 14px 16px; box-shadow: 0 4px 0 rgba(0,0,0,.35); min-width: 0; }
+  .card h2 { margin: 0 0 8px; font-size: 1.25rem; } .card h3 { margin: 10px 0 4px; font-size: 1.05rem; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .stat { background: var(--paper); border-radius: 16px; padding: 10px 14px; box-shadow: 0 4px 0 rgba(0,0,0,.35); }
+  .stat b { display: block; font-size: 2rem; line-height: 1.1; color: var(--leaf); } .stat span { color: var(--muted); font-size: .9rem; }
+  button, .btn { font: inherit; font-weight: 800; border: 0; border-radius: 14px; padding: 8px 14px; min-height: 44px; cursor: pointer; background: var(--leaf); color: #fff; }
+  button.ghost { background: transparent; color: inherit; border: 2px solid currentColor; } button.small { min-height: 34px; padding: 4px 10px; font-size: .9rem; }
+  button.danger { background: var(--rose); } button:disabled { opacity: .55; cursor: default; }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+  input, select, textarea { font: inherit; padding: 10px 12px; border-radius: 12px; border: 2px solid var(--line); background: #fff; color: #2B1E17; width: 100%; }
+  label { font-weight: 800; display: block; margin-top: 8px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tabs button { background: var(--panel); color: #FFF8EC; } .tabs button[aria-pressed="true"] { background: var(--sun); color: #2B1E17; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  .tbl th { text-align: left; color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; padding: 6px 8px; border-bottom: 2px solid var(--line); }
+  .tbl td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .tbl tr.click { cursor: pointer; } .tbl tr.click:hover td, .tbl tr.click:focus-within td { background: rgba(242,184,41,.15); }
+  .tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .wrap { overflow-x: auto; } .gap { color: var(--rose); } .muted { color: var(--muted); }
+  .pill { display: inline-block; border-radius: 10px; padding: 0 8px; font-size: .8rem; font-weight: 800; background: var(--line); }
+  .pill.ok { background: #CDEBD3; color: #1E5631; } .pill.mid { background: #FCE0C4; color: #8A3D0B; } .pill.low { background: #F7CFDD; color: #8A1F4D; }
+  .msg { font-weight: 800; min-height: 1.4em; } .msg.bad { color: var(--rose); }
+  svg.chart { width: 100%; height: auto; max-width: 520px; display: block; }
+  .crumbs { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; color: #FFF8EC; } .crumbs button { background: var(--panel); }
+  /* chat */
+  .chat { display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; padding: 4px; }
+  .m { display: flex; flex-direction: column; max-width: 80%; } .m.t { align-self: flex-end; align-items: flex-end; }
+  .mb { background: var(--line); border-radius: 16px 16px 16px 4px; padding: 6px 12px; } .m.t .mb { background: var(--teach); border-radius: 16px 16px 4px 16px; }
+  .m small { color: var(--muted); font-size: .78rem; } .m.hid { opacity: .45; }
+  .vn { display: inline-flex; gap: 8px; align-items: center; min-height: 40px; background: var(--leaf); }
+  .vn.on { background: var(--sky); }
+  .compose { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; } .compose textarea { flex: 1 1 240px; min-height: 48px; resize: vertical; }
+  .rec { background: var(--soil); } .rec.on { background: var(--rose); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .75; } }
+  .threads { display: grid; gap: 6px; } .threads button { display: flex; justify-content: space-between; gap: 10px; text-align: left; background: var(--line); color: var(--ink); }
+  .threads button .new { color: var(--rose); }
+  .frame { width: 100%; max-width: 440px; height: 760px; border: 0; border-radius: 18px; box-shadow: 0 4px 0 rgba(0,0,0,.35); background: #000; display: block; }
+  .viewer { display: grid; gap: 10px; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); align-items: start; }
+  @media (max-width: 820px) { .viewer { grid-template-columns: 1fr; } .frame { height: 680px; } }
+  .board .rank { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--line); font-weight: 800; }
+  .pin { display: grid; grid-template-columns: repeat(3, 64px); gap: 8px; justify-content: start; margin-top: 8px; } .pin button { font-size: 1.4rem; }
+  .dots { font-size: 2rem; letter-spacing: 8px; min-height: 2.4rem; }
+  .who { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } .who button { background: var(--line); color: var(--ink); }
+  .who button[aria-pressed="true"] { background: var(--sun); color: #2B1E17; }
+  .note { background: var(--teach); border-radius: 12px; padding: 8px 12px; }
+  @media (max-width: 640px) { .hide-sm { display: none; } main { padding: 12px; } }
+  @media (prefers-reduced-motion: reduce) { .rec.on { animation: none; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Somo teacher<small>Somo 4 · your students, chats and challenges</small></h1>
+  <span class="sp"></span>
+  <a href="../somo2/">Open the Somo app</a>
+  <button class="ghost small" id="out" hidden>Log out</button>
+</header>
+<div class="adminbar" id="adminbar" hidden></div>
+<main id="app" aria-live="polite"></main>
+<script>
+(function () {
+  'use strict';
+  var URL_ = 'https://obyudvdunzuyyskxujrt.supabase.co/functions/v1/somo-progress';
+  var SKILL = { cnt: 'Counting', rec: 'Big numbers', facts: 'Quick sums', bond: 'Make ten', pv: 'Tens and ones', mul: 'Equal groups', add: 'Adding', sub: 'Taking away', snd: 'Letter sounds', abc: 'Letter partners', rhy: 'Rhyming', cvc: 'Blending', sight: 'Tricky words', pic: 'Read and find', sent: 'Sentences' };
+  var GAMES = [['boda', 'Boda Boda Rush'], ['star', 'Star Blaster'], ['river', 'River Runner'], ['penalty', 'Penalty King'], ['mango', 'Mango Catcher'], ['jumper', 'Number Line Jumper'], ['market', 'Market Day'], ['drum', 'Drum Beats'], ['firefly', 'Firefly Flash'], ['train', 'Word Train'], ['memory', 'Memory Match'], ['bridge', 'Bridge Builder'], ['matatu', 'Matatu Conductor'], ['fishing', 'Lake Fishing'], ['tug', 'Tug of War'], ['story', "Kidi's Storybook"], ['safari', 'Sound Safari'], ['rhyme', 'Rhyme Match'], ['sounds', 'Sound Match'], ['partners', 'Letter Partners']];
+  var TAGS = { smallerFromLarger: 'Took the smaller digit from the larger', forgotCarry: 'Forgot to carry the ten', reversal: 'Swapped tens and ones', offByTen: 'Off by ten', offByOne: 'Off by one', wrongOp: 'Used the wrong operation', addedDigits: 'Added the tens and ones digits', addedInstead: 'Added instead of making equal groups', groupOff: 'One group too many or too few', bothTo10: 'Made each digit up to 10', letterReversal: 'Letter reversal (b/d, p/q)', similarSound: 'Mixed up similar sounds', vowel: 'Vowel confusion', onset: 'Changed the first sound', firstLetter: 'Guessed from the first letter', smallWord: 'Missed the small word (on/in/by)', overshoot: 'Collected past the target', miscount: 'Lost count', countedStart: 'Counted the starting number too', sameStart: 'Same first sound, not a rhyme', sameEnd: 'Only the same last sound', caseShape: 'Mixed up look-alike small letters' };
+  var app = document.getElementById('app'), out = document.getElementById('out'), bar = document.getElementById('adminbar'), ui = {};
+  /* who is looking: a teacher (PIN → session), or the admin looking through a teacher's eyes (?as=<teacher id>) */
+  var asId = (location.search.match(/[?&]as=([\w-]+)/) || [])[1] || '';
+  var adminKey = ''; try { adminKey = sessionStorage.getItem('somo-admin') || ''; } catch (e) {}
+  var sess = null; try { sess = JSON.parse(sessionStorage.getItem('somo-teacher') || 'null'); } catch (e) {}
+  var admin = !!(asId && adminKey);
+  var data = null, tab = 'students', thread = null, timer = null, rec = null, playing = null, audioCache = {};
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function call(action, body) {
+    body = body || {}; body.action = action;
+    if (admin) { body.admin_key = adminKey; body.as_teacher = asId; } else if (sess) body.session = sess.session;
+    return fetch(URL_, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (r.status === 401 && !admin) { logout(true); } if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status)); return d; }); });
+  }
+  function ago(iso) { if (!iso) return 'not yet'; var d = (Date.now() - Date.parse(iso)) / 864e5; return d < 1 ? 'today' : d < 2 ? 'yesterday' : Math.floor(d) + ' days ago'; }
+  function when(iso) { var d = new Date(iso); return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }); }
+  function prog(p) {
+    if (!p) return { mastery: null, answers: 0, gaps: [], stars: 0, last: null };
+    var sk = Object.keys(p.skills || {}).map(function (id) { return [id, p.skills[id]]; });
+    return { mastery: sk.length ? Math.round(sk.reduce(function (a, x) { return a + x[1].mastery; }, 0) / sk.length) : null, answers: (p.days || []).slice(-7).reduce(function (a, d) { return a + (d.n || 0); }, 0), gaps: sk.filter(function (x) { return x[1].n >= 4 && x[1].mastery < 70; }).map(function (x) { return SKILL[x[0]] || x[0]; }), stars: sk.reduce(function (a, x) { return a + (x[1].stars || 0); }, 0), last: p.last_active };
+  }
+  function pill(m) { return m == null ? '<span class="pill">—</span>' : '<span class="pill ' + (m < 50 ? 'low' : m < 70 ? 'mid' : 'ok') + '">' + m + '%</span>'; }
+  function kid(id) { return (data.students || []).filter(function (s) { return s.id === id; })[0]; }
+
+  /* ---------------- log in: pick your name, type your PIN ---------------- */
+  function login(msg) {
+    out.hidden = true; stopTimer();
+    app.innerHTML = '<div class="card" style="max-width:640px"><h2>Teacher log in</h2><p class="muted">Pick your name and type your PIN. The Somo admin adds teachers and gives each one a PIN.</p><div class="who" id="who">Loading…</div><div id="pinbox"></div><p class="msg ' + (msg ? 'bad' : '') + '" id="m">' + esc(msg || '') + '</p></div>';
+    call('t_list').then(function (d) {
+      var w = document.getElementById('who'); if (!w) return;
+      w.innerHTML = d.teachers.length ? d.teachers.map(function (t) { return '<button data-pick="' + esc(t.id) + '" data-name="' + esc(t.name) + '" aria-pressed="false">' + esc(t.name) + '</button>'; }).join('') : '<p class="muted">No teachers yet. Ask the Somo admin to add you.</p>';
+    }).catch(function (e) { var w = document.getElementById('who'); if (w) w.textContent = 'Could not connect: ' + e.message; });
+  }
+  var pick = null, pinv = '';
+  function pinPad() {
+    var b = document.getElementById('pinbox'); if (!b) return;
+    b.innerHTML = '<label for="pin">PIN for ' + esc(pick.name) + '</label><input id="pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="6" style="max-width:220px" value="' + esc(pinv) + '"><div class="row" style="margin-top:8px"><button id="go">Log in</button></div>';
+    var i = document.getElementById('pin'); i.focus(); i.oninput = function () { i.value = i.value.replace(/\D/g, ''); pinv = i.value; };
+    i.onkeydown = function (e) { if (e.key === 'Enter') doLogin(); }; document.getElementById('go').onclick = doLogin;
+  }
+  function doLogin() {
+    var m = document.getElementById('m'); if (!/^\d{4,6}$/.test(pinv)) { m.textContent = 'The PIN is 4 to 6 numbers.'; m.className = 'msg bad'; return; }
+    m.textContent = 'Checking…'; m.className = 'msg';
+    call('t_login', { teacher_id: pick.id, pin: pinv }).then(function (d) { sess = d; pinv = ''; try { sessionStorage.setItem('somo-teacher', JSON.stringify(d)); } catch (e) {} load(); })
+      .catch(function (e) { pinv = ''; var i = document.getElementById('pin'); if (i) { i.value = ''; i.focus(); } m.textContent = e.message === 'wrong PIN' ? 'That PIN is not right. Try again.' : e.message; m.className = 'msg bad'; });
+  }
+  function logout(expired) { if (sess && !expired) call('t_logout').catch(function () {}); sess = null; data = null; try { sessionStorage.removeItem('somo-teacher'); } catch (e) {} login(expired ? 'Please log in again.' : ''); }
+
+  /* ---------------- the teacher's home ---------------- */
+  function load(keepTab) {
+    if (!keepTab) app.innerHTML = '<div class="card">Loading…</div>';
+    return call('t_overview').then(function (d) { data = d; out.hidden = admin; if (admin) adminBar(); render(); })
+      .catch(function (e) { if (admin) { app.innerHTML = '<div class="card msg bad">Could not open this teacher: ' + esc(e.message) + '. <a href="../somo3/">Back to the admin page</a></div>'; } else if (sess) app.innerHTML = '<div class="card msg bad">Could not load: ' + esc(e.message) + ' <button class="small" id="retry">Try again</button></div>'; });
+  }
+  function adminBar() { bar.hidden = false; bar.innerHTML = '<span>Admin view: you see exactly what ' + esc(data.teacher.name) + ' sees' + (data.teacher.is_ai ? ' (an AI teacher)' : '') + '.</span><a href="../somo3/">Back to the admin page</a>'; }
+  function render() {
+    stopTimer(); var st = data.students, t = data.teacher;
+    var active = st.filter(function (s) { var p = prog(s.progress); return p.last && Date.now() - Date.parse(p.last) < 7 * 864e5; }).length;
+    var head = '<div class="stats"><div class="stat"><b>' + st.length + '</b><span>students</span></div><div class="stat"><b>' + active + '</b><span>active in the last 7 days</span></div><div class="stat"><b>' + st.filter(function (s) { return prog(s.progress).gaps.length; }).length + '</b><span>with a learning gap</span></div><div class="stat"><b>' + data.challenges.length + '</b><span>challenges</span></div></div>' +
+      (t.is_ai ? '<div class="card note">This is an AI teacher. It answers the children by itself, using its skill file (' + esc(t.skill_file || 'custom') + '). You can still write to the class, send voice notes and set challenges as this teacher.</div>' : '') +
+      '<div class="tabs" role="group" aria-label="View">' + [['students', 'Students'], ['group', 'Class chat'], ['dms', 'One-on-one'], ['chal', 'Challenges'], ['board', 'Leaderboard']].map(function (x) { return '<button data-tab="' + x[0] + '" aria-pressed="' + (tab === x[0]) + '">' + x[1] + '</button>'; }).join('') + '<button class="small ghost" id="ref" style="color:#FFF8EC">Refresh</button></div>';
+    var body = '';
+    if (tab === 'students') body = '<div class="card"><h2>My students (' + st.length + ')</h2>' + (st.length ? '<div class="wrap"><table class="tbl"><thead><tr><th>Student</th><th class="num">Age</th><th class="num">Mastery</th><th class="num hide-sm">Answers (7 days)</th><th>Learning gaps</th><th class="hide-sm">Last active</th></tr></thead><tbody>' + st.map(function (s) { var r = prog(s.progress); return '<tr class="click" tabindex="0" data-kid="' + esc(s.id) + '"><td><b>' + esc(s.first_name || 'Student') + '</b></td><td class="num">' + esc(s.age || '—') + '</td><td class="num">' + pill(r.mastery) + '</td><td class="num hide-sm">' + r.answers + '</td><td class="' + (r.gaps.length ? 'gap' : '') + '">' + esc(r.gaps.length ? r.gaps.join(', ') : 'none') + '</td><td class="hide-sm">' + esc(ago(r.last || s.last_sync)) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="muted">No students yet. The Somo admin puts students with teachers.</p>') + '</div>';
+    else if (tab === 'group') { thread = { dm: null, title: 'Class chat' }; body = chatCard(); }
+    else if (tab === 'dms') body = '<div class="card"><h2>One-on-one chats</h2><p class="muted">Each student can talk privately with you. Students never message each other privately.</p><div class="threads">' + (st.length ? st.map(function (s) { var l = s.last_msg; return '<button data-dm="' + esc(s.id) + '"><b>' + esc(s.first_name) + '</b><span class="' + (l && l.from_child ? 'new' : 'muted') + '">' + (l ? (l.from_child ? 'New from ' + esc(s.first_name) + ' · ' : 'You · ') + esc(ago(l.created_at)) : 'no messages yet') + '</span></button>'; }).join('') : '<p class="muted">No students yet.</p>') + '</div></div>';
+    else if (tab === 'chal') body = chalCard();
+    else body = boardCard();
+    app.innerHTML = head + body;
+    if (tab === 'group') openThread(null, 'Class chat', true);
+  }
+  /* ---------------- one student: progress, what they see, report, chat, restore, delete ---------------- */
+  function openKid(id) {
+    stopTimer(); var s = kid(id); if (!s) return;
+    app.innerHTML = crumbs([{ t: s.first_name }]) + '<div class="card">Loading ' + esc(s.first_name) + '…</div>';
+    call('t_child', { child_id: id }).then(function (d) {
+      var c = d.child, p = c.progress, r = prog(p);
+      var html = crumbs([{ t: c.first_name }]) + '<div class="card"><h2>' + esc(c.first_name) + (c.age ? ' <span class="muted">age ' + esc(c.age) + '</span>' : '') + '</h2><p>Last active <b>' + esc(ago(r.last || c.last_sync)) + '</b>' + (p ? ' · steps done <b>' + p.steps_done + '</b> · at-home activities <b>' + p.offline_done + '</b> · stars <b>' + r.stars + '</b>' : '') + '</p>' +
+        '<div class="row"><button data-see="' + esc(id) + '">See what ' + esc(c.first_name) + ' sees</button><button data-report="' + esc(id) + '">Progress report (story, gap chart, plan)</button><button class="ghost" data-dm="' + esc(id) + '">Chat with ' + esc(c.first_name) + '</button></div></div>';
+      html += '<div id="viewer"></div>';
+      html += skillsCard(p, r);
+      html += '<div class="card"><h2>Grown-up tools</h2><div class="row"><button class="ghost" data-restore="' + esc(id) + '">New restore code (for a new phone)</button><button class="danger" data-del="' + esc(id) + '">Delete ' + esc(c.first_name) + '\'s account</button></div><div id="tools"></div></div>';
+      app.innerHTML = html; ui.state = JSON.stringify(c.state || {}); ui.kidName = c.first_name;
+    }).catch(function (e) { app.innerHTML = crumbs([{ t: s.first_name }]) + '<div class="card msg bad">Could not load: ' + esc(e.message) + '</div>'; });
+  }
+  function skillsCard(p, r) {
+    if (!p) return '<div class="card">No progress saved yet.</div>';
+    var sk = Object.keys(p.skills).map(function (id) { return [id, p.skills[id]]; }).sort(function (a, b) { return a[1].mastery - b[1].mastery; });
+    var W = 520, L = 130, H = 28, bars = sk.map(function (x, i) { var v = x[1], w = Math.max(2, (W - L - 44) * v.mastery / 100), col = v.mastery < 50 ? '#C42E6F' : v.mastery < 70 ? '#F07A2A' : '#2F7D4F'; return '<text x="' + (L - 8) + '" y="' + (i * H + 18) + '" font-size="13" font-weight="700" text-anchor="end" fill="currentColor">' + esc(SKILL[x[0]] || x[0]) + '</text><rect x="' + L + '" y="' + (i * H + 6) + '" width="' + (W - L - 44) + '" height="16" rx="8" fill="#EADBC4"/><rect x="' + L + '" y="' + (i * H + 6) + '" width="' + w + '" height="16" rx="8" fill="' + col + '"/><text x="' + (L + w + 6) + '" y="' + (i * H + 18) + '" font-size="12" font-weight="800" fill="currentColor">' + v.mastery + '%</text>'; }).join('');
+    return '<div class="card"><h2>Skills</h2><p class="muted">How often the last 10 answers were right. Red: a learning gap. Orange: almost there. Green: secure.</p>' + (sk.length ? '<svg class="chart" viewBox="0 0 ' + W + ' ' + (sk.length * H + 6) + '" role="img" aria-label="Mastery of each skill">' + bars + '</svg>' : '<p class="muted">No answers yet.</p>') +
+      '<h3>Learning gaps</h3>' + (r.gaps.length ? '<ul>' + r.gaps.map(function (g) { return '<li class="gap">' + esc(g) + '</li>'; }).join('') + '</ul>' : '<p>No learning gaps right now.</p>') + '<h3>Mistakes that repeat</h3>' + ((p.tags || []).length ? '<ul>' + p.tags.map(function (t) { return '<li><b>' + t.n + '×</b> ' + esc(TAGS[t.tag] || t.tag) + '</li>'; }).join('') + '</ul>' : '<p class="muted">None yet.</p>') + '</div>';
+  }
+  /* the Somo app in a frame, with the child's saved progress, read-only */
+  function see(report) {
+    var v = document.getElementById('viewer'); if (!v) return;
+    try { sessionStorage.setItem('somo-view-state', ui.state || '{}'); } catch (e) { v.innerHTML = '<div class="card msg bad">This browser blocked the view.</div>'; return; }
+    v.innerHTML = '<div class="card"><h2>' + (report ? 'Progress report' : 'What ' + esc(ui.kidName) + ' sees') + '</h2><p class="muted">This is the Somo app with ' + esc(ui.kidName) + '\'s saved progress. You can tap around: nothing is saved and nothing is sent.</p><div class="viewer"><iframe class="frame" id="frame" title="' + esc(ui.kidName) + '\'s Somo, read-only" src="../somo2/?view=1&t=' + Date.now() + '"></iframe><div class="row" style="align-content:start"><button class="ghost small" id="vhome">Home screen</button><button class="ghost small" id="vreport">Progress report</button><button class="ghost small" id="vclose">Close</button></div></div></div>';
+    var f = document.getElementById('frame');
+    var go = function (what) { try { var w = f.contentWindow; if (w && w.__view) { if (what === 'report') w.__view.report(); else w.__view.home(); return true; } } catch (e) {} return false; };
+    if (report) f.addEventListener('load', function () { var n = 0, iv = setInterval(function () { if (go('report') || ++n > 40) clearInterval(iv); }, 250); });
+    document.getElementById('vhome').onclick = function () { go('home'); }; document.getElementById('vreport').onclick = function () { go('report'); };
+    document.getElementById('vclose').onclick = function () { v.innerHTML = ''; };
+    v.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function crumbs(parts) { return '<div class="crumbs"><button class="small" data-home="1">' + esc(data ? data.teacher.name : 'Home') + '</button>' + parts.map(function (p) { return ' › <span>' + esc(p.t) + '</span>'; }).join('') + '</div>'; }
+
+  /* ---------------- chat: class chat and one-on-one ---------------- */
+  function chatCard() {
+    return '<div class="card"><h2 id="ctitle">' + esc(thread.title) + '</h2><p class="muted">' + (thread.dm ? 'Only you and ' + esc(thread.title.replace('Chat with ', '')) + ' see this chat.' : 'Every student in your group sees and hears this chat.') + ' Children answer with voice notes and picture replies. Voice notes are not turned into text: listen to them.</p>' +
+      '<div class="chat" id="chat"><p class="muted">Loading…</p></div>' +
+      '<div class="compose" style="margin-top:10px"><textarea id="txt" maxlength="600" placeholder="Write to ' + (thread.dm ? esc(thread.title.replace('Chat with ', '')) : 'the class') + ' (Somo reads it aloud to the children)" aria-label="Message"></textarea><button id="send">Send</button><button class="rec" id="rec" aria-pressed="false">Record a voice note</button></div><p class="msg" id="cm"></p></div>';
+  }
+  function openThread(dm, title, inPlace) {
+    stopTimer(); thread = { dm: dm, title: title };
+    if (!inPlace) { var s = dm ? kid(dm) : null; app.innerHTML = crumbs([{ t: title }]) + chatCard(); }
+    var send = document.getElementById('send'), txt = document.getElementById('txt'), rb = document.getElementById('rec');
+    send.onclick = function () { var v = txt.value.trim(); if (!v) return; send.disabled = true; call('t_send', { dm_child: dm, kind: 'text', body: v }).then(function () { txt.value = ''; send.disabled = false; refresh(); }).catch(function (e) { send.disabled = false; note('Could not send: ' + e.message, true); }); };
+    txt.onkeydown = function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send.onclick(); };
+    rb.onclick = function () { rec ? stopRec() : startRec(); };
+    refresh(); timer = setInterval(refresh, 8000);
+  }
+  function note(t, bad) { var m = document.getElementById('cm'); if (m) { m.textContent = t; m.className = 'msg' + (bad ? ' bad' : ''); } }
+  function refresh() {
+    if (!thread) return; var dm = thread.dm;
+    call('t_msgs', { dm_child: dm }).then(function (d) {
+      var c = document.getElementById('chat'); if (!c || !thread || thread.dm !== dm) return; var atEnd = c.scrollHeight - c.scrollTop - c.clientHeight < 40;
+      c.innerHTML = d.messages.length ? d.messages.map(function (m) {
+        var mine = !m.from_child, who = mine ? 'You' + (data.teacher.is_ai ? ' (AI)' : '') : m.who;
+        var inner = m.kind === 'voice' ? '<button class="vn small" data-play="' + esc(m.id) + '">▶ Voice note · ' + Math.max(1, Math.round(m.secs || 1)) + 's</button>' : esc(m.body);
+        return '<div class="m ' + (mine ? 't' : '') + (m.hidden ? ' hid' : '') + '"><small>' + esc(who) + ' · ' + esc(when(m.created_at)) + (m.hidden ? ' · hidden' : '') + '</small><div class="mb">' + inner + '</div><button class="ghost small" data-hide="' + esc(m.id) + '" data-h="' + (m.hidden ? '0' : '1') + '" style="min-height:26px;padding:0 8px;font-size:.75rem;margin-top:2px">' + (m.hidden ? 'Show again' : 'Hide') + '</button></div>';
+      }).join('') : '<p class="muted">No messages yet. Say hello!</p>';
+      if (atEnd || !c.dataset.done) { c.scrollTop = c.scrollHeight; c.dataset.done = '1'; }
+    }).catch(function (e) { note('Could not load the chat: ' + e.message, true); });
+  }
+  function startRec() {
+    if (!navigator.mediaDevices || !window.MediaRecorder) return note('This browser cannot record sound.', true);
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      var types = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus'], type = types.filter(function (x) { return MediaRecorder.isTypeSupported(x); })[0];
+      var mr = new MediaRecorder(stream, type ? { mimeType: type, audioBitsPerSecond: 24000 } : undefined), chunks = [], t0 = Date.now();
+      rec = { mr: mr }; var rb = document.getElementById('rec'); rb.classList.add('on'); rb.textContent = 'Stop and send'; rb.setAttribute('aria-pressed', 'true');
+      rec.tick = setInterval(function () { var s = Math.round((Date.now() - t0) / 1000); note('Recording… ' + s + 's'); if (s >= 60) stopRec(); }, 300);
+      mr.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+      mr.onstop = function () {
+        stream.getTracks().forEach(function (x) { x.stop(); }); clearInterval(rec.tick); rec = null; var b = document.getElementById('rec'); if (b) { b.classList.remove('on'); b.textContent = 'Record a voice note'; b.setAttribute('aria-pressed', 'false'); }
+        var fr = new FileReader(); fr.onload = function () { note('Sending…'); call('t_send', { dm_child: thread.dm, kind: 'voice', audio: fr.result, secs: Math.max(1, Math.round((Date.now() - t0) / 1000)) }).then(function () { note('Voice note sent.'); refresh(); }).catch(function (e) { note('Could not send: ' + e.message, true); }); };
+        fr.readAsDataURL(new Blob(chunks, { type: mr.mimeType || type || 'audio/webm' }));
+      };
+      mr.start();
+    }).catch(function () { note('Allow the microphone to record a voice note.', true); });
+  }
+  function stopRec() { if (rec) try { rec.mr.stop(); } catch (e) {} }
+  function play(id, el) {
+    if (playing) { playing.pause(); playing = null; }
+    var go = function (url) { var a = new Audio(url); playing = a; el.classList.add('on'); a.onended = a.onpause = function () { el.classList.remove('on'); }; a.play().catch(function () { note('This browser could not play that voice note.', true); }); };
+    if (audioCache[id]) return go(audioCache[id]);
+    el.disabled = true; call('audio', { message_id: id }).then(function (d) { el.disabled = false; audioCache[id] = d.audio; go(d.audio); }).catch(function (e) { el.disabled = false; note('Could not play: ' + e.message, true); });
+  }
+  function stopTimer() { clearInterval(timer); timer = null; if (rec) stopRec(); thread = null; }
+
+  /* ---------------- challenges and leaderboard ---------------- */
+  function chalCard() {
+    var opts = function (kind) { return kind === 'game' ? GAMES.map(function (g) { return '<option value="' + g[0] + '">' + esc(g[1]) + '</option>'; }).join('') : Object.keys(SKILL).map(function (k) { return '<option value="' + k + '">' + esc(SKILL[k]) + '</option>'; }).join(''); };
+    var n = data.students.length;
+    return '<div class="card"><h2>New challenge</h2><p class="muted">The challenge shows up in every student\'s "My teacher" screen. Playing the game (or finishing the lesson) counts by itself, and the points go on the leaderboard.</p><div class="grid2">' +
+      '<div><label for="ck">Type</label><select id="ck"><option value="game">Play a game</option><option value="lesson">Finish a lesson</option></select></div>' +
+      '<div><label for="ct">Which one</label><select id="ct">' + opts('game') + '</select></div>' +
+      '<div><label for="cg">How many times</label><input id="cg" type="number" min="1" max="20" value="3"></div>' +
+      '<div><label for="cp">Points</label><input id="cp" type="number" min="0" max="500" value="50"></div>' +
+      '<div><label for="cd">Days to do it</label><input id="cd" type="number" min="1" max="30" value="7"></div></div>' +
+      '<label for="cn">Title (what the children hear)</label><input id="cn" maxlength="80"><div class="row" style="margin-top:10px"><button id="csave">Send the challenge</button></div><p class="msg" id="cmsg"></p></div>' +
+      '<div class="card"><h2>Challenges</h2>' + (data.challenges.length ? '<div class="wrap"><table class="tbl"><thead><tr><th>Challenge</th><th class="num">Points</th><th class="num">Done</th><th class="hide-sm">Ends</th><th></th></tr></thead><tbody>' + data.challenges.map(function (c) { var g = c.kind === 'game' ? GAMES.filter(function (x) { return x[0] === c.target; })[0] : null; return '<tr><td><b>' + esc(c.title) + '</b><br><span class="muted">' + esc(g ? g[1] + ', ' + c.goal + ' time' + (c.goal > 1 ? 's' : '') : 'Lesson: ' + (SKILL[c.target] || c.target)) + '</span></td><td class="num">' + c.points + '</td><td class="num">' + c.done_count + ' of ' + n + '</td><td class="hide-sm">' + esc(c.ends_at ? new Date(c.ends_at).toLocaleDateString() : '—') + '</td><td><button class="ghost small" data-cdel="' + esc(c.id) + '">Remove</button></td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="muted">No challenges yet.</p>') + '</div>';
+  }
+  function autoTitle() { var k = document.getElementById('ck').value, t = document.getElementById('ct'), g = +document.getElementById('cg').value || 1, name = t.options[t.selectedIndex].text; document.getElementById('cn').value = k === 'game' ? 'Play ' + name + ' ' + g + ' time' + (g > 1 ? 's' : '') : 'Finish the ' + name + ' lesson' + (g > 1 ? ' ' + g + ' times' : ''); }
+  function boardCard() {
+    var by = ui.by || 'week', rows = data.board.slice().sort(function (a, b) { return b[by] - a[by]; }), med = ['#F2B829', '#C9C9C9', '#C98A4A'];
+    return '<div class="card board"><h2>Leaderboard</h2><div class="tabs" style="margin-bottom:8px"><button class="small" data-by="week" aria-pressed="' + (by === 'week') + '">This week</button><button class="small" data-by="all" aria-pressed="' + (by === 'all') + '">All time</button></div>' +
+      (rows.length ? '<table class="tbl"><tbody>' + rows.map(function (r, i) { return '<tr><td style="width:44px"><span class="rank" style="' + (i < 3 ? 'background:' + med[i] + ';color:#2B1E17' : '') + '">' + (i + 1) + '</span></td><td><b>' + esc(r.first_name) + '</b></td><td class="num"><b>' + r[by] + '</b> points</td></tr>'; }).join('') + '</tbody></table>' : '<p class="muted">No students yet.</p>') +
+      '<p class="muted">' + (by === 'week' ? 'This week: answers right the first time in the last 7 days, plus points from challenges done this week.' : 'All time: 10 points for every star on the path, plus points from every challenge.') + ' The children see the same board.</p></div>';
+  }
+
+  /* ---------------- clicks ---------------- */
+  app.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-pick],[data-tab],[data-kid],[data-home],[data-dm],[data-see],[data-report],[data-restore],[data-del],[data-play],[data-hide],[data-cdel],[data-by],#csave,#ref,#retry,#dodel'); if (!t) return;
+    if (t.dataset.pick) { pick = { id: t.dataset.pick, name: t.dataset.name }; document.querySelectorAll('[data-pick]').forEach(function (b) { b.setAttribute('aria-pressed', String(b === t)); }); pinv = ''; return pinPad(); }
+    if (t.id === 'ref' || t.id === 'retry') return load(true);
+    if (t.dataset.tab) { tab = t.dataset.tab; render(); if (tab !== 'group' && tab !== 'chal') load(true); return; }
+    if (t.dataset.home) { return load(true); }
+    if (t.dataset.kid) return openKid(t.dataset.kid);
+    if (t.dataset.dm) { var s = kid(t.dataset.dm); return openThread(t.dataset.dm, 'Chat with ' + (s ? s.first_name : 'student')); }
+    if (t.dataset.see) return see(false);
+    if (t.dataset.report) return see(true);
+    if (t.dataset.play) return play(t.dataset.play, t);
+    if (t.dataset.hide) return call('t_hide', { message_id: t.dataset.hide, hide: t.dataset.h === '1' }).then(refresh);
+    if (t.dataset.by) { ui.by = t.dataset.by; return render(); }
+    if (t.dataset.cdel) return call('t_challenge_del', { id: t.dataset.cdel }).then(function (d) { data.challenges = d.challenges; render(); });
+    if (t.id === 'csave') {
+      var m = document.getElementById('cmsg'); m.textContent = 'Sending…'; m.className = 'msg';
+      call('t_challenge_save', { kind: document.getElementById('ck').value, target: document.getElementById('ct').value, goal: +document.getElementById('cg').value, points: +document.getElementById('cp').value, days: +document.getElementById('cd').value, title: document.getElementById('cn').value })
+        .then(function (d) { data.challenges = d.challenges; render(); }).catch(function (e) { m.textContent = 'Could not send: ' + e.message; m.className = 'msg bad'; });
+      return;
+    }
+    if (t.dataset.restore) {
+      if (!confirm('Make a new restore code? Use it on the new phone (Accounts, then "Restore my progress"). The old phone stops saving.')) return;
+      return call('t_restore', { child_id: t.dataset.restore }).then(function (d) { document.getElementById('tools').innerHTML = '<p>New restore code (keep it private, like a password):</p><p><code style="word-break:break-all;user-select:all">' + esc(d.code) + '</code></p>'; }).catch(function (e) { document.getElementById('tools').innerHTML = '<p class="msg bad">' + esc(e.message) + '</p>'; });
+    }
+    if (t.dataset.del) { var nm = ui.kidName; document.getElementById('tools').innerHTML = '<p>This deletes ' + esc(nm) + '\'s progress, chats and challenges from Somo for good. Type <b>' + esc(nm) + '</b> to confirm.</p><input id="delname" autocomplete="off" style="max-width:260px"><div class="row" style="margin-top:8px"><button class="danger" id="dodel" data-id="' + esc(t.dataset.del) + '">Delete forever</button></div>'; return; }
+    if (t.id === 'dodel') { if ((document.getElementById('delname').value || '').trim().toLowerCase() !== (ui.kidName || '').toLowerCase()) return; t.disabled = true; return call('t_delete_child', { child_id: t.dataset.id }).then(function () { return load(); }).catch(function (e) { t.disabled = false; alert('Could not delete: ' + e.message); }); }
+  });
+  app.addEventListener('change', function (e) { if (e.target.id === 'ck') { var k = e.target.value, s = document.getElementById('ct'); s.innerHTML = k === 'game' ? GAMES.map(function (g) { return '<option value="' + g[0] + '">' + esc(g[1]) + '</option>'; }).join('') : Object.keys(SKILL).map(function (x) { return '<option value="' + x + '">' + esc(SKILL[x]) + '</option>'; }).join(''); document.getElementById('cg').value = k === 'game' ? 3 : 1; } if (['ck', 'ct', 'cg'].indexOf(e.target.id) >= 0) autoTitle(); });
+  app.addEventListener('input', function (e) { if (e.target.id === 'cg') autoTitle(); });
+  app.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('tr.click')) { e.preventDefault(); e.target.click(); } });
+  new MutationObserver(function () { if (document.getElementById('cn') && !document.getElementById('cn').value) autoTitle(); }).observe(app, { childList: true });
+  out.onclick = function () { logout(false); };
+  if (admin) load(); else if (sess) load(); else login(asId ? 'To see a teacher as the admin, log in on the admin page first.' : '');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "about": "AI teacher skill files for Somo 4. The admin page (somo3/) lists these when adding an AI teacher, and saves a copy of the file's text with the teacher. To add a new AI teacher type, copy TEMPLATE.md, fill it in, and add it to this list.",
+  "skills": [
+    { "file": "mwalimu-neema-starter.md", "name": "Mwalimu Neema", "for": "Ages 5 to 6: first letters, sounds and counting", "age_min": 5, "age_max": 6 },
+    { "file": "mwalimu-juma-numbers.md", "name": "Mwalimu Juma", "for": "Ages 6 to 9: numbers coach (sums, tens and ones, taking away)", "age_min": 6, "age_max": 9 },
+    { "file": "mwalimu-amani-reading.md", "name": "Mwalimu Amani", "for": "Ages 7 to 9: reading coach (blending, tricky words, sentences)", "age_min": 7, "age_max": 9 }
+  ]
+}
