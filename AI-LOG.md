@@ -204,3 +204,13 @@
 - **Goal:** Somo as "a literal app" to drag into Applications.
 - **Prompt:** "Create this into an app, a literal app... Put it into a file and then I'll drag it to Applications."
 - **What Claude Did:** made `apps/Somo-for-Mac.zip` (with `HOW-TO-INSTALL.txt`): a small Mac app, `Somo.app`, with the new mango icon. It opens Somo in its own window (Chrome, Edge or Brave app mode, else Safari), so it is always the newest Somo and works offline after the first visit in Chrome or Edge. It is not signed by Apple, so the first launch needs right-click → Open (or "Open Anyway" in Privacy & Security). README: "Somo as an app" (Mac, install from Chrome/Edge, phones).
+
+## Feature 6: attempt log and CSV export
+- **Date:** Nov 13, 2026
+- **Goal:** Teachers and the admin can download every finished lesson phase and game round as a spreadsheet.
+- **Prompt:** "Log every finished lesson phase and game round: child first name, skill, unit, phase, date, first-try correct, total, hints used, duration. Sync it through the somo-progress function (a table with row-level security on and no policies). Export CSV in the Teacher view (that class) and in somo3 (all classes). First names only."
+- **What Claude Did:**
+  - Supabase: new table `somo_attempts` (row-level security on, no policies; deleting a child deletes their rows). `somo-progress` v5: `log_attempts` (from the phone, duplicates ignored), `t_export` (a teacher's students) and `admin_export` (everyone). Tested on the live function.
+  - `somo2/` (source `src/b2/alog.js` in Chronicle): logs lessons (Inspire), rhymes and stories (Inspire), game rounds and read-aloud (Interpret), teach-back (Impart), warm-up and Practice Boost (Review), with first-try right, total, hints and seconds. Kept on the phone and sent when there is internet.
+  - `somo4/`: "Export CSV" on My students. `somo3/`: "Export CSV (all classes)", with the teacher's name. First names only.
+  - Tested in a headless browser (child → teacher CSV → admin CSV): no page or console errors from Somo.

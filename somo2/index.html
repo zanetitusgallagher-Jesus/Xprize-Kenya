@@ -10745,6 +10745,67 @@ const LOGO_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"
     lg.classList.add('somologo'); lg.innerHTML = LOGO_REV.replace('<svg ', '<svg role="img" aria-label="Somo" ') + '<small>Learn it. Play it.</small>'; }; }
 { const el = document.createElement('style'); el.textContent = `.somologo svg{height:calc(var(--u)*46);width:auto;display:block}.somologo small{margin-top:calc(var(--u)*2)}`; document.head.appendChild(el); }
 
+/* ============================================================================
+   ATTEMPT LOG (Nov 2026)
+   Every finished lesson phase and game round is logged: skill, unit, phase, activity, date, first-try correct, total,
+   hints used and how long it took. It is kept on the phone and sent through the somo-progress function (table
+   somo_attempts) when the child's progress is saved online. Teachers (somo4/) and the admin (somo3/) export it as CSV.
+   Phases: Inspire (rhyme or story, and the lesson), Interpret (games, read aloud), Impart (teach the friend),
+   Review (warm-up, Practice Boost). No free text and no personal details beyond the child's first name (added by the
+   server from the child's record).
+   ========================================================================== */
+const ALOG = () => { const k = KY(); return k.alog || (k.alog = []); };
+const pad2 = n => String(n).padStart(2, '0');
+const isoDay = (t = Date.now()) => { const d = new Date(t); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
+function logAttempt(r) {
+  if (VIEW) return; const at = Date.now();
+  ALOG().push({ cid: at.toString(36) + Math.random().toString(36).slice(2, 7), skill: r.skill || '', unit: r.unit || r.skill || '', phase: r.phase, activity: String(r.activity || '').slice(0, 60), day: isoDay(at), at, first_try: r.first_try | 0, total: r.total | 0, hints: r.hints | 0, secs: Math.max(0, Math.round(r.secs || 0)) });
+  if (ALOG().length > 400) ALOG().splice(0, ALOG().length - 400); kSave(); AttemptSync.soon();
+}
+const AttemptSync = {
+  busy: false, t: null,
+  soon() { clearTimeout(this.t); this.t = setTimeout(() => this.send(), 4000); },
+  async send() {
+    if (VIEW || this.busy || !Cloud.linked() || !ALOG().length) return; this.busy = true; const c = Cloud.c(); const batch = ALOG().slice(0, 200);
+    try { await PROG('log_attempts', { child_id: c.child_id, write_key: c.write_key, rows: batch }); const sent = new Set(batch.map(r => r.cid)); KY().alog = ALOG().filter(r => !sent.has(r.cid)); kSave(); }
+    catch (e) { /* offline: they wait on the phone and go next time */ } finally { this.busy = false; }
+  },
+};
+setInterval(() => { if (ALOG().length) AttemptSync.send(); }, 60000);
+{ const _p = Cloud.push; Cloud.push = async function () { const r = await _p.apply(this, arguments); AttemptSync.send(); return r; }; }
+
+/* lessons, the warm-up and Practice Boost */
+const Hints = { n: 0, t0: 0, reset() { this.n = 0; this.t0 = performance.now(); } };
+{ const _st = L.start; L.start = function (id) { Hints.reset(); return _st.call(this, id); }; }
+{ const _cu = L.custom; L.custom = function () { Hints.reset(); return _cu.apply(this, arguments); }; }
+{ const _h = L.help; L.help = function () { Hints.n++; return _h.apply(this, arguments); }; }
+{ const _a = L.answer; L.answer = function (i, el) { const q = this.step && this.step.q; const wasMiss = q && !q.lock && String(q.opts[i].v) !== String(q.cv); const r = _a.call(this, i, el); if (wasMiss && q && !q.lock) Hints.n++; return r; }; }
+{ const _fin = L.finish; L.finish = function () {
+    const kind = this.kind, id = this.id, sc = L.score || { right: 0, total: 0 }, secs = (performance.now() - Hints.t0) / 1000, hints = Hints.n;
+    const r = _fin.call(this);
+    logAttempt({ skill: id, unit: kind ? '' : id, phase: kind ? 'Review' : 'Inspire', activity: kind === 'warmup' ? 'Warm-up' : kind === 'boost' ? 'Practice Boost' : 'Lesson: ' + (SHORT[id] || id), first_try: sc.right, total: sc.total, hints, secs });
+    return r;
+  }; }
+/* game rounds (Interpret): right answers out of all, Kidi help taps, the round's length */
+const RoundHelp = { n: 0 };
+{ const _sr = startRound; startRound = function () { RoundHelp.n = 0; return _sr.apply(this, arguments); }; }
+{ const _hg = helpInGame; helpInGame = function () { RoundHelp.n++; return _hg.apply(this, arguments); }; }
+{ const _end = endRound; endRound = function (extra) {
+    const was = App.state, g = Round.game, skill = App.fromSkill || Engine.focus || '', right = Round.correct, total = Round.total, secs = Round.t;
+    const r = _end(extra); if (was === 'play' && g) logAttempt({ skill, unit: App.fromSkill || '', phase: 'Interpret', activity: 'Game: ' + g.name, first_try: right, total, hints: RoundHelp.n, secs });
+    return r;
+  }; window.__arc.endRound = endRound; }
+/* teach the friend (Impart) */
+{ const _st = Teach.start; Teach.start = function (id) { this.t0 = performance.now(); return _st.apply(this, arguments); }; }
+{ const _hm = Teach.home; Teach.home = function () { if (this.n >= this.total && this.id) logAttempt({ skill: this.id, unit: this.id, phase: 'Impart', activity: 'Teach ' + Friend.name, first_try: this.got, total: this.total, hints: 0, secs: (performance.now() - (this.t0 || performance.now())) / 1000 }); return _hm.apply(this, arguments); }; }
+/* rhymes and stories (Inspire), with their questions */
+{ const _op = Library.open; Library.open = function () { this.t0 = performance.now(); return _op.apply(this, arguments); }; }
+{ const _lf = Library.finish; Library.finish = function () { const it = this.cur; if (it) logAttempt({ skill: this.skill || it.skill || '', unit: this.mode === 'inspire' ? this.skill || '' : '', phase: 'Inspire', activity: (this.kind === 's' ? 'Story: ' : 'Rhyme: ') + it.title, first_try: this.got, total: (it.q || []).length, hints: 0, secs: (performance.now() - (this.t0 || performance.now())) / 1000 }); return _lf.apply(this, arguments); }; }
+/* read aloud (Interpret) */
+{ const _rf = ReadAloud.finish; ReadAloud.finish = function (grown) { const t0 = this.startedAt || this.t0open; const r = _rf.call(this, grown); const res = this.result; if (res) logAttempt({ skill: this.skill, unit: this.onDone ? this.skill : '', phase: 'Interpret', activity: 'Read aloud: ' + this.cur.title + (res.mode === 'grownup' ? ' (to a grown-up)' : ''), first_try: res.mode === 'mic' ? res.read : res.ok ? res.total : 0, total: res.total, hints: 0, secs: (performance.now() - (this.t0open || performance.now())) / 1000 }); return r; }; }
+{ const _ro = ReadAloud.open; ReadAloud.open = function () { this.t0open = performance.now(); return _ro.apply(this, arguments); }; }
+window.__ky = Object.assign(window.__ky || {}, { ALOG, logAttempt, AttemptSync });
+
 boot();
 
 </script>

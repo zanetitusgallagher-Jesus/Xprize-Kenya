@@ -119,7 +119,7 @@
     var list = st.filter(function (s) { return !q || (s.first_name + ' ' + (s.teacher || '')).toLowerCase().indexOf(q) >= 0; });
     var body = '';
     var unassigned = st.filter(function (s) { return !s.teacher_id; }).length;
-    if (tab === 'students') body = '<div class="card"><h2>All students (' + st.length + ')</h2><p class="muted">Only the admin puts students with teachers. Pick a teacher for each student, or let Somo do it by age: every student without a teacher goes to a teacher whose ages fit (people first, then AI teachers), the one with the fewest students. ✓ marks a teacher whose ages fit.</p><div class="row"><button id="auto"' + (unassigned ? '' : ' disabled') + '>Assign by age (' + unassigned + ' without a teacher)</button><span class="msg" id="am"></span></div><div style="height:8px"></div><input id="q" placeholder="Search by first name or teacher" value="' + esc(q) + '" aria-label="Search students"><div style="height:8px"></div>' + studentsTable(list) + '</div>';
+    if (tab === 'students') body = '<div class="card"><h2>All students (' + st.length + ')</h2><p class="muted">Only the admin puts students with teachers. Pick a teacher for each student, or let Somo do it by age: every student without a teacher goes to a teacher whose ages fit (people first, then AI teachers), the one with the fewest students. ✓ marks a teacher whose ages fit.</p><div class="row"><button class="ghost small" id="csv" style="color:inherit">Export CSV (all classes)</button><button id="auto"' + (unassigned ? '' : ' disabled') + '>Assign by age (' + unassigned + ' without a teacher)</button><span class="msg" id="am"></span></div><div style="height:8px"></div><input id="q" placeholder="Search by first name or teacher" value="' + esc(q) + '" aria-label="Search students"><div style="height:8px"></div>' + studentsTable(list) + '</div>';
     else if (tab === 'teachers') body = teachersCard();
     else body = '<div class="card"><h2>Guestbook</h2><p class="muted">Hide a note to take it off the guestbook; you can show it again.</p><div id="gb">Loading…</div></div>';
     app.innerHTML = '<div class="stats"><div class="stat"><b>' + teachers.length + '</b><span>teachers (' + teachers.filter(function (t) { return t.is_ai; }).length + ' AI)</span></div><div class="stat"><b>' + st.length + '</b><span>students</span></div><div class="stat"><b>' + unassigned + '</b><span>without a teacher</span></div><div class="stat"><b>' + active + '</b><span>active in the last 7 days</span></div><div class="stat"><b>' + gaps + '</b><span>with a learning gap</span></div><div class="stat"><b>' + data.guestbook_notes + '</b><span>guestbook notes</span></div></div>' +
@@ -190,7 +190,8 @@
   }
   app.addEventListener('click', function (e) {
     if (e.target.closest('select')) return;
-    var t = e.target.closest('[data-tab],[data-kid],[data-cls],[data-home],[data-hide],#ref,#auto,[data-kind],[data-edit],[data-tdel],#tsave,#tcancel,[data-see],[data-restore],[data-delkid],#dodel'); if (!t) return;
+    var t = e.target.closest('#csv,[data-tab],[data-kid],[data-cls],[data-home],[data-hide],#ref,#auto,[data-kind],[data-edit],[data-tdel],#tsave,#tcancel,[data-see],[data-restore],[data-delkid],#dodel'); if (!t) return;
+    if (t.id === 'csv') return csvExport('admin_export', true, t);
     if (t.id === 'auto') { t.disabled = true; return call('admin_auto_assign').then(function (d) { return load().then(function () { var m = document.getElementById('am'); if (m) m.textContent = d.assigned + ' assigned' + (d.skipped ? ', ' + d.skipped + ' left: no age yet, or no teacher for their age' : '') + '.'; }); }).catch(function (x) { alert('Could not assign: ' + x.message); }); }
     if (t.dataset.kind) { var keep = formVals(); editing = Object.assign({}, editing || {}, { is_ai: t.dataset.kind === 'ai' }); overview(); setForm(keep); return; }
     if (t.dataset.edit) { editing = Object.assign({}, teachers.filter(function (x) { return x.id === t.dataset.edit; })[0]); overview(); if (editing.is_ai) { if (editing.skill_file && editing.skill_file !== 'custom') pickSkill(editing.skill_file, true); else { var tm = document.getElementById('tm'); if (tm) tm.textContent = 'This AI teacher has a custom skill: write it again below, or pick a skill file.'; } } document.getElementById('tform').scrollIntoView({ behavior: 'smooth' }); return; }
@@ -217,6 +218,19 @@
   function pickSkill(file, textOnly) {
     if (!file || file === 'custom') return; var k = (skills || []).filter(function (x) { return x.file === file; })[0];
     fetch('../somo4/teachers/' + encodeURIComponent(file)).then(function (r) { return r.text(); }).then(function (txt) { var a = document.getElementById('tsk'); if (a) a.value = txt; if (textOnly) return; var n = document.getElementById('tn'); if (n && !n.value && k) n.value = k.name; if (k) { var x = document.getElementById('ta'), y = document.getElementById('tb'); if (x) x.value = k.age_min; if (y) y.value = k.age_max; } });
+  }
+
+  /* the attempt log as CSV (first names only, no other personal details) */
+  function csvExport(action, withTeacher, btn) {
+    var old = btn.textContent; btn.disabled = true; btn.textContent = 'Preparing…';
+    call(action).then(function (d) {
+      var head = ['first_name'].concat(withTeacher ? ['teacher'] : [], ['skill', 'skill_name', 'unit', 'phase', 'activity', 'date', 'time', 'first_try_correct', 'total', 'hints_used', 'duration_seconds']);
+      var q = function (v) { v = v == null ? '' : String(v); if (/^[=+\-@]/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+      var lines = [head.join(',')].concat(d.rows.map(function (r) { var t = r.at ? new Date(r.at) : null; return [r.first_name].concat(withTeacher ? [r.teacher] : [], [r.skill, SKILL[r.skill] || '', r.unit, r.phase, r.activity, r.day, t ? t.toTimeString().slice(0, 5) : '', r.first_try, r.total, r.hints, r.secs]).map(q).join(','); }));
+      var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }), a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'somo-attempts-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+      btn.disabled = false; btn.textContent = old + ' (' + d.rows.length + ' rows)';
+    }).catch(function (e) { btn.disabled = false; btn.textContent = old; alert('Could not export: ' + e.message); });
   }
   /* the Somo app in a frame with this child's saved progress, read-only */
   function see(report) {

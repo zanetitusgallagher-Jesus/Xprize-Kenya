@@ -150,7 +150,7 @@
       (t.is_ai ? '<div class="card note">This is an AI teacher. It answers the children by itself, using its skill file (' + esc(t.skill_file || 'custom') + '). You can still write to the class, send voice notes and set challenges as this teacher.</div>' : '') +
       '<div class="tabs" role="group" aria-label="View">' + [['students', 'Students'], ['group', 'Class chat'], ['dms', 'One-on-one'], ['chal', 'Challenges'], ['board', 'Leaderboard']].map(function (x) { return '<button data-tab="' + x[0] + '" aria-pressed="' + (tab === x[0]) + '">' + x[1] + '</button>'; }).join('') + '<button class="small ghost" id="ref" style="color:#FFF8EC">Refresh</button></div>';
     var body = '';
-    if (tab === 'students') body = '<div class="card"><h2>My students (' + st.length + ')</h2>' + (st.length ? '<div class="wrap"><table class="tbl"><thead><tr><th>Student</th><th class="num">Age</th><th class="num">Mastery</th><th class="num hide-sm">Answers (7 days)</th><th>Learning gaps</th><th class="hide-sm">Last active</th></tr></thead><tbody>' + st.map(function (s) { var r = prog(s.progress); return '<tr class="click" tabindex="0" data-kid="' + esc(s.id) + '"><td><b>' + esc(s.first_name || 'Student') + '</b></td><td class="num">' + esc(s.age || '—') + '</td><td class="num">' + pill(r.mastery) + '</td><td class="num hide-sm">' + r.answers + '</td><td class="' + (r.gaps.length ? 'gap' : '') + '">' + esc(r.gaps.length ? r.gaps.join(', ') : 'none') + '</td><td class="hide-sm">' + esc(ago(r.last || s.last_sync)) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="muted">No students yet. The Somo admin puts students with teachers.</p>') + '</div>';
+    if (tab === 'students') body = '<div class="card"><h2>My students (' + st.length + ')</h2><div class="row" style="margin-bottom:8px"><button class="ghost small" id="csv">Export CSV (every lesson and game round)</button></div>' + (st.length ? '<div class="wrap"><table class="tbl"><thead><tr><th>Student</th><th class="num">Age</th><th class="num">Mastery</th><th class="num hide-sm">Answers (7 days)</th><th>Learning gaps</th><th class="hide-sm">Last active</th></tr></thead><tbody>' + st.map(function (s) { var r = prog(s.progress); return '<tr class="click" tabindex="0" data-kid="' + esc(s.id) + '"><td><b>' + esc(s.first_name || 'Student') + '</b></td><td class="num">' + esc(s.age || '—') + '</td><td class="num">' + pill(r.mastery) + '</td><td class="num hide-sm">' + r.answers + '</td><td class="' + (r.gaps.length ? 'gap' : '') + '">' + esc(r.gaps.length ? r.gaps.join(', ') : 'none') + '</td><td class="hide-sm">' + esc(ago(r.last || s.last_sync)) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="muted">No students yet. The Somo admin puts students with teachers.</p>') + '</div>';
     else if (tab === 'group') { thread = { dm: null, title: 'Class chat' }; body = chatCard(); }
     else if (tab === 'dms') body = '<div class="card"><h2>One-on-one chats</h2><p class="muted">Each student can talk privately with you. Students never message each other privately.</p><div class="threads">' + (st.length ? st.map(function (s) { var l = s.last_msg; return '<button data-dm="' + esc(s.id) + '"><b>' + esc(s.first_name) + '</b><span class="' + (l && l.from_child ? 'new' : 'muted') + '">' + (l ? (l.from_child ? 'New from ' + esc(s.first_name) + ' · ' : 'You · ') + esc(ago(l.created_at)) : 'no messages yet') + '</span></button>'; }).join('') : '<p class="muted">No students yet.</p>') + '</div></div>';
     else if (tab === 'chal') body = chalCard();
@@ -178,6 +178,19 @@
     var W = 520, L = 130, H = 28, bars = sk.map(function (x, i) { var v = x[1], w = Math.max(2, (W - L - 44) * v.mastery / 100), col = v.mastery < 50 ? '#C42E6F' : v.mastery < 70 ? '#F07A2A' : '#2F7D4F'; return '<text x="' + (L - 8) + '" y="' + (i * H + 18) + '" font-size="13" font-weight="700" text-anchor="end" fill="currentColor">' + esc(SKILL[x[0]] || x[0]) + '</text><rect x="' + L + '" y="' + (i * H + 6) + '" width="' + (W - L - 44) + '" height="16" rx="8" fill="#EADBC4"/><rect x="' + L + '" y="' + (i * H + 6) + '" width="' + w + '" height="16" rx="8" fill="' + col + '"/><text x="' + (L + w + 6) + '" y="' + (i * H + 18) + '" font-size="12" font-weight="800" fill="currentColor">' + v.mastery + '%</text>'; }).join('');
     return '<div class="card"><h2>Skills</h2><p class="muted">How often the last 10 answers were right. Red: a learning gap. Orange: almost there. Green: secure.</p>' + (sk.length ? '<svg class="chart" viewBox="0 0 ' + W + ' ' + (sk.length * H + 6) + '" role="img" aria-label="Mastery of each skill">' + bars + '</svg>' : '<p class="muted">No answers yet.</p>') +
       '<h3>Learning gaps</h3>' + (r.gaps.length ? '<ul>' + r.gaps.map(function (g) { return '<li class="gap">' + esc(g) + '</li>'; }).join('') + '</ul>' : '<p>No learning gaps right now.</p>') + '<h3>Mistakes that repeat</h3>' + ((p.tags || []).length ? '<ul>' + p.tags.map(function (t) { return '<li><b>' + t.n + '×</b> ' + esc(TAGS[t.tag] || t.tag) + '</li>'; }).join('') + '</ul>' : '<p class="muted">None yet.</p>') + '</div>';
+  }
+
+  /* the attempt log as CSV (first names only, no other personal details) */
+  function csvExport(action, withTeacher, btn) {
+    var old = btn.textContent; btn.disabled = true; btn.textContent = 'Preparing…';
+    call(action).then(function (d) {
+      var head = ['first_name'].concat(withTeacher ? ['teacher'] : [], ['skill', 'skill_name', 'unit', 'phase', 'activity', 'date', 'time', 'first_try_correct', 'total', 'hints_used', 'duration_seconds']);
+      var q = function (v) { v = v == null ? '' : String(v); if (/^[=+\-@]/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+      var lines = [head.join(',')].concat(d.rows.map(function (r) { var t = r.at ? new Date(r.at) : null; return [r.first_name].concat(withTeacher ? [r.teacher] : [], [r.skill, SKILL[r.skill] || '', r.unit, r.phase, r.activity, r.day, t ? t.toTimeString().slice(0, 5) : '', r.first_try, r.total, r.hints, r.secs]).map(q).join(','); }));
+      var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }), a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'somo-attempts-' + new Date().toISOString().slice(0, 10) + '.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+      btn.disabled = false; btn.textContent = old + ' (' + d.rows.length + ' rows)';
+    }).catch(function (e) { btn.disabled = false; btn.textContent = old; alert('Could not export: ' + e.message); });
   }
   /* the read-aloud check: accuracy and words correct per minute over time */
   function readCard(list) {
@@ -279,8 +292,9 @@
 
   /* ---------------- clicks ---------------- */
   app.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-pick],[data-tab],[data-kid],[data-home],[data-dm],[data-see],[data-report],[data-restore],[data-del],[data-play],[data-hide],[data-cdel],[data-by],#csave,#ref,#retry,#dodel'); if (!t) return;
+    var t = e.target.closest('#csv,[data-pick],[data-tab],[data-kid],[data-home],[data-dm],[data-see],[data-report],[data-restore],[data-del],[data-play],[data-hide],[data-cdel],[data-by],#csave,#ref,#retry,#dodel'); if (!t) return;
     if (t.dataset.pick) { pick = { id: t.dataset.pick, name: t.dataset.name }; document.querySelectorAll('[data-pick]').forEach(function (b) { b.setAttribute('aria-pressed', String(b === t)); }); pinv = ''; return pinPad(); }
+    if (t.id === 'csv') return csvExport('t_export', false, t);
     if (t.id === 'ref' || t.id === 'retry') return load(true);
     if (t.dataset.tab) { tab = t.dataset.tab; render(); if (tab !== 'group' && tab !== 'chal') load(true); return; }
     if (t.dataset.home) { return load(true); }
