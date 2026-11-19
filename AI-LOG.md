@@ -214,3 +214,9 @@
   - `somo2/` (source `src/b2/alog.js` in Chronicle): logs lessons (Inspire), rhymes and stories (Inspire), game rounds and read-aloud (Interpret), teach-back (Impart), warm-up and Practice Boost (Review), with first-try right, total, hints and seconds. Kept on the phone and sent when there is internet.
   - `somo4/`: "Export CSV" on My students. `somo3/`: "Export CSV (all classes)", with the teacher's name. First names only.
   - Tested in a headless browser (child → teacher CSV → admin CSV): no page or console errors from Somo.
+
+## The tutors and AI teachers run on Haiku
+- **Date:** Nov 19, 2026
+- **Goal:** Lower the cost of the AI, which is billed to the Claude key on the Supabase server.
+- **Prompt:** "Make sure the AI tutors and teachers run on Haiku." (after asking what the old model was and how much it cost)
+- **What Claude Did:** every Claude call now uses Claude Haiku 5.5 (`claude-haiku-5-5`) with thinking off and low effort: the tutor relay `somo-kidi` (deployed as version 8), the AI teachers in `somo-progress` (version 6), a key saved on a device (`somo2/`, source `src/core.js` in Chronicle), the key test on `somo2/setup/`, and Turi's trail. Haiku costs about 40 times less than the Opus model used before ($0.10 / $0.50 per million tokens instead of $4 / $20). It is still billed to the key's account; the daily cap of 3,000 tutor chats stays. Tested with a real call through the live relay.

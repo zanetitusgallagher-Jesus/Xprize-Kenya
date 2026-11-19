@@ -81,7 +81,7 @@
     try {
       var r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', signal: ctl.signal,
         headers: { 'content-type': 'application/json', 'x-api-key': v, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: 'claude-opus-5-5', max_tokens: 60, messages: [{ role: 'user', content: 'Say "Jambo!" and one short happy sentence for a child.' }] }) });
+        body: JSON.stringify({ model: 'claude-haiku-5-5', max_tokens: 60, thinking: { type: 'disabled' }, output_config: { effort: 'low' }, messages: [{ role: 'user', content: 'Say "Jambo!" and one short happy sentence for a child.' }] }) });
       var j = await r.json().catch(function () { return null; });
       if (!r.ok) {
         var why = (j && j.error && j.error.message) || ('HTTP ' + r.status);

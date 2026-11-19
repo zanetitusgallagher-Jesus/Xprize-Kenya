@@ -44,7 +44,7 @@ The AI never decides whether a child's answer is right. The app's own code does 
 The pages try these routes **in this order**:
 
 1. **A key saved on this device.** A grown-up opens `somo2/setup/`, pastes a Claude API key and taps "Save and test". The key is stored in that browser only (localStorage, name `kenyai-key`) and stays until someone taps "Forget". Every Somo page on that device uses it. A one-time setup link also works: `…/somo2/setup/#key=sk-ant-…`.
-2. **The Somo relay.** A Supabase Edge Function (`somo-kidi`, project "AI Tutor") holds a Claude key as a server secret, so the tutors work for everyone with no key on the device. It only accepts requests from this site and from `rgallaghertt.github.io`, only tutor-style prompts, with rate and daily limits. The learning path (`somo2/`) uses it; Turi's trail does not yet.
+2. **The Somo relay.** A Supabase Edge Function (`somo-kidi`, project "AI Tutor") holds a Claude key as a server secret and uses **Claude Haiku 5.5** (`claude-haiku-5-5`, the low-cost model; changed from Opus on Nov 19, 2026), so the tutors work for everyone with no key on the device. It only accepts requests from this site and from `rgallaghertt.github.io`, only tutor-style prompts, with rate and daily limits. The learning path (`somo2/`) uses it; Turi's trail does not yet.
 3. **Inside Claude.** When a page is opened as a Claude artifact, it uses the viewer's Claude account.
 4. **No AI.** Every feature has a written fallback (pre-written hints, a template caregiver note), so the site never breaks.
 
