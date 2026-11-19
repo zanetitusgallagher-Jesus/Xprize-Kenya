@@ -318,7 +318,6 @@ row-level security on with no policies, so the function is the only way in.
 | Table | What it holds |
 |---|---|
 | `somo_attempts` | Every finished lesson phase and game round (skill, phase, first-try right, total, hints, time), for the CSV export |
-|---|---|
 | `somo_children` | One row per child: first name, age, boy or girl, animal friend, teacher, last saved (the write key only as a hash) |
 | `somo_state` | The child's full progress, so it is safe if the phone is lost |
 | `somo_snapshots` | A small daily summary (numbers only) |
