@@ -11290,6 +11290,109 @@ window.__ky = Object.assign(window.__ky || {}, { TimeCap });
    ========================================================================== */
 { const _ld = GameReg.load; GameReg.load = async function () { const r = await _ld.call(this); try { if ('serviceWorker' in navigator && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage('cache-games'); } catch (e) { } return r; }; }
 
+/* ============================================================================
+   A5: the games library, "Michezo" (Games). It replaces the old arcade screen and holds the 20 built-in games and
+   every enabled plug-in game. Browse by skill and by stage; big picture tiles; everything spoken.
+   - "Next for you": 3 games for the skills the engine wants next (the current steps and due reviews).
+   - Games whose skills are not open yet show "Soon" and play only in practice mode (practice changes no mastery).
+   - Each game shows progress (levels done, or rounds played for built-in games), never a score.
+   ========================================================================== */
+/* Kiswahili names for the built-in games (our own translations) */
+const GAME_SW = { boda: 'Mbio za Boda Boda', star: 'Mrusha Nyota', river: 'Mkimbiaji wa Mto', penalty: 'Mfalme wa Penalti', mango: 'Mdaka Maembe', jumper: 'Mrukaji wa Mstari', market: 'Siku ya Soko', drum: 'Mdundo wa Ngoma', firefly: 'Vimulimuli', train: 'Treni ya Maneno', memory: 'Kumbuka Jozi', bridge: 'Mjenzi wa Daraja', matatu: 'Kondakta wa Matatu', fishing: 'Uvuvi Ziwani', tug: 'Kuvuta Kamba', story: 'Kitabu cha Hadithi', safari: 'Safari ya Sauti', rhyme: 'Maneno Yanayofanana', sounds: 'Linganisha Sauti', partners: 'Herufi Pacha' };
+const STAGE_OF_SKILL = id => (STAGES.find(s => s.skills.includes(id)) || {}).n || 0;
+const Lib = {
+  /* one list for both kinds: {id, ext, title, sw, skills, stages, thumb} */
+  all() {
+    const b = GAMES.map(g => ({ id: g.id, ext: false, title: g.name, sw: (typeof GAME_SW !== 'undefined' && GAME_SW[g.id]) || '', skills: (g.skills || []).filter(s => SKILL[s]), get stages() { return [...new Set(this.skills.map(STAGE_OF_SKILL).filter(Boolean))]; }, g }));
+    const e = GameReg.enabled().map(m => ({ id: m.id, ext: true, title: m.title, sw: m.title_sw, skills: m.skills, stages: m.stages, levels: m.levels, m }));
+    return [...e, ...b].filter(x => x.skills.length);
+  },
+  ready(x) { return x.skills.some(s => isOpen(s)); },
+  thumb(x) { if (x.ext) return `${GameReg.base}${x.id}/${x.m.thumbnail}`; if (!THUMBS[x.id]) THUMBS[x.id] = thumb(x.g); return THUMBS[x.id]; },
+  progress(x) {
+    if (x.ext) { const p = GP()[x.id] || {}; return { done: p.levels || 0, of: x.levels, text: `${p.levels || 0} of ${x.levels} levels` }; }
+    const n = gstate(x.id).plays || 0; return { done: Math.min(5, n), of: 5, text: n ? `Played ${n} time${n === 1 ? '' : 's'}` : 'New' };
+  },
+  /* the skills the engine wants next: the current step of each path, then due reviews (B6 refines this) */
+  wanted() { const ids = []; try { for (const m of ['num', 'lit']) ids.push(nextStep(m).id); } catch (e) { } try { ids.push(...dueSkills()); } catch (e) { } return [...new Set(ids)].filter(id => SKILL[id] && isOpen(id)); },
+  forYou() {
+    const list = this.all(), out = [];
+    for (const id of this.wanted()) { const c = list.filter(x => x.skills.includes(id) && !out.some(o => o.x.id === x.id)).sort((a, b) => this.progress(a).done - this.progress(b).done || (a.ext ? -1 : 1)); if (c[0]) out.push({ x: c[0], skill: id }); if (out.length >= 3) break; }
+    return out;
+  },
+};
+const Michezo = {
+  tab: 'you', skill: null, stage: 1,
+  show() {
+    App.state = 'michezo'; App.zone = 'arcade'; Round.game = null; App.attract = null; HUD.show(false); Card.hide(); $('#chips').hidden = true; Engine.focus = null; Engine.practiceOnly = false; App.fromSkill = null;
+    if (Sfx.ctx && S.music) Music.start('menu'); if (!GameReg.loaded) GameReg.load().then(() => { if (App.state === 'michezo') this.render(); });
+    this.render(true);
+  },
+  back() { this.show(); },
+  tile(x, skill) {
+    const pr = this.progressHTML(x), soon = !this.readyFor(x, skill);
+    return `<button class="mtile${soon ? ' soon' : ''}" data-mz="open" data-id="${esc(x.id)}" data-skill="${esc(skill || '')}" aria-label="${esc(x.title)}${soon ? ', soon' : ''}"><img src="${esc(Lib.thumb(x))}" alt="" loading="lazy">${soon ? '<span class="soonb">Soon</span>' : ''}${x.ext ? '<span class="newb">+</span>' : ''}<b>${esc(x.title)}</b>${x.sw ? `<small>${esc(x.sw)}</small>` : ''}${pr}</button>`;
+  },
+  readyFor(x, skill) { return skill ? isOpen(skill) : Lib.ready(x); },
+  progressHTML(x) { const p = Lib.progress(x); return `<span class="mprog" aria-label="${esc(p.text)}">${Array.from({ length: Math.min(p.of, 10) }, (_, i) => `<i class="${i < Math.round(p.done * Math.min(p.of, 10) / p.of) ? 'on' : ''}"></i>`).join('')}</span>`; },
+  render(first) {
+    const tabs = [['you', 'For you'], ['skill', 'By skill'], ['stage', 'By stage']], all = Lib.all();
+    let body = '';
+    if (this.tab === 'you') { const fy = Lib.forYou(); body = `<div class="sect">Next for you</div><div class="mgrid">${fy.length ? fy.map(o => this.tile(o.x, o.skill)).join('') : '<p class="sub">Finish a lesson first, then games for it show here.</p>'}</div><div class="sect">All games</div><div class="mgrid">${all.map(x => this.tile(x)).join('')}</div>`; }
+    else if (this.tab === 'skill') {
+      const sk = this.skill && SKILL[this.skill] ? this.skill : (Lib.wanted()[0] || NUM_PATH[0]); this.skill = sk;
+      body = `<div class="mchips">${[...NUM_PATH, ...LIT_PATH].map(id => `<button class="mchip${id === sk ? ' on' : ''}${isOpen(id) ? '' : ' soon'}" data-mz="skill" data-id="${id}" aria-pressed="${id === sk}">${skillIcon(id, 26)}${esc(SHORT[id] || id)}</button>`).join('')}</div><div class="mgrid">${all.filter(x => x.skills.includes(sk)).map(x => this.tile(x, sk)).join('') || '<p class="sub">No game for this skill yet.</p>'}</div>`;
+    } else { body = `<div class="mchips">${STAGES.map(s => `<button class="mchip${s.n === this.stage ? ' on' : ''}" data-mz="stage" data-n="${s.n}" aria-pressed="${s.n === this.stage}">${friendFace(s.friend, 'happy', 26)}${s.n} ${esc(s.sw)}</button>`).join('')}</div><div class="mgrid">${all.filter(x => x.stages.includes(this.stage)).map(x => this.tile(x)).join('')}</div>`; }
+    setScreen(`<div class="scr jr mz"><div class="toprow"><button class="hb" data-j="home" aria-label="Back to the map">${BACK_SVG}</button><div class="logo" style="flex:1">Michezo<small>Games · every game trains a skill</small></div>${coinsHTML()}</div>
+      <div class="seg" role="group" aria-label="Show games">${tabs.map(([k, n]) => `<button data-mz="tab" data-k="${k}" aria-pressed="${this.tab === k}">${n}</button>`).join('')}</div>${body}${grownBtn()}</div>`);
+    if (first) Speech.say(this.tab === 'you' ? 'Michezo! Games. Here are games picked for you. Tap one.' : 'Pick a game.');
+  },
+  open(id, skill) {
+    const x = Lib.all().find(y => y.id === id); if (!x) return;
+    const sk = skill && x.skills.includes(skill) ? skill : (x.skills.find(s => isOpen(s)) || x.skills[0]); const practice = !isOpen(sk);
+    App.state = 'mzsheet'; const pr = Lib.progress(x);
+    setScreen(`<div class="scr jr mz sheet"><div class="toprow"><button class="hb" data-mz="list" aria-label="Back">${BACK_SVG}</button><span style="flex:1"></span>${coinsHTML()}</div>
+      <img class="mbig" src="${esc(Lib.thumb(x))}" alt=""><div class="logo" style="text-align:center">${esc(x.title)}${x.sw ? `<small>${esc(x.sw)}</small>` : ''}</div>
+      <div class="sub" style="text-align:center">Trains: ${esc(x.skills.length > 4 ? x.skills.slice(0, 4).map(s => SHORT[s] || s).join(', ') + ' and more' : x.skills.map(s => SHORT[s] || s).join(', '))}<br>${esc(pr.text)}</div>
+      ${practice ? `<div class="kcard"><p><b>Soon!</b> You can practise this game now. It counts when you reach ${esc(SHORT[sk] || sk)} on your path.</p></div>` : ''}
+      <button class="btn go" data-mz="play" data-id="${esc(id)}" data-skill="${esc(sk)}" data-practice="${practice ? 1 : ''}">${practice ? 'Practise' : 'Play'}</button>${grownBtn()}</div>`);
+    const tr = x.skills.length > 3 ? `${SHORT[sk] || sk} and more` : x.skills.map(s => SHORT[s] || s).join(' and '); Speech.say(`${x.title}. It trains ${tr}. ${practice ? 'This is coming soon on your path, so it is practice for now.' : ''} Tap ${practice ? 'Practise' : 'Play'}!`);
+  },
+  play(id, skill, practice) {
+    const x = Lib.all().find(y => y.id === id); if (!x) return;
+    if (typeof Tele !== 'undefined') Tele.log('feature', { name: 'game_open', game: id, practice: practice ? 1 : 0 });
+    if (x.ext) return GamePlayer.open(id, { skill, practice });
+    const g = x.g; App.zone = 'arcade'; App.sel = g; Engine.practiceOnly = !!practice; Engine.focus = isOpen(skill) ? skill : null; App.fromSkill = null; startRound(g, modeFor(g, skill));
+  },
+};
+/* practice mode for built-in games: answers are checked but change no mastery */
+{ const _a = Engine.answer; Engine.answer = function (it, chosen, extra = {}) {
+    if (!this.practiceOnly) return _a.call(this, it, chosen, extra);
+    const correct = chosen === it.correct || (chosen && String(chosen.v) === String(it.correct.v)); return { correct, tag: correct ? null : (chosen && chosen.tag) || extra.tag || 'other', practice: true };
+  }; }
+/* the old arcade screen and "Free play" now open the library */
+{ const _hub = showHub; showHub = function () { if (App.zone === 'arcade') return Michezo.show(); return _hub(); }; }
+{ const _sh = showHome; showHome = function () { Engine.practiceOnly = false; return _sh(); }; }
+$('#stage').addEventListener('click', e => {
+  const el = e.target.closest('[data-mz]'); if (!el) return; Sfx.unlock(); Sfx.play('click'); const a = el.dataset.mz;
+  if (a === 'tab') { Michezo.tab = el.dataset.k; Michezo.render(); Speech.say(el.textContent); }
+  else if (a === 'skill') { Michezo.skill = el.dataset.id; Michezo.render(); Speech.say(`${SHORT[el.dataset.id]}${isOpen(el.dataset.id) ? '' : '. Soon on your path'}`); }
+  else if (a === 'stage') { Michezo.stage = +el.dataset.n; Michezo.render(); const s = STAGES.find(x => x.n === Michezo.stage); Speech.say(`Stage ${s.n}, ${s.sw}.`); }
+  else if (a === 'open') Michezo.open(el.dataset.id, el.dataset.skill || null);
+  else if (a === 'list') Michezo.show();
+  else if (a === 'play') Michezo.play(el.dataset.id, el.dataset.skill, !!el.dataset.practice);
+});
+{ const _fs = fabSync; fabSync = function () { const b = $('#kidiFab'); if (b && ['michezo', 'mzsheet'].includes(App.state)) { b.hidden = true; return; } _fs(); }; }
+{ const u = n => `calc(var(--u)*${n})`; const el = document.createElement('style'); el.textContent = `
+.mz .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:${u(10)}}.mz .mtile{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:${u(2)};background:var(--panel,#2E1E15);border:${u(2)} solid rgba(255,255,255,.12);border-radius:${u(16)};padding:${u(6)};color:#FFF7EA;text-align:left;min-height:${u(150)}}
+.mz .mtile img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:${u(10)};background:#0003}.mz .mtile b{font-size:${u(16)};line-height:1.1}.mz .mtile small{opacity:.75;font-size:${u(12)}}
+.mz .mtile.soon img{filter:grayscale(.6) brightness(.8)}.mz .soonb{position:absolute;top:${u(10)};left:${u(10)};background:#F2B829;color:#2B1E17;font-weight:800;border-radius:${u(8)};padding:0 ${u(6)};font-size:${u(13)}}.mz .newb{position:absolute;top:${u(10)};right:${u(10)};background:#3FA34D;color:#fff;font-weight:800;border-radius:50%;width:${u(20)};height:${u(20)};display:grid;place-items:center}
+.mz .mprog{display:flex;gap:${u(3)};margin-top:auto}.mz .mprog i{flex:1;height:${u(6)};border-radius:${u(3)};background:rgba(255,255,255,.18)}.mz .mprog i.on{background:#F2B829}
+.mz .mchips{display:flex;flex-wrap:wrap;gap:${u(6)}}.mz .mchip{display:flex;align-items:center;gap:${u(4)};min-height:${u(44)};padding:${u(4)} ${u(10)};border-radius:${u(22)};border:${u(2)} solid rgba(255,255,255,.2);background:rgba(0,0,0,.2);color:#FFF7EA;font-weight:700}.mz .mchip.on{background:#F2B829;color:#2B1E17}.mz .mchip.soon{opacity:.6}
+.mz .mbig{width:100%;border-radius:${u(16)};aspect-ratio:16/10;object-fit:cover}`; document.head.appendChild(el); }
+window.__ky = Object.assign(window.__ky || {}, { Michezo, Lib });
+{ const _sh = showHome; showHome = function () { _sh(); const b = document.querySelector('#screen [data-j="arcade"]'); if (b) b.innerHTML = `${PAD_SVG}Michezo · Games`; }; }
+
 boot();
 
 </script>

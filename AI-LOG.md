@@ -287,3 +287,13 @@
   - Already done in A2: games load from `srcdoc` into `<iframe sandbox="allow-scripts" allow="">` (opaque origin), with Somo's own Content Security Policy put first in the game's `<head>` (`connect-src 'none'`, images and media from `data:`/`blob:` only). Each game also carries the same CSP itself (the template has it; the checker in A7 requires it). Somo fetches the game's files itself and passes assets as data URLs, so the game never needs the network.
   - `somo2/sw.js` (cache `somo-shell-v3`): on install, and whenever the app asks after loading the registry, it caches `games/index.json`, the SDK and every enabled game's `game.json`, `index.html`, thumbnail and listed assets.
   - Tested in a headless browser with a temporary game (not committed): its files were cached, then with the network off Somo opened the game and the game ran; the frame has only `allow-scripts`; no page or console errors.
+
+## A5: the games library, "Michezo"
+- **Date:** Nov 19, 2026
+- **Prompt:** "Game library screen (Michezo / Games). Browse by skill and by stage. Big picture tiles, everything spoken aloud. Next for you: 3 games picked from the engine's current and due skills. Games for skills the child isn't ready for yet show a Soon badge and stay playable only in practice mode (practice-mode results don't change mastery). Each game shows the child's progress (levels done), not a score. The existing 20 built-in games show in the same library."
+- **What Claude Did:** (`somo2/`, source `src/b2/games.js`)
+  - "Michezo · Games" replaces the old arcade screen ("Free play" on the home screen now opens it). Tabs: **For you** ("Next for you", then all games), **By skill** (a chip per skill) and **By stage** (the four stages with their animal friend). Big picture tiles with English and Kiswahili names (our own translations for the 20 built-in games). Everything is spoken; tapping a tile opens a sheet that says the game's name and what it trains, then Play.
+  - "Next for you": up to 3 games for the current step of each path and the skills due for review, least-played first.
+  - "Soon": a game whose skills are not open yet is greyed with a Soon badge and opens in **practice mode** ("Practise"): answers are checked but change no mastery, for built-in and plug-in games alike.
+  - Progress, not scores: plug-in games show "n of N levels"; built-in games show how many times they were played.
+  - Tested in a headless browser (with a test plug-in game): the library opens and speaks, For you / By skill / By stage work, a "Soon" game plays in practice mode with no change to mastery, results return to the library, the plug-in game opens and closes back to it; no page or console errors.
