@@ -230,6 +230,7 @@ and a key box. It is hidden from children by the press-and-hold.
 - **Subtitles light up each word** as it is spoken.
 - **The new Somo logo** on the home screen, the app icon and the teacher and admin pages.
 - **Themes:** a "Theme" button with 9 colour palettes named after Kenya, including a high-contrast one; each child keeps their own.
+  - **Dress-up themes:** 7 fun worlds (Christmas, Fairy-tale magic, Superheroes, Outer space, Dinosaurs, Under the sea, Football) and 3 Kenyan ones (Jamhuri Day, Matatu madness, Maasai Mara migration). Each changes the moving background, dresses Kuku, Kobe, Twiga and Tembo in a costume (Santa hat, tiara, hero mask and cape, space helmet, snorkel, Kenyan beads and more), and changes the greeting and praise words. All art is Somo's own: no film or comic characters. A closet hat replaces the theme hat.
 
 ---
 

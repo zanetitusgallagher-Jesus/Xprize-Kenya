@@ -10941,6 +10941,137 @@ $('#stage').addEventListener('click', e => {
 }
 window.__ky = Object.assign(window.__ky || {}, { Theme, THEMES });
 
+/* ============================================================================
+   DECORATED THEMES (Nov 2026): Kenyan celebrations and fun worlds. Each one changes the vibe, not just the colours:
+   moving decorations behind the path, a costume for the animal friends (Kuku, Kobe, Twiga and Tembo dress up), the
+   home greeting and extra praise words. All art is original and drawn in code (no characters from films or comics:
+   "Fairy-tale magic" and "Superheroes" are Somo's own). The 9 palettes above are the "Kenyan colours" group.
+   ========================================================================== */
+for (const t of THEMES) t.cat = 'kenya';
+const D = {
+  snow: n => Array.from({ length: n }, (_, i) => `<i class="dsnow" style="left:${(i * 37) % 100}%;width:${3 + (i % 3) * 2}px;height:${3 + (i % 3) * 2}px;animation-duration:${7 + (i % 5) * 2}s;animation-delay:-${(i * 1.7) % 9}s"></i>`).join(''),
+  twinkle: (n, col = '#fff', ch = '✦') => Array.from({ length: n }, (_, i) => `<i class="dtw" style="left:${(i * 29 + 7) % 96}%;top:${(i * 23 + 5) % 95}%;color:${col};font-size:${10 + (i % 3) * 5}px;animation-delay:-${(i * .7) % 3}s">${ch}</i>`).join(''),
+  across: (svg, top, dur, delay = 0, rev = false) => `<div class="dwalk${rev ? ' rev' : ''}" style="top:${top}%;animation-duration:${dur}s;animation-delay:-${delay}s">${svg}</div>`,
+  at: (svg, css) => `<div class="dat" style="${css}">${svg}</div>`,
+  bubbles: n => Array.from({ length: n }, (_, i) => `<i class="dbub" style="left:${(i * 31 + 9) % 96}%;width:${6 + (i % 4) * 4}px;height:${6 + (i % 4) * 4}px;animation-duration:${6 + (i % 5) * 2}s;animation-delay:-${(i * 1.3) % 8}s"></i>`).join(''),
+};
+const ART = {
+  tree: `<svg viewBox="0 0 80 100" width="86" height="108"><path d="M40 4l26 34H52l20 26H56l18 24H6l18-24H8l20-26H14z" fill="#1F7A3A"/><rect x="34" y="88" width="12" height="10" fill="#7A4A2A"/><path d="M40 0l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" fill="#FFD447"/>${[[30, 30, '#E8577A'], [50, 44, '#FFD447'], [26, 58, '#56B4E9'], [54, 66, '#E8577A'], [36, 78, '#FFD447'], [62, 82, '#56B4E9']].map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="3.4" fill="${c}"/>`).join('')}</svg>`,
+  lights: `<svg viewBox="0 0 360 30" width="100%" height="30" preserveAspectRatio="none"><path d="M0 4q45 22 90 4t90 4 90-4 90 4" stroke="#2B5E2F" stroke-width="2" fill="none"/>${Array.from({ length: 16 }, (_, i) => `<circle class="dbulb" cx="${12 + i * 22}" cy="${10 + (i % 2) * 6}" r="4.5" fill="${['#E8577A', '#FFD447', '#56B4E9', '#3FA34D'][i % 4]}" style="animation-delay:-${i * .25}s"/>`).join('')}</svg>`,
+  castle: `<svg viewBox="0 0 120 110" width="130" height="118"><g fill="#F7D4EC" stroke="#C78AC0" stroke-width="1.5"><rect x="20" y="50" width="80" height="58"/><rect x="8" y="34" width="22" height="74"/><rect x="90" y="34" width="22" height="74"/><rect x="48" y="22" width="24" height="86"/></g><g fill="#B57BDF"><path d="M5 36l14-24 14 24z"/><path d="M87 36l14-24 14 24z"/><path d="M45 24l15-22 15 22z"/></g><path d="M60 2v-8M19 12V4M101 12V4" stroke="#7A4FD0" stroke-width="1.5"/><path d="M60-6l9 3-9 3z M19 4l7 2-7 2z M101 4l7 2-7 2z" fill="#FFD447"/><path d="M52 108v-22q8-10 16 0v22z" fill="#7A4FD0"/>${[[16, 60], [100, 60], [58, 50]].map(([x, y]) => `<rect x="${x}" y="${y}" width="6" height="9" rx="3" fill="#FFF3B0"/>`).join('')}</svg>`,
+  rainbow: `<svg viewBox="0 0 200 100" width="210" height="105">${['#E8577A', '#F6A623', '#FFD447', '#3FA34D', '#56B4E9', '#7A4FD0'].map((c, i) => `<path d="M${10 + i * 7} 100a${90 - i * 7} ${90 - i * 7} 0 0 1 ${180 - i * 14} 0" stroke="${c}" stroke-width="7" fill="none" opacity=".55"/>`).join('')}</svg>`,
+  skyline: `<svg viewBox="0 0 360 80" width="100%" height="80" preserveAspectRatio="none"><path d="M0 80V50h20V30h18v20h14V18h22v32h12V40h20V10h16v40h14V34h22v16h16V24h20v26h14V44h18V20h16v30h20V36h18v44z" fill="#1B2A55"/>${Array.from({ length: 22 }, (_, i) => `<rect x="${8 + i * 16}" y="${46 + (i % 3) * 8}" width="4" height="5" fill="#FFD447" opacity=".8"/>`).join('')}</svg>`,
+  burst: (w, c) => `<svg viewBox="0 0 100 70" width="84" height="59"><path d="M50 2l8 16 18-10-4 18 22 2-18 12 14 16-22-4-2 18-16-14-14 14-2-18-22 4 14-16L-2 28l22-2-4-18 18 10z" fill="${c}" stroke="#2B1E17" stroke-width="2.5"/><text x="50" y="44" font-size="20" font-weight="800" text-anchor="middle" fill="#C42E2E" font-family="Baloo 2,Impact,sans-serif" transform="rotate(-8 50 40)">${w}</text></svg>`,
+  hero: `<svg viewBox="0 0 90 40" width="96" height="43"><path d="M30 14q-24 2-30 22 18-6 34-6z" fill="#D63A3A"/><ellipse cx="50" cy="20" rx="20" ry="7" fill="#2F6FB0"/><circle cx="74" cy="18" r="7" fill="#F2C27A"/><path d="M68 16h12" stroke="#2B1E17" stroke-width="3"/><path d="M80 22l9-4" stroke="#F2C27A" stroke-width="4" stroke-linecap="round"/><path d="M44 16l4 4 4-4" stroke="#FFD447" stroke-width="2" fill="none"/></svg>`,
+  planet: `<svg viewBox="0 0 120 90" width="120" height="90"><circle cx="60" cy="45" r="28" fill="#E39A5B"/><path d="M38 38q22-6 44 4M36 50q24 4 46-2" stroke="#C26F3A" stroke-width="4" fill="none" opacity=".6"/><ellipse cx="60" cy="47" rx="54" ry="11" fill="none" stroke="#F7D49A" stroke-width="4" transform="rotate(-12 60 47)"/></svg>`,
+  rocket: `<svg viewBox="0 0 60 30" width="70" height="35"><path d="M10 15q14-12 40-6v12q-26 6-40-6z" fill="#EDEFF3"/><path d="M50 9q8 2 10 6-2 4-10 6z" fill="#E8577A"/><circle cx="34" cy="15" r="4" fill="#56B4E9" stroke="#2B4A6E"/><path d="M18 9l-6-7h8l6 6zM18 21l-6 7h8l6-6z" fill="#E8577A"/><path d="M10 12q-8 3 0 6z" fill="#FFD447"/><path d="M6 13q-6 2 0 4z" fill="#F6A623"/></svg>`,
+  dino: `<svg viewBox="0 0 120 70" width="120" height="70"><path d="M10 50q4-18 30-20 22-2 34-8 6-16 4-22 10 0 12 8 0 10-8 18-4 10-6 20v14h-8V48q-10 4-20 4v8h-8v-8q-18 0-30-4z" fill="#3F8A4E"/><circle cx="84" cy="6" r="1.8" fill="#12301A"/><path d="M28 32l4-7 4 7M40 30l4-7 4 7M52 28l4-7 4 7" fill="#F2B829"/></svg>`,
+  volcano: `<svg viewBox="0 0 140 90" width="140" height="90"><path d="M0 90l50-62h40l50 62z" fill="#6B4226"/><path d="M50 28l8-8 6 8 8-10 6 10 12 0" fill="#E8573A"/><path d="M58 28q4 18-8 30M78 28q6 16 2 26" stroke="#F6A623" stroke-width="5" fill="none" opacity=".85"/><circle class="dsmoke" cx="70" cy="14" r="10" fill="#9A8C80" opacity=".7"/><circle class="dsmoke s2" cx="80" cy="6" r="8" fill="#9A8C80" opacity=".6"/></svg>`,
+  fish: c => `<svg viewBox="0 0 50 30" width="50" height="30"><path d="M8 15q14-14 32 0-18 14-32 0z" fill="${c}"/><path d="M40 15l10-8v16z" fill="${c}"/><circle cx="16" cy="13" r="2" fill="#12212E"/><path d="M24 8q4 7 0 14" stroke="#fff" stroke-width="1.4" fill="none" opacity=".6"/></svg>`,
+  weed: `<svg viewBox="0 0 60 120" width="60" height="120"><path class="dsway" d="M20 120q-10-30 4-60t-4-58M36 120q12-26-2-52t6-44M48 120q-6-20 6-40" stroke="#2FA06A" stroke-width="6" fill="none" stroke-linecap="round"/></svg>`,
+  ball: `<svg viewBox="0 0 30 30" width="34" height="34"><circle cx="15" cy="15" r="13" fill="#fff" stroke="#2B1E17" stroke-width="1.5"/><path d="M15 9l5 4-2 6h-6l-2-6z" fill="#2B1E17"/><path d="M15 9V3M20 13l6-2M18 19l3 5M12 19l-3 5M10 13l-6-2" stroke="#2B1E17" stroke-width="1.3"/></svg>`,
+  goal: `<svg viewBox="0 0 140 70" width="140" height="70"><path d="M6 68V6h128v62" stroke="#fff" stroke-width="5" fill="none"/>${Array.from({ length: 9 }, (_, i) => `<path d="M${20 + i * 13} 8v60" stroke="#fff" stroke-width="1" opacity=".4"/>`).join('')}${Array.from({ length: 4 }, (_, i) => `<path d="M8 ${20 + i * 13}h124" stroke="#fff" stroke-width="1" opacity=".4"/>`).join('')}</svg>`,
+  flag: `<svg viewBox="0 0 60 44" width="66" height="48"><path d="M2 0v44" stroke="#5A3A22" stroke-width="3"/><g class="dwave"><rect x="4" y="2" width="54" height="11" fill="#1A1A1A"/><rect x="4" y="13" width="54" height="2" fill="#fff"/><rect x="4" y="15" width="54" height="11" fill="#BB2B2B"/><rect x="4" y="26" width="54" height="2" fill="#fff"/><rect x="4" y="28" width="54" height="11" fill="#1E7A3A"/><ellipse cx="31" cy="20.5" rx="5" ry="10" fill="#BB2B2B" stroke="#fff" stroke-width="1"/><path d="M31 11v19" stroke="#1A1A1A" stroke-width="1.4"/></g></svg>`,
+  shield: `<svg viewBox="0 0 60 90" width="60" height="90"><ellipse cx="30" cy="45" rx="26" ry="42" fill="#fff" stroke="#1A1A1A" stroke-width="3"/><ellipse cx="30" cy="45" rx="20" ry="36" fill="#BB2B2B"/><path d="M30 9v72" stroke="#1A1A1A" stroke-width="4"/><path d="M14 30q16-8 32 0M14 60q16 8 32 0" stroke="#fff" stroke-width="3" fill="none"/><path d="M-6 70L66 18M66 72L-6 20" stroke="#7A4A2A" stroke-width="3"/></svg>`,
+  firework: c => `<svg viewBox="0 0 60 60" width="60" height="60"><g class="dfw" stroke="${c}" stroke-width="3" stroke-linecap="round">${Array.from({ length: 10 }, (_, i) => { const a = i * Math.PI / 5; return `<path d="M${30 + Math.cos(a) * 8} ${30 + Math.sin(a) * 8}L${30 + Math.cos(a) * 26} ${30 + Math.sin(a) * 26}"/>`; }).join('')}</g></svg>`,
+  matatu: (a, b) => `<svg viewBox="0 0 120 54" width="120" height="54"><path d="M6 40V16q0-10 10-10h78q12 0 18 14l4 8v12z" fill="${a}"/><path d="M8 26h104" stroke="${b}" stroke-width="5"/><path d="M14 30q16-8 30 2t30-2 30 2" stroke="#fff" stroke-width="2" fill="none"/>${[18, 38, 58, 78].map(x => `<rect x="${x}" y="10" width="16" height="11" rx="2" fill="#BFE7F5"/>`).join('')}<path d="M98 10h8l6 12h-14z" fill="#BFE7F5"/><text x="56" y="38" font-size="9" font-weight="800" text-anchor="middle" fill="#fff" font-family="Baloo 2,sans-serif">SOMO 1</text><circle cx="28" cy="44" r="7" fill="#2B1E17"/><circle cx="92" cy="44" r="7" fill="#2B1E17"/><circle cx="28" cy="44" r="3" fill="#C9C9C9"/><circle cx="92" cy="44" r="3" fill="#C9C9C9"/></svg>`,
+  nairobi: `<svg viewBox="0 0 360 70" width="100%" height="70" preserveAspectRatio="none"><path d="M0 70V48h24V36h16v12h20V24h12V12h8v12h12v24h18V30l14-14 14 14v18h20V40h22V20l6-8 6 8v20h18v8h22V34h16v14h20V28h14v20h26V42h20v28z" fill="#2B1E3F"/>${Array.from({ length: 20 }, (_, i) => `<rect x="${10 + i * 17}" y="${50 + (i % 3) * 6}" width="4" height="4" fill="#FFD447" opacity=".8"/>`).join('')}</svg>`,
+  note: c => `<svg viewBox="0 0 24 24" width="24" height="24"><path d="M9 18V5l11-2v12" stroke="${c}" stroke-width="2" fill="none"/><circle cx="6.5" cy="18" r="3" fill="${c}"/><circle cx="17.5" cy="15" r="3" fill="${c}"/></svg>`,
+  gnu: `<svg viewBox="0 0 70 46" width="64" height="42"><path d="M8 24q4-12 24-12h18q10-6 16 2-2 8-10 8l-4 4v18h-5V32H24v12h-5V30q-8-2-11-6z" fill="#4A3A30"/><path d="M52 12q-2-8 4-10M60 14q6-6 8-2" stroke="#D8C7AE" stroke-width="2" fill="none"/><path d="M52 18q-2 8 2 12" stroke="#2B1E17" stroke-width="3" fill="none"/></svg>`,
+  balloon: `<svg viewBox="0 0 60 90" width="56" height="84"><path d="M30 2q26 0 26 28 0 18-20 34h-12Q4 48 4 30 4 2 30 2z" fill="#E8577A"/><path d="M30 2q-12 0-12 28 0 18 8 34M30 2q12 0 12 28 0 18-8 34" fill="#FFD447" opacity=".85"/><path d="M24 64l2 10h8l2-10" stroke="#7A4A2A" stroke-width="1.5" fill="none"/><rect x="23" y="74" width="14" height="10" rx="2" fill="#B36A3B"/></svg>`,
+  acacia: `<svg viewBox="0 0 100 70" width="100" height="70"><path d="M48 70V38l-14-12M52 38l16-12M50 50l-10-10" stroke="#3B2416" stroke-width="5" fill="none"/><ellipse cx="50" cy="22" rx="46" ry="12" fill="#2B4A1E"/></svg>`,
+};
+/* costumes for the animal friends, on the same 30×30 head as the closet outfits */
+const COSTUME = {
+  santa: '<g data-th="head"><path d="M5 9q9-12 20 0z" fill="#D62B2B"/><path d="M24 8q4 1 4 5" stroke="#D62B2B" stroke-width="3" fill="none"/><circle cx="28" cy="13" r="2.4" fill="#fff"/><rect x="4" y="8" width="22" height="3.4" rx="1.7" fill="#fff"/></g>',
+  tiara: '<g data-th="head"><path d="M8 8l2-4 2.5 3L15 2l2.5 5 2.5-3 2 4z" fill="#F7D4EC" stroke="#B57BDF" stroke-width=".8"/><circle cx="15" cy="4.5" r="1.3" fill="#56B4E9"/><path d="M24 3l1 2 2 .5-2 1-1 2-1-2-2-1 2-.5z" fill="#FFD447"/></g>',
+  mask: '<g><path d="M5 10q10-4 20 0v4q-10 3-20 0z" fill="#2F6FB0"/><ellipse cx="11" cy="12" rx="2.6" ry="1.8" fill="#fff"/><ellipse cx="19" cy="12" rx="2.6" ry="1.8" fill="#fff"/><circle cx="11" cy="12" r="1" fill="#2B1B12"/><circle cx="19" cy="12" r="1" fill="#2B1B12"/></g><g data-th="head"><path d="M3 24q-3 6 2 6h20q5 0 2-6" fill="#D63A3A" opacity=".9"/></g>',
+  helmet: '<g data-th="head"><circle cx="15" cy="14" r="13.5" fill="rgba(191,231,245,.25)" stroke="#E6EEF4" stroke-width="2"/><path d="M8 5q4-3 8-2" stroke="#fff" stroke-width="1.6" fill="none" opacity=".8"/><path d="M22 1v-1" stroke="#9AA3A8" stroke-width="1.5"/><circle cx="22" cy="0.5" r="1.4" fill="#E8577A"/></g>',
+  spikes: '<g data-th="head"><path d="M7 7l2-6 2 6M12 5l3-6 3 6M19 7l2-6 2 6" fill="#3F8A4E"/></g>',
+  snorkel: '<g><rect x="6" y="9" width="18" height="7" rx="3" fill="rgba(127,224,242,.45)" stroke="#F6A623" stroke-width="1.2"/><path d="M25 12h2v-9" stroke="#F6A623" stroke-width="2" fill="none"/></g>',
+  band: '<g data-th="head"><rect x="5" y="6" width="20" height="3" rx="1.5" fill="#1A1A1A"/><rect x="5" y="9" width="20" height="1.4" fill="#BB2B2B"/><rect x="5" y="10.4" width="20" height="1.4" fill="#1E7A3A"/></g>',
+  beads: '<g data-th="head">' + [6, 9, 12, 15, 18, 21, 24].map((x, i) => `<circle cx="${x}" cy="${6 + Math.abs(i - 3) * .6}" r="1.6" fill="${['#BB2B2B', '#2F6FB0', '#fff', '#1E7A3A', '#fff', '#2F6FB0', '#BB2B2B'][i]}"/>`).join('') + '</g><path d="M6 26q9 4 18 0" stroke="#BB2B2B" stroke-width="2" fill="none"/>',
+  shades: '<g><rect x="6" y="10" width="7" height="4.5" rx="1.5" fill="#1A1A1A"/><rect x="17" y="10" width="7" height="4.5" rx="1.5" fill="#1A1A1A"/><path d="M13 12h4" stroke="#1A1A1A" stroke-width="1.2"/></g><g data-th="head"><path d="M6 8q9-9 18 0z" fill="#F2B829"/><path d="M4 8h8" stroke="#E8577A" stroke-width="2.4"/></g>',
+  safari: '<g data-th="head"><ellipse cx="15" cy="7.5" rx="12.5" ry="2.4" fill="#C9A86A"/><path d="M9 7.5q6-8 12 0z" fill="#D8BC82"/><rect x="9" y="5.6" width="12" height="1.4" fill="#7A4A2A"/></g>',
+};
+const FUN = [
+  { id: 'christmas', cat: 'fun', name: 'Christmas', sw: 'Krismasi', costume: 'santa', greet: n => `Krismasi njema, ${n}! Ho ho ho! Let's learn and play.`, praise: ['Ho ho ho! Yes!', 'Jingle-tastic!', 'Merry well done!'],
+    sky: ['#0E3B2E', '#0D3328', '#0B2A22', '#14213D', '#0A1226'], page: ['#5A1418', '#3A0E11', '#1F0709'], sun: ['#FFF8D6', '#FFE07A'], v: { bg: '#0A1226', panel: '#2A1012', soil: '#D62B2B', mango: '#F2B829', sun: '#FFD447', sky: '#9FD8F5', leaf: '#2E9E54', grape: '#7A4FD0', rose: '#F0607A' },
+    deco: () => D.snow(28) + D.at(ART.lights, 'top:0;left:0;right:0') + D.at(ART.tree, 'top:70px;right:8px') + D.at(ART.tree.replace('width="86" height="108"', 'width="60" height="76"'), 'top:46%;left:-6px;opacity:.7') },
+  { id: 'fairy', cat: 'fun', name: 'Fairy-tale magic', sw: 'Hadithi za uchawi', costume: 'tiara', greet: n => `Once upon a time, ${n} came to learn! Let's make some magic.`, praise: ['Magical!', 'Sparkly work!', 'Happily ever right!'],
+    sky: ['#F49BC9', '#D97FC0', '#9B5FC0', '#5A3A8E', '#2A1E52'], page: ['#4A2A6E', '#2F1B4A', '#1A0F2C'], sun: ['#FFFFFF', '#FFD6F0'], v: { bg: '#170C26', panel: '#2B1A44', soil: '#C77BE0', mango: '#F6A8C8', sun: '#FFE07A', sky: '#9ED8FF', leaf: '#5FD39A', grape: '#B98CFF', rose: '#FF8AC4' },
+    deco: () => D.at(ART.rainbow, 'top:120px;left:-40px;opacity:.8') + D.at(ART.castle, 'top:50px;right:4px') + D.twinkle(22, '#FFF3B0') },
+  { id: 'heroes', cat: 'fun', name: 'Superheroes', sw: 'Mashujaa', costume: 'mask', greet: n => `Hero ${n}, your mission: learn something new today! Let's go!`, praise: ['POW! Right!', 'Super power!', 'Hero work!'],
+    sky: ['#1E5BB8', '#1A4FA0', '#173F80', '#B8282E', '#5A0F14'], page: ['#1B2F6B', '#14214A', '#0B132B'], sun: ['#FFF3B0', '#FFD447'], halftone: true, v: { bg: '#0B132B', panel: '#16224A', soil: '#D63A3A', mango: '#FFB800', sun: '#FFD447', sky: '#4FA8FF', leaf: '#2DBE5A', grape: '#8A5CFF', rose: '#FF5A6E' },
+    deco: () => D.at(ART.skyline, 'top:150px;left:0;right:0;opacity:.85') + D.across(ART.hero, 12, 14) + D.across(ART.hero, 58, 19, 8) + D.at(ART.burst('POW!', '#FFD447'), 'top:44%;left:4px') + D.at(ART.burst('ZAP!', '#7FE0F2'), 'top:70%;right:4px') + D.at(ART.burst('BAM!', '#FF8A3D'), 'top:88%;left:20%') },
+  { id: 'space', cat: 'fun', name: 'Outer space', sw: 'Anga za juu', costume: 'helmet', greet: n => `Mission control to astronaut ${n}! Ready for learning lift-off?`, praise: ['Out of this world!', 'Blast off!', 'Stellar!'],
+    sky: ['#0B0B2E', '#0A0A28', '#080820', '#06061A', '#030310'], page: ['#141238', '#0C0B26', '#050414'], sun: ['#FFFFFF', '#CFD8FF'], stars: true, v: { bg: '#050414', panel: '#14123A', soil: '#5B6BFF', mango: '#FFB347', sun: '#FFE07A', sky: '#7FD3FF', leaf: '#4CD39A', grape: '#B07BFF', rose: '#FF7FB0' },
+    deco: () => D.twinkle(30, '#fff', '•') + D.at(ART.planet, 'top:60px;right:0') + D.across(ART.rocket, 30, 16) + D.across(ART.rocket, 76, 22, 10) },
+  { id: 'dino', cat: 'fun', name: 'Dinosaurs', sw: 'Dinosaria', costume: 'spikes', greet: n => `RAWR! Welcome back, ${n}! Dino time to learn.`, praise: ['Roar-some!', 'Dino-mite!', 'Stomping good!'],
+    sky: ['#F2A34A', '#D9823A', '#8A6A2A', '#3E5A2A', '#1E2E16'], page: ['#3A4A22', '#283417', '#161D0C'], sun: ['#FFF1C2', '#F7B24A'], v: { bg: '#141B0C', panel: '#263018', soil: '#6FA83A', mango: '#F2A34A', sun: '#FFD447', sky: '#7FC8E0', leaf: '#4FAE3A', grape: '#8A6FD3', rose: '#E8705A' },
+    deco: () => D.at(ART.volcano, 'top:70px;right:0') + D.across(ART.dino, 20, 24) + D.across(ART.dino.replace('width="120" height="70"', 'width="80" height="47"'), 62, 30, 12, true) },
+  { id: 'sea', cat: 'fun', name: 'Under the sea', sw: 'Chini ya bahari', costume: 'snorkel', greet: n => `Splash! Hello ${n}! Let's dive into learning.`, praise: ['Fin-tastic!', 'Splash-tastic!', 'O-fish-ally right!'],
+    sky: ['#1E9BC2', '#1786AC', '#106A8E', '#0A4B68', '#052A3D'], page: ['#0E4A64', '#093447', '#041E2B'], sun: ['#E8FBFF', '#9FE6F7'], v: { bg: '#041824', panel: '#0B3044', soil: '#1FB2C6', mango: '#FFB14A', sun: '#FFE38A', sky: '#9FEFFF', leaf: '#3FD39A', grape: '#7F8BFF', rose: '#FF8A9A' },
+    deco: () => D.bubbles(22) + D.across(ART.fish('#F6A623'), 14, 18) + D.across(ART.fish('#E8577A'), 40, 22, 6, true) + D.across(ART.fish('#FFD447'), 66, 16, 4) + D.at(ART.weed, 'bottom:0;left:0') + D.at(ART.weed, 'bottom:0;right:0;transform:scaleX(-1)') },
+  { id: 'football', cat: 'fun', name: 'Football', sw: 'Mpira wa miguu', costume: 'band', greet: n => `${n} is on the pitch! Let's score some learning goals!`, praise: ['GOAL!', 'Top corner!', 'What a strike!'],
+    sky: ['#1A2A4A', '#16243F', '#1E5A2E', '#1A4E28', '#123A1C'], page: ['#1E5A2E', '#164422', '#0D2B15'], sun: ['#FFFFFF', '#E6F0FF'], pitch: true, v: { bg: '#0B1F10', panel: '#163A20', soil: '#2E9E54', mango: '#FFB000', sun: '#FFE07A', sky: '#7FC8FF', leaf: '#4CC36A', grape: '#7F7BE8', rose: '#FF6E7A' },
+    deco: () => D.at(ART.goal, 'top:70px;right:6px') + D.across(`<div class="dbounce">${ART.ball}</div>`, 30, 12) + D.across(`<div class="dbounce">${ART.ball}</div>`, 72, 15, 7, true) },
+  { id: 'jamhuri', cat: 'kenya', name: 'Jamhuri Day', sw: 'Siku ya Jamhuri', costume: 'beads', greet: n => `Happy Jamhuri Day, ${n}! Harambee! Let's learn together.`, praise: ['Harambee!', 'Hongera sana!', 'Kenya proud!'],
+    sky: ['#1E7A3A', '#17652F', '#7D1820', '#2A0B0E', '#0A0A0A'], page: ['#3A0E11', '#1F0709', '#0A0A0A'], sun: ['#FFFFFF', '#FFE07A'], v: { bg: '#0A0A0A', panel: '#2A1012', soil: '#BB2B2B', mango: '#F2A41E', sun: '#FFD23F', sky: '#56B4E9', leaf: '#1E9E4A', grape: '#7C4BC8', rose: '#F0607A' },
+    deco: () => D.at(ART.flag, 'top:70px;right:16px') + D.at(ART.shield, 'top:40%;left:2px;opacity:.8') + D.at(ART.flag, 'top:66%;right:4px') + D.at(ART.firework('#FFD447'), 'top:120px;left:30%') + D.at(ART.firework('#E8577A'), 'top:52%;right:22%') + D.at(ART.firework('#3FD36A'), 'top:84%;left:12%') },
+  { id: 'matatu', cat: 'kenya', name: 'Matatu madness', sw: 'Matatu za rangi', costume: 'shades', greet: n => `Panda matatu, ${n}! Next stop: learning. Twende!`, praise: ['Sawa sawa!', 'Poa sana!', 'Kabisa!'],
+    sky: ['#FF6B3D', '#E8456A', '#9B3FB8', '#3A2A7A', '#1A1238'], page: ['#3A1F5E', '#261340', '#140A24'], sun: ['#FFF3B0', '#FFD447'], v: { bg: '#140A24', panel: '#2A1844', soil: '#FF4F8B', mango: '#FFB000', sun: '#FFE600', sky: '#3FE0FF', leaf: '#3FE07A', grape: '#B06BFF', rose: '#FF5AA0' },
+    deco: () => D.at(ART.nairobi, 'top:150px;left:0;right:0;opacity:.9') + D.across(ART.matatu('#FFD400', '#E8456A'), 26, 12) + D.across(ART.matatu('#3FE07A', '#2B1E3F'), 60, 15, 6, true) + D.across(ART.matatu('#FF4F8B', '#3FE0FF'), 86, 13, 3) + D.twinkle(10, '#FFE600', '♪') },
+  { id: 'migration', cat: 'kenya', name: 'Maasai Mara migration', sw: 'Uhamiaji wa Mara', costume: 'safari', greet: n => `Jambo ${n}! The great migration is on. Let's learn on the move!`, praise: ['Hakuna matata, right!', 'Mara-velous!', 'Safari star!'],
+    sky: ['#F5B04A', '#E8923A', '#C2672A', '#6E3A1E', '#2E1A10'], page: ['#5A3A1E', '#3A2614', '#1E140A'], sun: ['#FFF3C2', '#F7B24A'], keepSun: true, v: { bg: '#1A1108', panel: '#2E1E10', soil: '#D9823A', mango: '#F6A623', sun: '#FFD447', sky: '#56B4E9', leaf: '#5A9E3A', grape: '#8A5FD0', rose: '#E8705A' },
+    deco: () => D.at(ART.balloon, 'top:160px;left:14px') + D.at(ART.acacia, 'top:44%;right:0') + [0, 4, 8, 12, 16].map(d => D.across(ART.gnu, 30, 26, d)).join('') + [2, 9, 15].map(d => D.across(ART.gnu.replace('width="64" height="42"', 'width="48" height="31"'), 74, 30, d, true)).join('') },
+];
+THEMES.push(...FUN); for (const t of FUN) THEME_BY[t.id] = t;
+const BASE_PRAISE = PRAISE.slice();
+/* the vibe: the background scene, the friends' costume, the greeting and the praise words */
+{ const _ap = Theme.apply; Theme.apply = function (id) {
+    _ap.call(this, id); const t = THEME_BY[id] || this.cur(); const el = document.getElementById('somotheme');
+    if (el && (t.halftone || t.pitch)) el.textContent += `${t.halftone ? '.scr.saf{background-image:radial-gradient(rgba(255,255,255,.12) 1.4px,transparent 1.6px),' + `linear-gradient(180deg,${t.sky[0]} 0,${t.sky[1]} 10%,${t.sky[2]} 28%,${t.sky[3]} 55%,${t.sky[4]} 100%)!important;background-size:12px 12px,auto!important}` : ''}${t.pitch ? `.scr.saf{background:repeating-linear-gradient(180deg,transparent 0 60px,rgba(255,255,255,.04) 60px 120px),linear-gradient(180deg,${t.sky.join(',')})!important}` : ''}`;
+    PRAISE.splice(0, PRAISE.length, ...BASE_PRAISE, ...(t.praise || []));
+  }; }
+{ const _ff = friendFace; friendFace = function (fid, mood, size) { const svg = _ff(fid, mood, size); const t = Theme.cur(); const c = t.costume && COSTUME[t.costume]; return c ? svg.replace(/<\/svg>$/, c + '</svg>') : svg; }; }
+/* a closet hat wins over the theme hat (no two hats at once) */
+{ const _km = kidiMini; kidiMini = function (mood, size, wear) { const w = wear || (S.rewards && S.rewards.wear) || {}; let svg = _km(mood, size, wear); if (w.head && CLOSET_BY[w.head]) svg = svg.replace(/<g data-th="head">[\s\S]*?<\/g>/, ''); return svg; }; }
+{ const _g = greeting; greeting = function () { const t = Theme.cur(); const d = today(); return t.greet && !d.n && !(d.lessons || []).length ? t.greet(LEARNER) : _g(); }; }
+{ const _sh = showHome; showHome = function () { _sh(); const t = Theme.cur(); const bg = document.querySelector('#screen .safbg'); if (!bg || !t.deco) return;
+    bg.classList.add('thdeco'); if (t.keepSun) bg.classList.add('keepsun'); bg.insertAdjacentHTML('beforeend', `<div class="dlayer">${t.deco()}</div>`); }; }
+/* the picker in two groups */
+Theme.show = function () {
+  App.state = 'themes'; Round.game = null; App.attract = null; HUD.show(false); Card.hide(); const cur = this.cur().id;
+  const card = t => `<button class="thcard${t.id === cur ? ' on' : ''}" data-k="theme" data-v="${t.id}" aria-pressed="${t.id === cur}" aria-label="${esc(t.name)}">
+    <span class="thsky" style="background:linear-gradient(180deg,${t.sky[0]},${t.sky[2]} 55%,${t.sky[4]})"><i style="background:radial-gradient(circle,${t.sun[0]},${t.sun[1]} 60%,transparent 72%)"></i>${t.costume ? `<span class="thface">${friendFace('kuku', 'happy', 34).replace(/<\/svg>$/, COSTUME[t.costume] + '</svg>')}</span>` : ''}<span class="thdots">${['soil', 'mango', 'leaf', 'sky', 'rose'].map(k => `<b style="background:${t.v[k]}"></b>`).join('')}</span></span>
+    <span class="thname">${esc(t.name)}<small>${esc(t.sw)}</small></span>${t.id === cur ? '<span class="thtick">✓</span>' : ''}</button>`;
+  setScreen(`<div class="scr jr"><div class="toprow"><button class="hb" data-j="home" aria-label="Back">${BACK_SVG}</button><div class="h2" style="flex:1">Pick a theme</div></div>
+    <div class="sub">Tap one. Your friends dress up too! Gusa moja.</div>
+    <div class="sect">Fun worlds</div><div class="thgrid">${THEMES.filter(t => t.cat === 'fun').map(card).join('')}</div>
+    <div class="sect">Kenya</div><div class="thgrid">${THEMES.filter(t => t.cat === 'kenya' && t.deco).map(card).join('')}</div>
+    <div class="sect">Kenyan colours</div><div class="thgrid">${THEMES.filter(t => t.cat === 'kenya' && !t.deco).map(card).join('')}</div>${grownBtn()}</div>`);
+  Speech.say('Pick a theme! Your friends dress up too.');
+};
+{
+  const u = n => `calc(var(--u)*${n})`;
+  const el = document.createElement('style'); el.textContent = `
+.safbg.thdeco>.cloud,.safbg.thdeco>.birds,.safbg.thdeco>.walker,.safbg.thdeco>.tree{display:none}.safbg.thdeco:not(.keepsun)>.sun{display:none}
+.dlayer{position:absolute;inset:0}.dat{position:absolute}.dwalk{position:absolute;left:-30%;animation:swalk linear infinite}.dwalk.rev{animation-name:swalkr}.dwalk.rev svg{transform:scaleX(-1)}
+.dsnow{position:absolute;top:-2%;border-radius:50%;background:#fff;opacity:.85;animation:dfall linear infinite}@keyframes dfall{to{transform:translate(${u(20)},${u(1400)})}}
+.dtw{position:absolute;font-style:normal;animation:dtwk 2.6s ease-in-out infinite}@keyframes dtwk{50%{opacity:.25;transform:scale(.7)}}
+.dbub{position:absolute;bottom:-3%;border-radius:50%;border:2px solid rgba(255,255,255,.6);animation:drise linear infinite}@keyframes drise{to{transform:translate(${u(-14)},${u(-1400)})}}
+.dbulb{animation:dtwk 1.4s ease-in-out infinite}.dsmoke{animation:dpuff 3s ease-out infinite}.dsmoke.s2{animation-delay:-1.5s}@keyframes dpuff{to{transform:translate(${u(6)},${u(-24)}) scale(1.6);opacity:0}}
+.dsway{transform-origin:bottom;animation:ssway 2.4s ease-in-out infinite alternate}.dwave{animation:dwav 1.6s ease-in-out infinite alternate;transform-origin:left}@keyframes dwav{to{transform:skewY(4deg)}}
+.dfw{transform-origin:center;animation:dboom 2.4s ease-out infinite}@keyframes dboom{0%{transform:scale(.2);opacity:0}30%{opacity:1}100%{transform:scale(1.2);opacity:0}}
+.dbounce{animation:dbnc .8s ease-in-out infinite alternate}@keyframes dbnc{to{transform:translateY(${u(-30)}) rotate(160deg)}}
+.thsky{position:relative}.thface{position:absolute;left:50%;top:${u(6)};transform:translateX(-50%)}
+.lib .sect,.jr .sect{margin-top:${u(4)}}
+@media (prefers-reduced-motion:reduce){.dlayer *{animation:none!important}}`;
+  document.head.appendChild(el);
+}
+Theme.apply();
+
 boot();
 
 </script>

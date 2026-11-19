@@ -242,3 +242,10 @@
 - **Goal:** Children can choose the colours of Somo.
 - **Prompt:** "Add theme change button (min 7 themes/color palettes)."
 - **What Claude Did:** (`somo2/`, source `src/b2/themes.js` in Chronicle) a "Theme" button on the home screen opens "Pick your colours" with 9 themes: Savanna sunset (the original), Lake Victoria, Kakamega forest, Night sky (with stars), Maasai beads, Mombasa coast, Tea hills of Kericho, Jacaranda Nairobi, and Bright and clear (high contrast). A theme changes the sky behind the path, every screen's background and the accent colours; light text stays on a dark ground so everything stays readable. Names are in English and Kiswahili, the picker is spoken aloud, and each child's choice is saved with their progress. Tested in a headless browser (pick, home screen, reload): no page or console errors.
+
+## Dress-up themes (fun worlds + Kenya)
+- Asked: themes like Christmas, Disney and Marvel, plus Kenyan ones, where the characters and the vibe change too.
+- Built (src/b2/themes.js): 10 decorated themes. Fun worlds: Christmas, Fairy-tale magic, Superheroes, Outer space, Dinosaurs, Under the sea, Football. Kenya: Jamhuri Day, Matatu madness, Maasai Mara migration. Each has its own moving background (snow and lights, castle and rainbow, city and flying heroes, planets and rockets, volcano and dinosaurs, fish and bubbles, goal and bouncing balls, Kenyan flags and fireworks, matatus over Nairobi, wildebeest and a balloon), a costume on every animal friend, its own greeting and extra praise words.
+- Disney and Marvel are not copied: "Fairy-tale magic" and "Superheroes" are original, drawn in code. The picker shows three groups: Fun worlds, Kenya, Kenyan colours (the 9 palettes from before).
+- Moving pictures stop when the phone asks for reduced motion. A closet hat wins over a theme hat.
+- Tested in a headless browser: all 19 themes pick, save and show; no page or console errors.
