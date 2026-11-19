@@ -8111,7 +8111,7 @@ window.addEventListener('hashchange', openSetup); openSetup();
 
 /* ============================================================================
    REWARDS: treasure chests, a sticker book, Kidi's closet and levels.
-   Rewards come from learning (right answers, finished steps, finished skills) and one daily gift,
+   Rewards come from learning (right answers, finished steps, finished skills) and one daily gift (after the day's first finished step),
    never from time spent. Chests open on the spot with a reveal; stickers and outfits are cosmetic.
    ========================================================================== */
 const RW = () => S.rewards || (S.rewards = { xp: 0, stickers: {}, chests: [], owned: [], wear: {}, daily: null });
@@ -8157,11 +8157,12 @@ function dressFab() { const b = $('#kidiFab'); if (!b) return; const sv = b.quer
 { const _a = Engine.answer; Engine.answer = function (it, chosen, extra) { const r = _a.call(this, it, chosen, extra); addXP(r.correct ? 10 : 3); return r; }; }
 { const _ms = markStep; markStep = function (id, s) {
     const fresh = _ms(id, s);
+    /* the daily gift: once a day, after the first step the child finishes that day (Nov 2026: not just for opening Somo) */
+    if (JR.loaded && J().placed && RW().daily !== todayKey()) { RW().daily = todayKey(); RW().chests.push({ k: 'daily' }); Store.save(); }
     if (fresh) { addXP(25); RW().chests.push({ k: 'step' }); if (unitSteps(id).every(x => stepDone(id, x))) RW().chests.push({ k: 'gold', id }); Store.save(); }
     return fresh;
   }; }
 { const _sh = showHome; showHome = function () {
-    if (JR.loaded && J().placed && RW().daily !== todayKey()) { RW().daily = todayKey(); RW().chests.push({ k: 'daily' }); }
     _sh(); if (App.state !== 'hub') return; dressFab();
     const q = document.querySelector('#screen .quick'); if (!q) return; const L0 = levelInfo(), have = Object.keys(RW().stickers).length;
     q.insertAdjacentHTML('afterend', `<div class="rwbar"><button class="lvl" data-r="closet" aria-label="Level ${L0.n}"><span class="lvk">${kidiMini('happy', 40)}</span><span class="lvt"><b>Level ${L0.n}</b><span class="lbar"><i style="width:${Math.round(L0.cur / L0.need * 100)}%"></i></span></span></button>

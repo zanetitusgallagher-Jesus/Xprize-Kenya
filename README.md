@@ -72,7 +72,7 @@ The pages try these routes **in this order**:
   - **Inspire:** a nursery rhyme or story, then a lesson (Watch → Together → You).
   - **Interpret:** up to three games that train that skill.
   - **Impart:** the child teaches the tutor, who has made a mistake, then gets an activity to show a grown-up at home, in English and Kiswahili.
-- **Treasure chests:** finishing steps and skills, levelling up and a daily gift each pop a treasure chest with a sticker and coins (Somo's original rewards). Stickers go in the sticker book; coins buy outfits in the closet.
+- **Treasure chests:** finishing steps and skills, levelling up and a daily gift (once a day, after the child finishes their first step that day) each pop a treasure chest with a sticker and coins (Somo's original rewards). Stickers go in the sticker book; coins buy outfits in the closet.
 - **Story corner:** public-domain nursery rhymes, some with tunes; Aesop fables and an East African hare tale, retold; a tracing book for all 52 letters.
 - **Learning with a grown-up:** a switch on the home screen shows a tip in English or Kiswahili before each activity.
 - **Grown-ups panel:** press and hold the people icon. It shows progress, mistakes, the AI status and its own key box.

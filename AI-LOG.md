@@ -230,3 +230,9 @@
   - Device voice: word-boundary events; if a voice sends none, timing is estimated from the speaking rate. Recorded clips and the live relay voice: each clip's known length is shared among its words by word length.
   - Fixed an older bug: the subtitle was hidden the moment speech started (stopping the previous line hid the new subtitle). Subtitles now stay on screen while Somo speaks.
   - Tested in a headless browser with the recorded voice pack and a stand-in device voice: the highlight follows each word; no page or console errors.
+
+## Feature 8: daily gift only after a step
+- **Date:** Nov 19, 2026
+- **Goal:** The daily treasure chest rewards learning, not just opening Somo.
+- **Prompt:** "The daily treasure chest appears only after the child finishes at least one step that day."
+- **What Claude Did:** (`somo2/`, source `src/rewards.js` in Chronicle) the daily chest is no longer added when the home screen opens; it is added once a day, the first time the child finishes a step (a replayed step counts, so children who have finished everything still get it). README and SOMO-GUIDE updated, including a section on everything added Nov 12 to 19. Tested in a headless browser (open only, first step, second step, a new day, the chest popping): no page or console errors.

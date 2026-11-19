@@ -137,7 +137,7 @@ starting number too, and "same first sound is not a rhyme". The teacher sees whi
 ### 2.6 Rewards
 
 - **Treasure chests:** finishing steps and skills, levelling up and a daily gift each pop a chest with a sticker and
-  coins. A **golden chest** comes for finishing a whole skill.
+  coins. The daily gift comes once a day, after the child finishes their first step that day. A **golden chest** comes for finishing a whole skill.
 - **Sticker book:** common, rare and golden stickers to collect.
 - **Closet:** coins buy outfits and hats for the animal friend.
 - **Levels:** experience from learning raises the child's level.
@@ -212,6 +212,23 @@ in English and Kiswahili. A grown-up taps "We did it together!" to finish it. Th
 
 Pressing and holding the people icon (bottom corner) opens a grown-ups panel with progress, mistakes, the AI status
 and a key box. It is hidden from children by the press-and-hold.
+
+### 2.14 Added November 12 to 19
+
+- **Read-aloud check:** in "Read and find", "Sentences" and the story corner's "Read it" shelf, the child reads a short passage
+  out loud and Somo follows word by word, then says how many words were read and offers "Let's read these together".
+  A grown-up turns on the "Reading microphone" in the grown-ups panel; without it, the child reads to a grown-up.
+  Teachers see accuracy and words per minute over time.
+- **Learning engine:** review dates from mastery (1, 3, 7, then 14 days), a warm-up of due questions at the start of
+  each session, a twin question after a miss, a worked example as the second hint, a fix-it round at the end of each
+  lesson, and a **Practice Boost** button (6 questions from the 3 weakest skills).
+- **Works offline and installs like an app:** the voice pack downloads once with a progress bar, then "Ready for
+  offline". A Mac app is in `apps/Somo-for-Mac.zip`.
+- **Several children on one phone:** "Who's learning?" at the start; a grown-up adds children in the grown-ups panel.
+- **Two new skills:** **Number patterns** (Stage 2) and **Story sums** (Stage 4), each a full unit with a lesson, a
+  rhyme or story ("Baraka's Market Day"), games, Teach and an at-home activity.
+- **Subtitles light up each word** as it is spoken.
+- **The new Somo logo** on the home screen, the app icon and the teacher and admin pages.
 
 ---
 
@@ -300,6 +317,8 @@ row-level security on with no policies, so the function is the only way in.
 
 | Table | What it holds |
 |---|---|
+| `somo_attempts` | Every finished lesson phase and game round (skill, phase, first-try right, total, hints, time), for the CSV export |
+|---|---|
 | `somo_children` | One row per child: first name, age, boy or girl, animal friend, teacher, last saved (the write key only as a hash) |
 | `somo_state` | The child's full progress, so it is safe if the phone is lost |
 | `somo_snapshots` | A small daily summary (numbers only) |
@@ -312,6 +331,7 @@ row-level security on with no policies, so the function is the only way in.
 
 - Progress is saved **on the device first** (Somo keeps working with no internet), then online about once a minute
   after changes, when the app is closed or hidden, and at "Finish". When the app opens, the newer copy wins.
+- The AI runs on **Claude Haiku 5.5**, Anthropic's low-cost model (since Nov 19, 2026).
 - A second Edge Function, `somo-kidi`, is the AI relay for the tutors. It holds the Claude key as a server secret,
   accepts only requests from our sites and only tutor-style prompts, and has rate and daily limits.
 
