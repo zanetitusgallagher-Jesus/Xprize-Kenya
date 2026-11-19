@@ -83,6 +83,7 @@ The pages try these routes **in this order**:
   - **Certificates:** a certificate with the score after every lesson (print it or save it as a picture).
   - **Music:** switch between the village beat and the team's safari groove (kalimba, hand drum, drone).
   - **Subtitles:** every spoken line is also written on the screen (on by default).
+  - **Theme:** 9 colour themes named after Kenya (Savanna sunset, Lake Victoria, Kakamega forest, Night sky, Maasai beads, Mombasa coast, Tea hills of Kericho, Jacaranda Nairobi, and Bright and clear for high contrast). Each child's choice is saved with their progress.
   - **Turi's trail:** opens `somo2/trail/`.
 - **Certificates (from Ekah's website):** after every lesson the child gets a certificate with their name, the lesson, the score (questions right the first time in the lesson's "You!" part), stars, the date and the animal friend's signature. It can be printed or saved as a picture. All certificates are kept under "Certificates" on the home screen, listed on the Parent page, and saved with the progress in Supabase. Turi's trail shows the same kind of certificate after each of its lessons.
 - **Safari roadmap:** the path sits on a sunset savanna, with giraffes, elephants and zebras walking, birds and clouds. It stays still when the device asks for reduced motion.

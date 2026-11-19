@@ -10863,6 +10863,84 @@ Speech.onSynthStart = function (text, rate) {
 @media (prefers-reduced-motion:reduce){#subs .sw{transition:none}}`; document.head.appendChild(el); }
 window.__ky = Object.assign(window.__ky || {}, { SubsHL });
 
+/* ============================================================================
+   THEMES (Nov 2026): a "Theme" button on the home screen opens a picker with 9 colour palettes, each named after a
+   place or thing in Kenya. The theme changes the sky behind the path, the background of every screen and the accent
+   colours (buttons, highlights). Each child's choice is saved with their progress. All themes keep light text on a
+   dark ground, so everything stays easy to read; "Bright and clear" is a high-contrast theme.
+   ========================================================================== */
+const THEMES = [
+  { id: 'savanna', name: 'Savanna sunset', sw: 'Machweo ya savana', sky: ['#B9552A', '#A8481F', '#7A3119', '#4A2416', '#2B1810'], page: ['#4A2C18', '#2E1D13', '#1E140E'], sun: ['#FFE29A', '#F7B24A'],
+    v: { bg: '#1A110C', panel: '#2A1C14', soil: '#C4572F', mango: '#F6A623', sun: '#FFD447', sky: '#56B4E9', leaf: '#3FA34D', grape: '#7A4FD0', rose: '#E8577A' } },
+  { id: 'lake', name: 'Lake Victoria', sw: 'Ziwa Viktoria', sky: ['#2E7FB8', '#226CA3', '#1A5383', '#123B5E', '#0B2238'], page: ['#16405F', '#0F2C44', '#08192A'], sun: ['#FFF3C2', '#F9D266'],
+    v: { bg: '#071522', panel: '#10283C', soil: '#2F8FCF', mango: '#F6B84A', sun: '#FFE07A', sky: '#7FD3F7', leaf: '#33B28A', grape: '#6E7FE0', rose: '#F07A8E' } },
+  { id: 'forest', name: 'Kakamega forest', sw: 'Msitu wa Kakamega', sky: ['#4E8A3C', '#3F7633', '#2E5C28', '#1F421D', '#122914'], page: ['#24452A', '#18301D', '#0E1D11'], sun: ['#F4F7B0', '#C9DD62'],
+    v: { bg: '#0B160D', panel: '#17291A', soil: '#4F9A3A', mango: '#E9B03A', sun: '#F3DE6A', sky: '#6CC3D6', leaf: '#5DBB4A', grape: '#8A6FD3', rose: '#E86A7E' } },
+  { id: 'night', name: 'Night sky', sw: 'Anga la usiku', sky: ['#1E2457', '#1A1F4C', '#151940', '#0F1230', '#090B1E'], page: ['#1B1F45', '#121534', '#0A0C20'], sun: ['#FFFFFF', '#D8DEF5'], stars: true,
+    v: { bg: '#07081A', panel: '#14173A', soil: '#5B67D8', mango: '#F2B54A', sun: '#FFE48A', sky: '#7FB8FF', leaf: '#44B38A', grape: '#A07BFF', rose: '#FF7FA8' } },
+  { id: 'maasai', name: 'Maasai beads', sw: 'Shanga za Kimaasai', sky: ['#C0282B', '#A41F27', '#7D1820', '#4E1217', '#2A0B0E'], page: ['#5A1418', '#3A0E11', '#1F0709'], sun: ['#FFE7A0', '#F2B21E'],
+    v: { bg: '#1A0708', panel: '#2E1012', soil: '#D3343A', mango: '#F2A41E', sun: '#FFD23F', sky: '#3E8EDE', leaf: '#2FA05A', grape: '#7C4BC8', rose: '#F0607A' } },
+  { id: 'coast', name: 'Mombasa coast', sw: 'Pwani ya Mombasa', sky: ['#1FA3A0', '#178C8D', '#116E73', '#0B4F55', '#062F34'], page: ['#0F4F52', '#0A3739', '#052124'], sun: ['#FFF6D6', '#FFD98A'],
+    v: { bg: '#041A1C', panel: '#0C2E31', soil: '#1FB2A6', mango: '#FFB14A', sun: '#FFE38A', sky: '#7EE0F2', leaf: '#4CC37A', grape: '#7F7BE8', rose: '#FF8A80' } },
+  { id: 'tea', name: 'Tea hills of Kericho', sw: 'Milima ya chai', sky: ['#6FA35A', '#5A8F4B', '#447339', '#2E5328', '#1A321A'], page: ['#2F4A2C', '#20341F', '#121F12'], sun: ['#FFFDE0', '#E6F08A'],
+    v: { bg: '#0D170D', panel: '#1B2C1B', soil: '#7DB45E', mango: '#E8B04C', sun: '#F6E27A', sky: '#86CDE0', leaf: '#6CC452', grape: '#9177D6', rose: '#E9798B' } },
+  { id: 'jacaranda', name: 'Jacaranda Nairobi', sw: 'Jakaranda ya Nairobi', sky: ['#8C5BC8', '#7A4BB5', '#61399A', '#45276F', '#28173F'], page: ['#45285F', '#2F1B42', '#1B0F27'], sun: ['#FFE8F6', '#F7B3DD'],
+    v: { bg: '#140A1E', panel: '#251536', soil: '#A56BE0', mango: '#F6A84A', sun: '#FFD86A', sky: '#7FC8F5', leaf: '#4DBA7A', grape: '#B98CFF', rose: '#FF7FBF' } },
+  { id: 'bright', name: 'Bright and clear', sw: 'Angavu na wazi', sky: ['#000000', '#000000', '#000000', '#000000', '#000000'], page: ['#000000', '#000000', '#000000'], sun: ['#FFFF00', '#FFD400'], plain: true,
+    v: { bg: '#000000', panel: '#141414', soil: '#FFD400', mango: '#FFB000', sun: '#FFFF00', sky: '#4FC3FF', leaf: '#3BE36B', grape: '#C08CFF', rose: '#FF6E9A' } },
+];
+const THEME_BY = Object.fromEntries(THEMES.map(t => [t.id, t]));
+const Theme = {
+  cur() { return THEME_BY[S && S.theme] || THEMES[0]; },
+  apply(id) {
+    const t = THEME_BY[id] || this.cur(); let el = document.getElementById('somotheme'); if (!el) { el = document.createElement('style'); el.id = 'somotheme'; document.head.appendChild(el); }
+    const v = t.v, stars = t.stars ? `radial-gradient(1.5px 1.5px at 12% 18%,#fff 60%,transparent 61%),radial-gradient(1.2px 1.2px at 32% 9%,#fff 60%,transparent 61%),radial-gradient(1.6px 1.6px at 58% 22%,#fff 60%,transparent 61%),radial-gradient(1.2px 1.2px at 78% 12%,#fff 60%,transparent 61%),radial-gradient(1.4px 1.4px at 90% 30%,#fff 60%,transparent 61%),radial-gradient(1.2px 1.2px at 22% 40%,#fff 60%,transparent 61%),radial-gradient(1.5px 1.5px at 66% 46%,#fff 60%,transparent 61%),` : '';
+    el.textContent = t.id === 'savanna' ? '' : `
+:root{--bg:${v.bg};--panel:${v.panel};--soil:${v.soil};--mango:${v.mango};--sun:${v.sun};--sky:${v.sky};--leaf:${v.leaf};--grape:${v.grape};--rose:${v.rose}}
+#stage{background:${t.page[2]}}
+.jr{background:linear-gradient(180deg,${t.page[0]} 0%,${t.page[1]} 45%,${t.page[2]} 100%)!important}
+.scr.saf{background:${stars}linear-gradient(180deg,${t.sky[0]} 0,${t.sky[1]} 10%,${t.sky[2]} 28%,${t.sky[3]} 55%,${t.sky[4]} 100%)!important}
+.safbg .sun{background:radial-gradient(circle,${t.sun[0]},${t.sun[1]} 60%,transparent 72%)!important}
+${t.plain ? '.safbg .cloud,.safbg .walker,.safbg .tree,.safbg .birds{opacity:.25!important}.kfeat>*,.whok,.squick button{outline:2px solid #FFD400}' : ''}`;
+    document.documentElement.dataset.somoTheme = t.id;
+  },
+  set(id) { if (!THEME_BY[id]) return; S.theme = id; Store.save(); this.apply(id); },
+  show() {
+    App.state = 'themes'; Round.game = null; App.attract = null; HUD.show(false); Card.hide(); const cur = this.cur().id;
+    setScreen(`<div class="scr jr"><div class="toprow"><button class="hb" data-j="home" aria-label="Back">${BACK_SVG}</button><div class="h2" style="flex:1">Pick your colours</div></div>
+      <div class="sub">Tap a theme. Gusa rangi unazopenda.</div>
+      <div class="thgrid">${THEMES.map(t => `<button class="thcard${t.id === cur ? ' on' : ''}" data-k="theme" data-v="${t.id}" aria-pressed="${t.id === cur}" aria-label="${esc(t.name)}">
+        <span class="thsky" style="background:linear-gradient(180deg,${t.sky[0]},${t.sky[2]} 55%,${t.sky[4]})"><i style="background:radial-gradient(circle,${t.sun[0]},${t.sun[1]} 60%,transparent 72%)"></i><span class="thdots">${['soil', 'mango', 'leaf', 'sky', 'rose'].map(k => `<b style="background:${t.v[k]}"></b>`).join('')}</span></span>
+        <span class="thname">${esc(t.name)}<small>${esc(t.sw)}</small></span>${t.id === cur ? '<span class="thtick">✓</span>' : ''}</button>`).join('')}</div>${grownBtn()}</div>`);
+    Speech.say('Pick your colours! Tap a theme.');
+  },
+};
+/* the saved theme comes back when the progress loads (each child has their own) */
+{ const _load = Store.load; Store.load = async function () { const r = await _load.call(this); setTimeout(() => Theme.apply(), 0); return r; }; }
+Theme.apply();
+/* home: a Theme button */
+{ const _sh = showHome; showHome = function () { _sh(); Theme.apply(); if (App.state !== 'hub') return; const f = document.querySelector('#screen .kfeat'); if (!f) return; const t = Theme.cur();
+    f.insertAdjacentHTML('beforeend', `<button data-k="themes"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.6 0-1.2-1-1.4-1-2.4 0-.9.7-1.5 1.6-1.5H17a4 4 0 0 0 4-4c0-4.7-4-8.5-9-8.5z" fill="#FFF8EC" stroke="#2B1E17" stroke-width="1.4"/><circle cx="7.5" cy="11" r="1.6" fill="#E8577A"/><circle cx="10" cy="7" r="1.6" fill="#F2B829"/><circle cx="14.5" cy="7" r="1.6" fill="#3FA34D"/><circle cx="17.2" cy="10.5" r="1.6" fill="#56B4E9"/></svg><span>Theme: ${esc(t.name.split(' ')[0])}</span></button>`); }; }
+$('#stage').addEventListener('click', e => {
+  const el = e.target.closest('[data-k="themes"],[data-k="theme"]'); if (!el) return; Sfx.unlock(); Sfx.play('click');
+  if (el.dataset.k === 'themes') return Theme.show();
+  Theme.set(el.dataset.v); Sfx.play('pop'); Theme.show(); Speech.say(`${THEME_BY[el.dataset.v].name}!`);
+});
+{ const _fs = fabSync; fabSync = function () { const b = $('#kidiFab'); if (b && App.state === 'themes') { b.hidden = true; return; } _fs(); }; }
+{
+  const u = n => `calc(var(--u)*${n})`;
+  const el = document.createElement('style'); el.textContent = `
+.thgrid{display:grid;grid-template-columns:1fr 1fr;gap:${u(8)}}
+.thcard{position:relative;display:flex;flex-direction:column;align-items:stretch;background:rgba(255,248,236,.94);color:#2B1E17;border-radius:${u(16)};padding:${u(5)};box-shadow:0 ${u(4)} 0 rgba(0,0,0,.4);text-align:left}
+.thcard.on{outline:${u(3)} solid var(--sun)}
+.thsky{position:relative;height:${u(64)};border-radius:${u(12)};overflow:hidden;display:block}.thsky i{position:absolute;top:${u(8)};right:${u(10)};width:${u(26)};height:${u(26)};border-radius:50%}
+.thdots{position:absolute;left:${u(6)};bottom:${u(6)};display:flex;gap:${u(3)}}.thdots b{width:${u(13)};height:${u(13)};border-radius:50%;border:${u(1.5)} solid rgba(255,255,255,.85)}
+.thname{font-weight:800;font-size:${u(14)};line-height:1.1;padding:${u(4)} ${u(3)} ${u(1)}}.thname small{display:block;font-weight:600;opacity:.65;font-size:${u(11)}}
+.thtick{position:absolute;top:${u(8)};left:${u(10)};width:${u(24)};height:${u(24)};border-radius:50%;background:var(--sun);color:#2B1E17;font-weight:800;display:grid;place-items:center}`;
+  document.head.appendChild(el);
+}
+window.__ky = Object.assign(window.__ky || {}, { Theme, THEMES });
+
 boot();
 
 </script>

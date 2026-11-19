@@ -229,6 +229,7 @@ and a key box. It is hidden from children by the press-and-hold.
   rhyme or story ("Baraka's Market Day"), games, Teach and an at-home activity.
 - **Subtitles light up each word** as it is spoken.
 - **The new Somo logo** on the home screen, the app icon and the teacher and admin pages.
+- **Themes:** a "Theme" button with 9 colour palettes named after Kenya, including a high-contrast one; each child keeps their own.
 
 ---
 

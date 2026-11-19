@@ -236,3 +236,9 @@
 - **Goal:** The daily treasure chest rewards learning, not just opening Somo.
 - **Prompt:** "The daily treasure chest appears only after the child finishes at least one step that day."
 - **What Claude Did:** (`somo2/`, source `src/rewards.js` in Chronicle) the daily chest is no longer added when the home screen opens; it is added once a day, the first time the child finishes a step (a replayed step counts, so children who have finished everything still get it). README and SOMO-GUIDE updated, including a section on everything added Nov 12 to 19. Tested in a headless browser (open only, first step, second step, a new day, the chest popping): no page or console errors.
+
+## Theme button (9 colour themes)
+- **Date:** Nov 19, 2026
+- **Goal:** Children can choose the colours of Somo.
+- **Prompt:** "Add theme change button (min 7 themes/color palettes)."
+- **What Claude Did:** (`somo2/`, source `src/b2/themes.js` in Chronicle) a "Theme" button on the home screen opens "Pick your colours" with 9 themes: Savanna sunset (the original), Lake Victoria, Kakamega forest, Night sky (with stars), Maasai beads, Mombasa coast, Tea hills of Kericho, Jacaranda Nairobi, and Bright and clear (high contrast). A theme changes the sky behind the path, every screen's background and the accent colours; light text stays on a dark ground so everything stays readable. Names are in English and Kiswahili, the picker is spoken aloud, and each child's choice is saved with their progress. Tested in a headless browser (pick, home screen, reload): no page or console errors.
