@@ -220,3 +220,13 @@
 - **Goal:** Lower the cost of the AI, which is billed to the Claude key on the Supabase server.
 - **Prompt:** "Make sure the AI tutors and teachers run on Haiku." (after asking what the old model was and how much it cost)
 - **What Claude Did:** every Claude call now uses Claude Haiku 5.5 (`claude-haiku-5-5`) with thinking off and low effort: the tutor relay `somo-kidi` (deployed as version 8), the AI teachers in `somo-progress` (version 6), a key saved on a device (`somo2/`, source `src/core.js` in Chronicle), the key test on `somo2/setup/`, and Turi's trail. Haiku costs about 40 times less than the Opus model used before ($0.10 / $0.50 per million tokens instead of $4 / $20). It is still billed to the key's account; the daily cap of 3,000 tutor chats stays. Tested with a real call through the live relay.
+
+## Feature 7: word highlight in subtitles
+- **Date:** Nov 19, 2026
+- **Goal:** Children can follow the words while Somo speaks.
+- **Prompt:** "Highlight the current word as it's spoken. For speech synthesis, use the word-boundary events. For recorded clips, estimate timing from word length."
+- **What Claude Did:** (`somo2/`, source `src/b2/subshl.js` and small hooks in `src/core.js` in Chronicle)
+  - The subtitle shows every word separately; the word being spoken is highlighted in yellow, and the words already said fade a little.
+  - Device voice: word-boundary events; if a voice sends none, timing is estimated from the speaking rate. Recorded clips and the live relay voice: each clip's known length is shared among its words by word length.
+  - Fixed an older bug: the subtitle was hidden the moment speech started (stopping the previous line hid the new subtitle). Subtitles now stay on screen while Somo speaks.
+  - Tested in a headless browser with the recorded voice pack and a stand-in device voice: the highlight follows each word; no page or console errors.

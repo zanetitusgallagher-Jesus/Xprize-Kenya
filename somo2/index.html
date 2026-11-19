@@ -327,14 +327,15 @@ const Speech = {
     if (ctx.state !== 'running') { try { await Promise.race([ctx.resume(), new Promise(r => setTimeout(r, 300))]); } catch (e) { } if (ctx.state !== 'running') { this.pending = text; return true; } }
     for (let i = 0; i < parts.length; i++) { let b = this.cache.get(parts[i].k); if (!b) { try { b = await ctx.decodeAudioData(b64ToBuf(data[i])); this.cache.set(parts[i].k, b); } catch (e) { if (this.fmt === 'ogg') { this.pack = null; this.load('mp3'); } return false; } } bufs.push(b); }
     if (tok !== this.tok) return true; let t = ctx.currentTime + .03; this.srcs = []; const slow = opt.rate && opt.rate < .8;
-    for (let i = 0; i < bufs.length; i++) { const s = ctx.createBufferSource(); s.buffer = bufs[i]; s.connect(Sfx.voiceG || ctx.destination); s.start(t); this.srcs.push(s); t += bufs[i].duration + (slow ? .3 : parts[i].brk ? .22 : .05); }
+    const segs = []; for (let i = 0; i < bufs.length; i++) { const s = ctx.createBufferSource(); s.buffer = bufs[i]; s.connect(Sfx.voiceG || ctx.destination); s.start(t); this.srcs.push(s); segs.push({ t0: t, d: bufs[i].duration, words: String(parts[i].t || '').split(/\s+/).filter(Boolean) }); t += bufs[i].duration + (slow ? .3 : parts[i].brk ? .22 : .05); }
+    if (this.onTimeline) this.onTimeline(text, segs); /* subtitles highlight each word as it is heard */
     if (window.__speechPlayed) window.__speechPlayed++;
     await new Promise(r => { this.waitR = r; this.timer = setTimeout(r, Math.max(0, (t - ctx.currentTime) * 1000)); }); this.waitR = null; return true;
   },
   synth(text, opt, tok) {
     return new Promise(res => {
       if (!('speechSynthesis' in window)) return res(); let done = false; const fin = () => { if (done) return; done = true; clearTimeout(this.timer); this.waitR = null; res(); };
-      try { const u = new SpeechSynthesisUtterance(text); const v = this.voice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-GB'; const nat = v && /Natural|Neural|Online|Google/i.test(v.name); u.rate = (opt.rate || .92) * (nat ? 1.04 : 1); u.pitch = 1.05; u.onend = fin; u.onerror = fin; this.waitR = fin; this.timer = setTimeout(fin, 2500 + text.length * 110); speechSynthesis.speak(u); } catch (e) { fin(); }
+      try { const u = new SpeechSynthesisUtterance(text); const v = this.voice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-GB'; const nat = v && /Natural|Neural|Online|Google/i.test(v.name); u.rate = (opt.rate || .92) * (nat ? 1.04 : 1); u.pitch = 1.05; u.onend = fin; u.onerror = fin; u.onboundary = e => { if (this.onBoundary && (!e.name || e.name === 'word')) this.onBoundary(text, e.charIndex); }; u.onstart = () => { if (this.onSynthStart) this.onSynthStart(text, u.rate); }; this.waitR = fin; this.timer = setTimeout(fin, 2500 + text.length * 110); speechSynthesis.speak(u); } catch (e) { fin(); }
     });
   },
   /* Kidi's own replies (written live by Claude): recorded clips when every piece exists, otherwise the same Edge
@@ -351,7 +352,7 @@ const Speech = {
   /* a line without recorded clips: the same Edge voice, made live by the relay; false if unavailable */
   async playLive(text, tok, v) {
     let b = null; try { b = await this.liveBuf(text, v); } catch (e) { } if (!b || tok !== this.tok) return !!b;
-    const ctx = Sfx.ctx, s = ctx.createBufferSource(); s.buffer = b; s.connect(Sfx.voiceG || ctx.destination); s.start(ctx.currentTime + .03); this.srcs = [s];
+    const ctx = Sfx.ctx, s = ctx.createBufferSource(); s.buffer = b; s.connect(Sfx.voiceG || ctx.destination); s.start(ctx.currentTime + .03); this.srcs = [s]; if (this.onTimeline) this.onTimeline(text, [{ t0: ctx.currentTime + .03, d: b.duration, words: text.split(/\s+/).filter(Boolean) }]);
     await new Promise(r => { this.waitR = r; this.timer = setTimeout(r, (b.duration + .1) * 1000); }); this.waitR = null; return true;
   },
   async liveBuf(text, v) {
@@ -9661,8 +9662,9 @@ const Subs = {
   },
   hide() { if (this.el) this.el.className = this.el.className.replace(' on', '').replace(/^on$/, ''); },
 };
-{ const _say = Speech.say; Speech.say = function (text, opt) { Subs.show(text); return _say.call(this, text, opt); }; }
-{ const _sk = Speech.sayKidi; Speech.sayKidi = function (text) { Subs.show(text); return _sk.call(this, text); }; }
+/* show the subtitle after say() has stopped the previous line (stopping hides the old subtitle) */
+{ const _say = Speech.say; Speech.say = function (text, opt) { const r = _say.call(this, text, opt); Subs.show(text); return r; }; }
+{ const _sk = Speech.sayKidi; Speech.sayKidi = function (text) { const r = _sk.call(this, text); Subs.show(text); return r; }; }
 { const _st = Speech.stop; Speech.stop = function () { Subs.hide(); return _st.call(this); }; }
 
 /* ---------------- children join a class (Accounts → Parent) ---------------- */
@@ -10805,6 +10807,60 @@ const RoundHelp = { n: 0 };
 { const _rf = ReadAloud.finish; ReadAloud.finish = function (grown) { const t0 = this.startedAt || this.t0open; const r = _rf.call(this, grown); const res = this.result; if (res) logAttempt({ skill: this.skill, unit: this.onDone ? this.skill : '', phase: 'Interpret', activity: 'Read aloud: ' + this.cur.title + (res.mode === 'grownup' ? ' (to a grown-up)' : ''), first_try: res.mode === 'mic' ? res.read : res.ok ? res.total : 0, total: res.total, hints: 0, secs: (performance.now() - (this.t0open || performance.now())) / 1000 }); return r; }; }
 { const _ro = ReadAloud.open; ReadAloud.open = function () { this.t0open = performance.now(); return _ro.apply(this, arguments); }; }
 window.__ky = Object.assign(window.__ky || {}, { ALOG, logAttempt, AttemptSync });
+
+/* ============================================================================
+   WORD HIGHLIGHT IN SUBTITLES (Nov 2026)
+   The subtitle shows each word on its own; the word being spoken lights up, and the words already said fade a
+   little, so a child can follow the words as they hear them.
+   - The device voice (speech synthesis): its word-boundary events tell which word is spoken. Some voices send no
+     events; then the timing is estimated from the speaking rate.
+   - Recorded clips (and the live relay voice): each clip's length is known, so it is shared among its words by
+     word length (longer words take longer).
+   ========================================================================== */
+const SubsHL = {
+  text: '', words: [], spans: [], timeline: null, raf: 0, cur: -1, synthTimer: null, gotBoundary: false,
+  split(text) { const words = []; const re = /\S+/g; let m; while ((m = re.exec(text))) words.push({ w: m[0], i: m.index }); return words; },
+  render(el, text) {
+    this.stopAnim(); this.text = text; this.words = this.split(text); this.cur = -1; this.gotBoundary = false;
+    el.innerHTML = this.words.map((w, i) => `<span class="sw" data-i="${i}">${esc(w.w)}</span>`).join(' ');
+    this.spans = [...el.querySelectorAll('.sw')];
+  },
+  mark(i) {
+    if (i === this.cur || !this.spans.length) return; this.cur = i;
+    this.spans.forEach((s, k) => { s.classList.toggle('on', k === i); s.classList.toggle('said', k < i); });
+  },
+  same(text) { return String(text).replace(/\s+/g, ' ').trim() === this.text; },
+  /* recorded clips: [{t0, d, words}] on the audio clock → a start time for every subtitle word */
+  fromSegments(segs) {
+    const times = []; for (const g of segs) { const ws = g.words.length ? g.words : ['']; const tot = ws.reduce((a, w) => a + w.length + 1, 0); let t = g.t0; for (const w of ws) { times.push(t); t += g.d * (w.length + 1) / tot; } }
+    const n = this.words.length; if (!n) return null;
+    /* the clip pieces and the subtitle may split words a little differently: line them up by position */
+    return Array.from({ length: n }, (_, i) => times[Math.min(times.length - 1, Math.floor(i * times.length / n))]);
+  },
+  anim(clock, starts) {
+    this.stopAnim(); const step = () => { const now = clock(); let i = -1; for (let k = 0; k < starts.length; k++) if (now >= starts[k]) i = k; this.mark(i); if (i < starts.length - 1 || now < starts[starts.length - 1] + 1.5) this.raf = requestAnimationFrame(step); };
+    this.raf = requestAnimationFrame(step);
+  },
+  stopAnim() { cancelAnimationFrame(this.raf); this.raf = 0; clearTimeout(this.synthTimer); },
+};
+Subs.show = function (text) {
+  if (!this.on() || !text) return; const t = String(text).replace(/\s+/g, ' ').trim(); if (!t) return;
+  let el = this.el || (this.el = document.getElementById('subs')); if (!el) { el = this.el = document.createElement('div'); el.id = 'subs'; el.setAttribute('aria-hidden', 'true'); $('#stage').appendChild(el); }
+  SubsHL.render(el, t); el.className = App.state === 'play' || App.state === 'countdown' ? 'top on' : 'on'; clearTimeout(this.t);
+  this.t = setTimeout(() => this.hide(), Math.min(14000, 2200 + t.length * 80));
+};
+Speech.onTimeline = function (text, segs) { if (!Subs.on() || !SubsHL.same(text)) return; const st = SubsHL.fromSegments(segs); if (!st) return; const ctx = Sfx.ctx; SubsHL.anim(() => ctx.currentTime, st); clearTimeout(Subs.t); const end = segs.length ? segs[segs.length - 1].t0 + segs[segs.length - 1].d - ctx.currentTime : 2; Subs.t = setTimeout(() => Subs.hide(), Math.max(1500, end * 1000 + 1800)); };
+Speech.onBoundary = function (text, ci) { if (!SubsHL.same(text)) return; SubsHL.gotBoundary = true; clearTimeout(SubsHL.synthTimer); let i = 0; SubsHL.words.forEach((w, k) => { if (w.i <= ci) i = k; }); SubsHL.mark(i); };
+/* a voice with no boundary events: about 2.6 words a second at normal rate, longer words a little longer */
+Speech.onSynthStart = function (text, rate) {
+  if (!SubsHL.same(text)) return; const t0 = performance.now() / 1000, per = 1 / (2.6 * (rate || 1)); const starts = []; let t = t0;
+  for (const w of SubsHL.words) { starts.push(t); t += per * (0.6 + Math.min(1.4, w.w.length / 6)); }
+  SubsHL.synthTimer = setTimeout(() => { if (!SubsHL.gotBoundary) SubsHL.anim(() => performance.now() / 1000, starts); }, 450);
+};
+{ const _st = Speech.stop; Speech.stop = function () { SubsHL.stopAnim(); return _st.call(this); }; }
+{ const el = document.createElement('style'); el.textContent = `#subs .sw{transition:color .12s,background .12s;border-radius:calc(var(--u)*4);padding:0 calc(var(--u)*1)}#subs .sw.said{opacity:.75}#subs .sw.on{background:#F2B829;color:#2B1E17;opacity:1}
+@media (prefers-reduced-motion:reduce){#subs .sw{transition:none}}`; document.head.appendChild(el); }
+window.__ky = Object.assign(window.__ky || {}, { SubsHL });
 
 boot();
 
