@@ -11072,6 +11072,53 @@ Theme.show = function () {
 }
 Theme.apply();
 
+/* ============================================================================
+   PLUG-IN GAMES (Nov 2026, phase A): the games library ("Michezo") can hold games made as small packages in
+   somo2/games/<id>/ (index.html + game.json), listed in somo2/games/index.json. See GAMES.md in the Xprize-Kenya repo.
+   A1: the registry. It is read when Somo starts (and cached by the service worker for offline use).
+   ========================================================================== */
+const DEV = /[?&]dev=1/.test(location.search) || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const devWarn = (...a) => { if (DEV) console.warn('[Somo games]', ...a); };
+const GAME_ID_RE = /^[a-z][a-z0-9-]{2,39}$/;
+const GameReg = {
+  base: 'games/', list: [], by: {}, loaded: false, off: new Set(),
+  /* check a game.json against the package rules (the same rules as tools/check-game.mjs and game.schema.json) */
+  valid(m, id) {
+    const arr = (x, f) => Array.isArray(x) && x.length > 0 && x.every(f), str = (x, a, b) => typeof x === 'string' && x.length >= a && x.length <= b;
+    if (!m || typeof m !== 'object') return 'not an object';
+    if (m.id !== id || !GAME_ID_RE.test(m.id)) return 'id must match the folder';
+    if (!str(m.title, 2, 40) || !str(m.title_sw, 2, 40) || !str(m.author, 2, 80) || !str(m.licence, 2, 40)) return 'title, title_sw, author and licence are needed';
+    if (!/^\d+\.\d+\.\d+$/.test(m.version || '')) return 'version must look like 1.0.0';
+    if (!arr(m.skills, s => typeof s === 'string')) return 'skills needed';
+    if (!arr(m.stages, s => Number.isInteger(s) && s >= 1 && s <= 4)) return 'stages must be 1 to 4';
+    if (!Array.isArray(m.ages) || m.ages.length !== 2 || !m.ages.every(Number.isInteger) || m.ages[0] > m.ages[1]) return 'ages must be [min, max]';
+    if (!Number.isInteger(m.levels) || m.levels < 1 || m.levels > 20) return 'levels must be 1 to 20';
+    if (!arr(m.languages, l => l === 'en' || l === 'sw')) return 'languages must be en and/or sw';
+    if (!Array.isArray(m.assets) || !m.assets.every(a => typeof a === 'string' && /^[a-zA-Z0-9_./-]+$/.test(a) && !a.includes('..'))) return 'assets must be file names in the folder';
+    if (typeof m.thumbnail !== 'string' || m.thumbnail.includes('..')) return 'thumbnail needed';
+    if (m.slowModeSupported !== true) return 'slowModeSupported must be true';
+    return null;
+  },
+  async load() {
+    if (this.loaded) return this.list;
+    try {
+      const r = await fetch(this.base + 'index.json', { cache: 'no-cache' }); if (!r.ok) throw new Error('registry ' + r.status);
+      const reg = await r.json(); const rows = Array.isArray(reg.games) ? reg.games : [];
+      const out = [];
+      for (const row of rows) {
+        if (!row || !GAME_ID_RE.test(row.id || '') || row.enabled === false) continue;
+        try { const m = await (await fetch(this.base + row.id + '/game.json', { cache: 'no-cache' })).json(); const bad = this.valid(m, row.id); if (bad) { devWarn(row.id, 'game.json:', bad); continue; } m.skills = m.skills.filter(s => SKILL[s]); if (!m.skills.length) { devWarn(row.id, 'no known skills'); continue; } out.push(Object.assign(m, { ext: true })); }
+        catch (e) { devWarn(row.id, 'could not load', e.message); }
+      }
+      this.list = out; this.by = Object.fromEntries(out.map(g => [g.id, g])); this.loaded = true;
+    } catch (e) { devWarn('no registry', e.message); this.list = []; this.by = {}; }
+    return this.list;
+  },
+  enabled() { return this.list.filter(g => !this.off.has(g.id)); },
+};
+setTimeout(() => GameReg.load(), 1500);
+window.__ky = Object.assign(window.__ky || {}, { GameReg });
+
 boot();
 
 </script>

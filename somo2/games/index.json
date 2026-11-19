@@ -1,0 +1,5 @@
+{
+  "protocol": 1,
+  "about": "Somo's plug-in games. Add a game: put its folder in somo2/games/<id>/ and add one line below. Set enabled to false to hide it everywhere (the admin can also switch games off in somo3/). See GAMES.md.",
+  "games": []
+}

@@ -249,3 +249,14 @@
 - Disney and Marvel are not copied: "Fairy-tale magic" and "Superheroes" are original, drawn in code. The picker shows three groups: Fun worlds, Kenya, Kenyan colours (the 9 palettes from before).
 - Moving pictures stop when the phone asks for reduced motion. A closet hat wins over a theme hat.
 - Tested in a headless browser: all 19 themes pick, save and show; no page or console errors.
+
+## A1: game package format and registry
+- **Date:** Nov 19, 2026
+- **Goal:** Let the team add games to Somo as small plug-in packages, like a games library.
+- **Prompt:** "Each game lives in somo2/games/<game-id>/ with index.html (self-contained, works offline) and game.json ... Registry: somo2/games/index.json lists the enabled games. Write GAMES.md."
+- **What Claude Did:**
+  - `somo2/games/index.json` (the registry: one line per game, `enabled` true or false) and `somo2/games/game.schema.json` (the rules for `game.json`: id, titles in English and Kiswahili, author, licence, version, skills, stages, ages, levels, languages, assets, thumbnail, `slowModeSupported: true`).
+  - `GAMES.md`: how to make a game, the rules every game keeps, the message protocol, the sandbox, and how to test.
+  - `somo2/` (source `src/b2/games.js` in Chronicle): Somo reads the registry when it starts, checks every `game.json` against the rules and keeps only valid games with known skills (problems show in the console with `?dev=1`).
+  - Written from scratch; ideas from ReadTrail 2 and the Brainzy library model, no code or content copied.
+  - Tested in a headless browser: the registry loads (empty for now), a bad `game.json` is refused; no page or console errors.
