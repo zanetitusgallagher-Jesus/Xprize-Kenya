@@ -11280,6 +11280,16 @@ GamePlayer.onItem = function (r) {
 { const el = document.createElement('style'); el.textContent = `#gamebox .gcap{position:absolute;inset:0;background:rgba(20,12,8,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*10);color:#FFF7EA;text-align:center;padding:calc(var(--u)*20)}#gamebox .gcap b{font-size:calc(var(--u)*28)}`; document.head.appendChild(el); }
 window.__ky = Object.assign(window.__ky || {}, { TimeCap });
 
+/* ============================================================================
+   A4: the sandbox. Every game runs in <iframe sandbox="allow-scripts"> (no same-origin, no forms, no pop-ups, no top
+   navigation, no microphone: allow="" is empty) loaded from srcdoc, with Somo's own Content Security Policy put first
+   in its <head> (connect-src 'none', images and media only from data: and blob:). So a game cannot reach the network,
+   localStorage, Supabase, the AI relay or the microphone. Somo fetches the game's files itself (through the service
+   worker cache), so games work offline; after the registry loads, Somo asks the service worker to cache every
+   enabled game's listed files.
+   ========================================================================== */
+{ const _ld = GameReg.load; GameReg.load = async function () { const r = await _ld.call(this); try { if ('serviceWorker' in navigator && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage('cache-games'); } catch (e) { } return r; }; }
+
 boot();
 
 </script>

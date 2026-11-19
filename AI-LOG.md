@@ -279,3 +279,11 @@
   - Daily time cap (default 20 minutes per child per day, counted while Somo is open and in use): Somo pauses the game, shows "Time to rest!", then ends it after a few seconds.
   - Teacher challenges count plug-in games, and a challenge can open one.
   - Tested in a headless browser with a test game: mastery and the mistake tag recorded, 2 coins (the game claimed 4), the attempt row written, practice mode left mastery alone, the time cap paused and closed the game; no page or console errors.
+
+## A4: the sandbox, and games offline
+- **Date:** Nov 19, 2026
+- **Prompt:** "Load each game in an iframe with sandbox="allow-scripts" (no same-origin, no forms, no popups, no top navigation). A CSP in each game blocks all network access. Games can't reach localStorage, Supabase, the AI relay or the microphone. The service worker caches each enabled game's listed assets, so games work offline."
+- **What Claude Did:**
+  - Already done in A2: games load from `srcdoc` into `<iframe sandbox="allow-scripts" allow="">` (opaque origin), with Somo's own Content Security Policy put first in the game's `<head>` (`connect-src 'none'`, images and media from `data:`/`blob:` only). Each game also carries the same CSP itself (the template has it; the checker in A7 requires it). Somo fetches the game's files itself and passes assets as data URLs, so the game never needs the network.
+  - `somo2/sw.js` (cache `somo-shell-v3`): on install, and whenever the app asks after loading the registry, it caches `games/index.json`, the SDK and every enabled game's `game.json`, `index.html`, thumbnail and listed assets.
+  - Tested in a headless browser with a temporary game (not committed): its files were cached, then with the network off Somo opened the game and the game ran; the frame has only `allow-scripts`; no page or console errors.
