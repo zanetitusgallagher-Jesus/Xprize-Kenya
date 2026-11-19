@@ -268,3 +268,14 @@
   - `somo2/games/somo-sdk.js` (protocol 1, about 5 KB): `Somo.onInit`, `Somo.on('pause'|'resume'|'end')`, `Somo.say`, `Somo.newItem(skill, id)` (tracks first try, hints and time, and sends the item once), `Somo.item`, `Somo.levelDone`, `Somo.hint`, `Somo.quit`. Opened on its own, a game shows "Open this game from Somo" and a "Test without Somo" button.
   - `somo2/` (source `src/b2/games.js`): the game player. It fetches the game, puts the SDK inside it, loads it in a locked frame, and sends `init` (level, skill, language, voice, subtitles, reduced motion, minutes left, theme colours, practice, slow mode, assets; no name or age). It accepts messages only from that game's frame with the right envelope; limits: 30 messages in 10 s, 2 items a second, 1 `say` a second; clamps hints (0 to 9), time (0 to 10 min), levels, and "items right" to what Somo itself received; unknown mistake tags and repeated item ids are ignored. `say` uses Somo's voice and subtitles; `hint` uses a hint ladder (the skill's hint, a worked example, then the tutor).
   - Tested in a headless browser with a test game that misbehaves on purpose: its network calls and localStorage were blocked, malformed, flooding and out-of-range messages were ignored, and good items and levels were recorded. The only console errors were the browser blocking the test game's network calls, which is what should happen.
+
+## A3: Somo owns everything that matters in a plug-in game
+- **Date:** Nov 19, 2026
+- **Prompt:** "Item results update mastery through the learning engine. Results go to somo_attempts and the telemetry log. Coins come from learning only, through Somo's existing rewards. Somo enforces the daily time cap: it pauses the game, then ends it gently. Games appear in teacher challenges and in the reports."
+- **What Claude Did:** (`somo2/`, source `src/b2/games.js`)
+  - Each `item` goes through `Engine.answer` for its skill (mastery, mistake tags). Answers after a miss or a hint are marked "hinted" (phase B counts them as practising, never mastery). Practice mode changes no mastery.
+  - Each visit is logged in the attempt log (`somo_attempts`, so it is in the teachers' and admin's CSV and reports) as "Game: <title> (level n)", and in telemetry (phase C).
+  - Coins: one coin and 10 XP for each item right on the first try in a finished level, **counted by Somo**. A game that claims more gets nothing extra.
+  - Daily time cap (default 20 minutes per child per day, counted while Somo is open and in use): Somo pauses the game, shows "Time to rest!", then ends it after a few seconds.
+  - Teacher challenges count plug-in games, and a challenge can open one.
+  - Tested in a headless browser with a test game: mastery and the mistake tag recorded, 2 coins (the game claimed 4), the attempt row written, practice mode left mastery alone, the time cap paused and closed the game; no page or console errors.
