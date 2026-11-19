@@ -260,3 +260,11 @@
   - `somo2/` (source `src/b2/games.js` in Chronicle): Somo reads the registry when it starts, checks every `game.json` against the rules and keeps only valid games with known skills (problems show in the console with `?dev=1`).
   - Written from scratch; ideas from ReadTrail 2 and the Brainzy library model, no code or content copied.
   - Tested in a headless browser: the registry loads (empty for now), a bad `game.json` is refused; no page or console errors.
+
+## A2: Somo Games SDK and message protocol
+- **Date:** Nov 19, 2026
+- **Prompt:** "Somo Games SDK (somo2/games/somo-sdk.js, small, no dependencies), postMessage protocol, versioned. Somo → game: init, pause, resume, end. Game → Somo: ready, item, levelDone, say, hint, quit. Send no name, age or personal data. Somo checks the message origin and shape, rate-limits, clamps values, ignores anything malformed and logs it in development."
+- **What Claude Did:**
+  - `somo2/games/somo-sdk.js` (protocol 1, about 5 KB): `Somo.onInit`, `Somo.on('pause'|'resume'|'end')`, `Somo.say`, `Somo.newItem(skill, id)` (tracks first try, hints and time, and sends the item once), `Somo.item`, `Somo.levelDone`, `Somo.hint`, `Somo.quit`. Opened on its own, a game shows "Open this game from Somo" and a "Test without Somo" button.
+  - `somo2/` (source `src/b2/games.js`): the game player. It fetches the game, puts the SDK inside it, loads it in a locked frame, and sends `init` (level, skill, language, voice, subtitles, reduced motion, minutes left, theme colours, practice, slow mode, assets; no name or age). It accepts messages only from that game's frame with the right envelope; limits: 30 messages in 10 s, 2 items a second, 1 `say` a second; clamps hints (0 to 9), time (0 to 10 min), levels, and "items right" to what Somo itself received; unknown mistake tags and repeated item ids are ignored. `say` uses Somo's voice and subtitles; `hint` uses a hint ladder (the skill's hint, a worked example, then the tutor).
+  - Tested in a headless browser with a test game that misbehaves on purpose: its network calls and localStorage were blocked, malformed, flooding and out-of-range messages were ignored, and good items and levels were recorded. The only console errors were the browser blocking the test game's network calls, which is what should happen.

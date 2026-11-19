@@ -11119,6 +11119,110 @@ const GameReg = {
 setTimeout(() => GameReg.load(), 1500);
 window.__ky = Object.assign(window.__ky || {}, { GameReg });
 
+/* ============================================================================
+   A2: the player. Somo loads a game into a locked frame and talks to it with the versioned postMessage protocol
+   (games/somo-sdk.js on the game's side). Somo → game: init, pause, resume, end. Game → Somo: ready, item, levelDone,
+   say, hint, quit. Every message is checked (source, envelope, shape), rate-limited and clamped; anything else is
+   ignored and shown in the console in development. No name, age or personal data is ever sent to a game.
+   ========================================================================== */
+const GP = () => { const k = KY(); return k.gp || (k.gp = {}); };            /* per game: { levels: n done, plays, mins } */
+const GamePlayer = {
+  g: null, frame: null, opts: null, ready: false, paused: false, t0: 0, sess: null,
+  minutesLeft() { return 20; },                                              /* replaced by the daily time cap (A3, C1) */
+  themeColours() { const cs = getComputedStyle(document.documentElement), v = n => (cs.getPropertyValue('--' + n) || '').trim(); return { bg: v('bg') || '#1F140E', panel: v('panel') || '#2E1E15', accent: v('mango') || '#F2B829', good: v('leaf') || '#3FA34D', text: '#FFF7EA' }; },
+  startLevel(g) { const p = GP()[g.id]; return Math.min(g.levels, ((p && p.levels) || 0) + 1); },
+  async build(g) {
+    const base = GameReg.base + g.id + '/';
+    const [html, sdk] = await Promise.all([fetch(base + (g.entry || 'index.html')).then(r => { if (!r.ok) throw new Error('game ' + r.status); return r.text(); }), fetch(GameReg.base + 'somo-sdk.js').then(r => r.text())]);
+    const assets = {};
+    for (const a of g.assets) { try { const b = await (await fetch(base + a)).blob(); assets[a] = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => res(null); fr.readAsDataURL(b); }); } catch (e) { devWarn(g.id, 'asset missing', a); } }
+    const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">`;
+    let doc = html.replace(/<script\s+src=["']\.\.\/somo-sdk\.js["']\s*>\s*<\/script>/i, () => '<script>' + sdk.replace(/<\/script/gi, '<\\/script') + '<\/script>');
+    doc = /<head[^>]*>/i.test(doc) ? doc.replace(/<head[^>]*>/i, m => m + csp) : csp + doc;
+    return { doc, assets };
+  },
+  async open(id, opts = {}) {
+    const g = GameReg.by[id]; if (!g || GameReg.off.has(id)) return Speech.say('That game is not here.');
+    this.close(true); this.g = g; this.opts = opts; this.ready = false; this.paused = false; this.t0 = performance.now();
+    this.sess = { items: 0, right: 0, first: 0, hints: 0, seen: new Set(), lvItems: 0, lvRight: 0, level: this.startLevel(g), msgs: [], lastItem: 0, lastSay: 0, hintStep: 0 };
+    App.state = 'extgame'; Round.game = null; App.attract = null; HUD.show(false); Card.hide(); Music.stop();
+    const box = document.createElement('div'); box.id = 'gamebox'; box.innerHTML = `<div class="gbar"><button class="hb" data-gx="quit" aria-label="Back to Somo">${BACK_SVG}</button><b>${esc(g.title)}</b><span class="gsun" aria-hidden="true"></span><button class="hb ghelp" data-gx="hint" aria-label="Help">${HELP_SVG}</button></div><div class="gload">${kidiMini('happy', 70)}<span>Loading…</span></div>`;
+    $('#stage').appendChild(box); this.box = box;
+    let built; try { built = await this.build(g); } catch (e) { devWarn(id, e.message); this.close(); return Speech.say('That game cannot open right now.'); }
+    if (this.g !== g) return;
+    const f = document.createElement('iframe'); f.setAttribute('sandbox', 'allow-scripts'); f.setAttribute('allow', ''); f.setAttribute('referrerpolicy', 'no-referrer'); f.setAttribute('title', g.title); f.setAttribute('loading', 'eager');
+    f.srcdoc = built.doc; this.assets = built.assets; this.frame = f; box.appendChild(f);
+    this.readyTimer = setTimeout(() => { if (!this.ready && this.g === g) { devWarn(id, 'no ready message'); this.close(); Speech.say('That game cannot open right now.'); } }, 12000);
+  },
+  post(type, data = {}) { if (this.frame && this.frame.contentWindow) this.frame.contentWindow.postMessage({ somo: 'host', v: 1, type, data }, '*'); },
+  init() {
+    const g = this.g, o = this.opts; const skill = o.skill && g.skills.includes(o.skill) ? o.skill : g.skills[0];
+    this.post('init', { protocol: 1, gameLevel: this.sess.level, skill, language: o.lang || (S.lang === 'sw' && g.languages.includes('sw') ? 'sw' : 'en'), voiceOn: S.voice !== false, subtitlesOn: Subs.on(), reducedMotion: reduced() || !!S.lowEnd, minutesLeftToday: Math.max(0, Math.floor(this.minutesLeft())), themeColours: this.themeColours(), practice: !!o.practice, slow: !!S.slowGames, assets: this.assets || {} });
+    const l = this.box && this.box.querySelector('.gload'); if (l) l.remove();
+  },
+  /* rate limits: 30 messages in 10 s; items 2 a second; say 1 a second */
+  allowed(type) {
+    const s = this.sess, now = performance.now(); s.msgs = s.msgs.filter(t => now - t < 10000); if (s.msgs.length >= 30) return false; s.msgs.push(now);
+    if (type === 'item') { if (now - s.lastItem < 500) return false; s.lastItem = now; }
+    if (type === 'say') { if (now - s.lastSay < 1000) return false; s.lastSay = now; }
+    return true;
+  },
+  clampInt: (v, a, b) => Number.isFinite(+v) ? Math.max(a, Math.min(b, Math.round(+v))) : a,
+  onMessage(e) {
+    if (!this.frame || e.source !== this.frame.contentWindow) return;          /* only this game's own frame */
+    const m = e.data; if (!m || typeof m !== 'object' || m.somo !== 'game' || m.v !== 1 || typeof m.type !== 'string' || (m.data != null && typeof m.data !== 'object')) return devWarn('ignored malformed message', m);
+    if (!this.allowed(m.type)) return devWarn('ignored (rate limit)', m.type);
+    const d = m.data || {}, g = this.g, s = this.sess;
+    switch (m.type) {
+      case 'ready': if (this.ready) return; this.ready = true; clearTimeout(this.readyTimer); return this.init();
+      case 'item': {
+        if (!this.ready || this.paused) return devWarn('item before init or while paused');
+        if (typeof d.skill !== 'string' || !g.skills.includes(d.skill) || typeof d.correct !== 'boolean') return devWarn('ignored item: skill or correct', d);
+        const itemId = String(d.itemId == null ? '' : d.itemId).slice(0, 40); if (!itemId || s.seen.has(itemId)) return devWarn('ignored item: missing or repeated itemId', itemId); s.seen.add(itemId);
+        const hintsUsed = this.clampInt(d.hintsUsed, 0, 9), ms = this.clampInt(d.ms, 0, 600000);
+        const firstTry = d.firstTry === true && d.correct && hintsUsed === 0;
+        const mistakeTag = !d.correct && typeof d.mistakeTag === 'string' && TAGS[d.mistakeTag] ? d.mistakeTag : null;
+        const r = { itemId, skill: d.skill, correct: d.correct, firstTry, hintsUsed, ms, mistakeTag };
+        s.items++; s.lvItems++; s.hints += hintsUsed; if (r.correct) s.right++; if (firstTry) { s.first++; s.lvRight++; } s.hintStep = 0;
+        return this.onItem(r);
+      }
+      case 'levelDone': {
+        if (!this.ready) return; const level = this.clampInt(d.level, 1, g.levels);
+        const r = { level, itemsTotal: Math.min(this.clampInt(d.itemsTotal, 0, 99), s.lvItems), itemsRight: Math.min(this.clampInt(d.itemsRight, 0, 99), s.lvRight) };
+        s.lvItems = 0; s.lvRight = 0; s.level = Math.min(g.levels, level + 1); return this.onLevel(r);
+      }
+      case 'say': { const text = typeof d.text === 'string' ? d.text.replace(/\s+/g, ' ').trim().slice(0, 240) : ''; if (!text) return devWarn('ignored say'); return d.lang === 'sw' ? (sayLang(text, 'sw'), Subs.show(text)) : Speech.say(text); }
+      case 'hint': return this.hint();
+      case 'quit': return this.close();
+      default: return devWarn('ignored unknown message', m.type);
+    }
+  },
+  /* the hint ladder for a game: the skill's hint, then a worked example of the same kind, then the tutor */
+  hint() {
+    const s = this.sess, skill = (this.opts.skill && this.g.skills.includes(this.opts.skill)) ? this.opts.skill : this.g.skills[0]; s.hintStep++;
+    if (s.hintStep === 1) return Speech.say(HINTS[skill] || 'Look again slowly. You can do it.');
+    if (s.hintStep === 2) { try { const ex = Engine.item(SKILL[skill].mode, 3, [skill]); return Speech.say(`Here is one like it. ${ex.spoken} ${ex.explain}`); } catch (e) { return Speech.say(HINTS[skill] || 'Look again slowly.'); } }
+    this.post('pause'); this.paused = true; App.state = 'tutor';
+    Tutor.free(() => { App.state = 'extgame'; this.paused = false; this.post('resume'); }, `${this.g.title}, a game for ${SHORT[skill] || skill}. The child asked for help.`);
+  },
+  onItem(r) { },                                                             /* A3: mastery, attempt log, telemetry */
+  onLevel(r) { const p = GP()[this.g.id] || (GP()[this.g.id] = { levels: 0, plays: 0, mins: 0 }); p.levels = Math.max(p.levels, r.level); kSave(); },
+  close(silent) {
+    clearTimeout(this.readyTimer); if (this.frame) { this.post('end', { reason: silent ? 'quit' : 'quit' }); }
+    const g = this.g; if (this.box) this.box.remove(); this.box = null; this.frame = null; this.g = null;
+    if (g && !silent) { this.onClose(g); if (App.state === 'extgame' || App.state === 'tutor') { App.state = 'hub'; (typeof Michezo !== 'undefined' && Michezo.back) ? Michezo.back() : showHome(); } }
+  },
+  onClose(g) { const p = GP()[g.id] || (GP()[g.id] = { levels: 0, plays: 0, mins: 0 }); p.plays++; kSave(); },
+};
+window.addEventListener('message', e => GamePlayer.onMessage(e));
+$('#stage').addEventListener('click', e => { const el = e.target.closest('[data-gx]'); if (!el) return; Sfx.unlock(); if (el.dataset.gx === 'quit') GamePlayer.close(); else if (el.dataset.gx === 'hint') GamePlayer.hint(); });
+{ const el = document.createElement('style'); el.textContent = `#gamebox{position:absolute;inset:0;z-index:30;background:var(--bg,#1F140E);display:flex;flex-direction:column}
+#gamebox .gbar{display:flex;align-items:center;gap:calc(var(--u)*8);padding:calc(var(--u)*6) calc(var(--u)*8);background:rgba(0,0,0,.25);color:#FFF7EA;font-weight:800;font-size:calc(var(--u)*18)}#gamebox .gbar b{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gamebox iframe{flex:1;width:100%;border:0;background:var(--bg,#1F140E)}#gamebox .gload{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*10);color:#FFF7EA;font-weight:800}
+#subs{z-index:60}`; document.head.appendChild(el); }
+window.__ky = Object.assign(window.__ky || {}, { GamePlayer, GP });
+{ const _fs = fabSync; fabSync = function () { const b = $('#kidiFab'); if (b && App.state === 'extgame') { b.hidden = true; return; } _fs(); }; }
+
 boot();
 
 </script>
