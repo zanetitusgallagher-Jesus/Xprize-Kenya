@@ -11435,9 +11435,11 @@ const Lib = {
   /* the skills the engine wants next: the current step of each path, then due reviews (B6 refines this) */
   wanted() {
     const ids = []; try { for (const m of ['num', 'lit']) ids.push(nextStep(m).id); } catch (e) { } try { ids.push(...dueSkills()); } catch (e) { }
-    /* the games-library skills that sit next to the current steps (same stage or the one before), not yet mastered */
-    const cur = ids.slice(0, 2).map(id => STAGE_OF_SKILL(id)); const maxSt = Math.max(1, ...cur);
-    const extra = Object.keys(SKILL_GRAPH).filter(id => !SKILL_GRAPH[id].path && isOpen(id) && skillState(id) < 4 && SKILL_GRAPH[id].stage <= maxSt).sort((a, b) => skillState(a) - skillState(b) || SKILL_GRAPH[a].stage - SKILL_GRAPH[b].stage);
+    /* the games-library skills closest to the child's current step in the same strand (numbers or reading): same stage
+       first, then the stage before; never a later stage; not yet mastered */
+    const curSt = {}; for (const m of ['num', 'lit']) { try { curSt[m] = STAGE_OF_SKILL(nextStep(m).id); } catch (e) { curSt[m] = 1; } }
+    const dist = id => { const t = curSt[SKILL[id].mode] || 1, g = SKILL_GRAPH[id].stage; return g > t ? 99 : t - g; };
+    const extra = Object.keys(SKILL_GRAPH).filter(id => !SKILL_GRAPH[id].path && isOpen(id) && skillState(id) < 4 && dist(id) < 99).sort((a, b) => dist(a) - dist(b) || skillState(a) - skillState(b));
     const out = []; const a = ids.filter(id => SKILL[id] && isOpen(id)); while (a.length || extra.length) { if (extra.length) out.push(extra.shift()); if (a.length) out.push(a.shift()); }
     return [...new Set(out)];
   },

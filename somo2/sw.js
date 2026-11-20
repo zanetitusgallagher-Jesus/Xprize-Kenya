@@ -9,7 +9,7 @@
      listed assets are cached when the worker installs, and again whenever the app asks ('cache-games'), so games
      work offline. Games run in a locked frame; they cannot reach the network themselves.
    - To force every phone to refresh everything, change VERSION. To refresh the voice pack, change AUDIO. */
-const VERSION = 'somo-shell-v3', AUDIO = 'somo-audio-v1', FONTS = 'somo-fonts-v1';
+const VERSION = 'somo-shell-v4', AUDIO = 'somo-audio-v1', FONTS = 'somo-fonts-v1';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './art/somo-icon.svg', './art/somo-logo-reverse.svg', './letters/', './trail/', './setup/'];
 async function cacheGames() {
   const c = await caches.open(VERSION), put = u => c.add(new Request(u, { cache: 'reload' })).catch(() => null);

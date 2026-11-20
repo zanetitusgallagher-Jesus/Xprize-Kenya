@@ -22,12 +22,16 @@ Its learning model is **Internalize/Inspire → Interpret → Impart**: children
 | `somo3/index.html` | **Somo 3, the admin view.** Log in with the admin key. Add teachers (people with a PIN, or AI teachers with a skill file), put each student with a teacher (by hand or "Assign by age"), see every student's info and progress, see exactly what any child sees and what any teacher sees, make restore codes, delete accounts, and hide guestbook notes. | Added Nov 12, 2026 |
 | `somo4/index.html` | **Somo 4, the teacher view.** A teacher picks their name and types their PIN. They see their students' progress, exactly what each child sees, each child's progress report (AI story, gap chart, plan), a class chat and one-on-one chats (text and voice notes), challenges and the leaderboard. | Added Nov 12, 2026 |
 | `somo4/teachers/` | **AI teacher skill files** (`*.md`) and their list (`index.json`). Copy `TEMPLATE.md` to make a new AI teacher. | Added Nov 12, 2026 |
+| `somo2/games/` | **The games library's plug-in games** ("Michezo"): 13 Somo games, each in its own folder (`index.html`, `game.json`, `thumb.svg`), the registry `index.json`, the Games SDK `somo-sdk.js`, a `_template/` to copy, and data the tools read (`skills.json`, `graph-data.js`, `mastery.js`, `builtin.json`). See `GAMES.md`. | Added Nov 19 to 20, 2026 |
+| `games-src/` | **Source of Somo's own games**: the shared kit, the pictures and one file per game. Build with `node tools/build-games.mjs`. | Added Nov 20, 2026 |
+| `tools/` | `check-game.mjs` (checks a game package), `build-games.mjs` (builds the games), `gen-curriculum.mjs` (writes CURRICULUM.md), `simulate.mjs` (simulated learners, writes SIMULATION.md). Run with Node 18 or newer. | Added Nov 20, 2026 |
+| `GAMES.md`, `CURRICULUM.md`, `SIMULATION.md` | How to make a game; the skill map (generated from the code); the simulated-learner report (models, not children). | Added Nov 20, 2026 |
 | `somo2/learn/index.html` | An old address that now sends visitors to `somo2/`. | |
 | `index.html`, `index (4).html` | The original team files at the repo root. Left as they were. | Team |
 | `SOMO-GUIDE.md` | **What Somo is and everything it does**, in plain words, for the team, teachers, partners and judges. | |
 | `AI-LOG.md` | **Log of every AI-assisted change.** Add an entry each time you change something. | Everyone |
 
-Every page is a **single self-contained HTML file**: no build step, no npm, no framework. Open it in a browser, or serve the folder with `python3 -m http.server` and visit `http://localhost:8000/somo2/`.
+Every page is a **single self-contained HTML file**: no npm, no framework. (The plug-in games are built from `games-src/` with one Node script, but each built game is still one self-contained file.) Open it in a browser, or serve the folder with `python3 -m http.server` and visit `http://localhost:8000/somo2/`.
 
 ---
 
@@ -86,6 +90,7 @@ The pages try these routes **in this order**:
   - **Theme:** 9 colour themes named after Kenya (Savanna sunset, Lake Victoria, Kakamega forest, Night sky, Maasai beads, Mombasa coast, Tea hills of Kericho, Jacaranda Nairobi, and Bright and clear for high contrast). Each child's choice is saved with their progress.
   - **Dress-up themes:** 7 fun worlds (Christmas, Fairy-tale magic, Superheroes, Outer space, Dinosaurs, Under the sea, Football) and 3 Kenyan ones (Jamhuri Day, Matatu madness, Maasai Mara migration). Each changes the moving background, dresses Kuku, Kobe, Twiga and Tembo in a costume (Santa hat, tiara, hero mask and cape, space helmet, snorkel, Kenyan beads and more), and changes the greeting and praise words. All art is Somo's own: no film or comic characters. A closet hat replaces the theme hat.
   - **Turi's trail:** opens `somo2/trail/`.
+  - **Michezo · Games** (the old "Free play"): the games library with the 20 built-in games and 13 plug-in games. Browse "For you", by skill or by stage; "Next for you" picks 3 games for the skills the child is on now. Games for skills that are not open yet show "Soon" and play as practice only. Each game shows levels done, never a score. Plug-in games run in a locked frame with no network; Somo keeps mastery, coins, the time cap and the attempt log.
 - **Certificates (from Ekah's website):** after every lesson the child gets a certificate with their name, the lesson, the score (questions right the first time in the lesson's "You!" part), stars, the date and the animal friend's signature. It can be printed or saved as a picture. All certificates are kept under "Certificates" on the home screen, listed on the Parent page, and saved with the progress in Supabase. Turi's trail shows the same kind of certificate after each of its lessons.
 - **Safari roadmap:** the path sits on a sunset savanna, with giraffes, elephants and zebras walking, birds and clouds. It stays still when the device asks for reduced motion.
 - **At-home activities:** every unit ends with an optional activity away from the screen, using beans, sticks, bottle caps or cups (English and Kiswahili). A grown-up taps "We did it together!" to finish it. These activities never block the path.
@@ -130,6 +135,8 @@ These come from our team's design. Please keep them when you or your AI edit the
 - Rewards come **only from learning** (right answers, finished steps, challenges). No streaks, no rewards just for time spent. A **leaderboard** is allowed (team decision, Nov 12, 2026): its points come only from learning.
 - Reading text the child must read alone uses only letters and words already taught. Stories read *to* the child can use any words.
 - Games never depend on fast reflexes; a slow child must still be able to show what they know.
+- Plug-in games must pass `node tools/check-game.mjs` (see `GAMES.md`).
+- **Mastered** needs right answers with no help on at least 2 different days; hinted answers count as practice.
 - The AI tutor replies in a few short, simple sentences and never gives away the answer.
 
 **Culture and language**

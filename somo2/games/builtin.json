@@ -1,0 +1,246 @@
+[
+ {
+  "id": "boda",
+  "name": "Boda Boda Rush",
+  "sw": "Mbio za Boda Boda",
+  "skills": [
+   "cnt",
+   "rec",
+   "facts",
+   "bond",
+   "pv",
+   "add",
+   "sub",
+   "mul",
+   "snd",
+   "cvc",
+   "sight",
+   "pic",
+   "sent",
+   "pat",
+   "wp"
+  ]
+ },
+ {
+  "id": "star",
+  "name": "Star Blaster",
+  "sw": "Mrusha Nyota",
+  "skills": [
+   "rec",
+   "facts",
+   "bond",
+   "pv",
+   "add",
+   "sub",
+   "mul",
+   "snd",
+   "cvc",
+   "sight",
+   "pic",
+   "pat",
+   "wp"
+  ]
+ },
+ {
+  "id": "river",
+  "name": "River Runner",
+  "sw": "Mkimbiaji wa Mto",
+  "skills": [
+   "pv",
+   "rec",
+   "add",
+   "sub",
+   "cvc"
+  ]
+ },
+ {
+  "id": "penalty",
+  "name": "Penalty King",
+  "sw": "Mfalme wa Penalti",
+  "skills": [
+   "rec",
+   "facts",
+   "bond",
+   "pv",
+   "add",
+   "sub",
+   "mul",
+   "snd",
+   "cvc",
+   "sight",
+   "pic",
+   "sent",
+   "pat",
+   "wp"
+  ]
+ },
+ {
+  "id": "mango",
+  "name": "Mango Catcher",
+  "sw": "Mdaka Maembe",
+  "skills": [
+   "rec",
+   "add",
+   "sub",
+   "pv",
+   "snd",
+   "sight",
+   "pic",
+   "cvc",
+   "pat",
+   "wp"
+  ]
+ },
+ {
+  "id": "jumper",
+  "name": "Number Line Jumper",
+  "sw": "Mrukaji wa Mstari",
+  "skills": [
+   "rec",
+   "pv",
+   "add",
+   "sub",
+   "bond",
+   "cvc"
+  ]
+ },
+ {
+  "id": "market",
+  "name": "Market Day",
+  "sw": "Siku ya Soko",
+  "skills": [
+   "pv",
+   "rec",
+   "add",
+   "facts",
+   "sub"
+  ]
+ },
+ {
+  "id": "drum",
+  "name": "Drum Beats",
+  "sw": "Mdundo wa Ngoma",
+  "skills": [
+   "cvc",
+   "pic"
+  ]
+ },
+ {
+  "id": "firefly",
+  "name": "Firefly Flash",
+  "sw": "Vimulimuli",
+  "skills": [
+   "cnt",
+   "facts",
+   "bond"
+  ]
+ },
+ {
+  "id": "train",
+  "name": "Word Train",
+  "sw": "Treni ya Maneno",
+  "skills": [
+   "cvc",
+   "sent"
+  ]
+ },
+ {
+  "id": "memory",
+  "name": "Memory Match",
+  "sw": "Kumbuka Jozi",
+  "skills": [
+   "cnt",
+   "facts",
+   "pv",
+   "rec",
+   "bond",
+   "pic",
+   "sight",
+   "snd"
+  ]
+ },
+ {
+  "id": "bridge",
+  "name": "Bridge Builder",
+  "sw": "Mjenzi wa Daraja",
+  "skills": [
+   "bond",
+   "facts",
+   "sub"
+  ]
+ },
+ {
+  "id": "matatu",
+  "name": "Matatu Conductor",
+  "sw": "Kondakta wa Matatu",
+  "skills": [
+   "facts",
+   "add",
+   "sub"
+  ]
+ },
+ {
+  "id": "fishing",
+  "name": "Lake Fishing",
+  "sw": "Uvuvi Ziwani",
+  "skills": [
+   "cvc",
+   "snd",
+   "rhy"
+  ]
+ },
+ {
+  "id": "tug",
+  "name": "Tug of War",
+  "sw": "Kuvuta Kamba",
+  "skills": [
+   "rec",
+   "pv",
+   "cnt"
+  ]
+ },
+ {
+  "id": "story",
+  "name": "Kidi's Storybook",
+  "sw": "Kitabu cha Hadithi",
+  "skills": [
+   "sent",
+   "sight",
+   "pic"
+  ]
+ },
+ {
+  "id": "safari",
+  "name": "Sound Safari",
+  "sw": "Safari ya Sauti",
+  "skills": [
+   "snd",
+   "cvc",
+   "pic"
+  ]
+ },
+ {
+  "id": "rhyme",
+  "name": "Rhyme Match",
+  "sw": "Maneno Yanayofanana",
+  "skills": [
+   "rhy"
+  ]
+ },
+ {
+  "id": "sounds",
+  "name": "Sound Match",
+  "sw": "Linganisha Sauti",
+  "skills": [
+   "snd"
+  ]
+ },
+ {
+  "id": "partners",
+  "name": "Letter Partners",
+  "sw": "Herufi Pacha",
+  "skills": [
+   "abc"
+  ]
+ }
+]

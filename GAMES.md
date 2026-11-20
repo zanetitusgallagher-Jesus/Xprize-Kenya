@@ -53,6 +53,18 @@ somo2/games/
 - `assets` are extra files in the folder. Somo caches them for offline use and **sends them to the game** (as data
   URLs in the `init` message), because the game itself cannot load anything from the network.
 - `slowModeSupported` must be `true`.
+- `lines` lists every line the game speaks, `{ key, en, sw }`, so every line has Kiswahili (`{word}` marks a word filled
+  in while playing). `description` and `description_sw` say what the child does.
+
+### Somo's own games (the kit)
+
+The team's games are written in `games-src/games/<id>.js` with a small shared kit (`games-src/kit.js`, `kit.css`, and
+the pictures in `icons-somo.js` and `icons-more.js`). `node tools/build-games.mjs [id]` turns each one into a
+self-contained `somo2/games/<id>/index.html`, `game.json` (with every spoken line in English and Kiswahili) and
+`thumb.svg`. The kit gives every game the same round (8 to 12 items, 3 levels), the hint ladder (1st miss: a nudge;
+2nd miss: a worked example, then try again; after that the answer is shown gently), spoken lines that wait their turn
+(Somo speaks one line a second), drag or tap-to-pick then tap-to-place, and the item messages. You can also write a
+game by hand from `_template/`.
 
 ### Adding a game
 
@@ -100,7 +112,7 @@ Link the SDK in your `index.html` exactly like this (Somo puts the SDK inside yo
 
 | Message | Data | Meaning |
 |---|---|---|
-| `init` | `{ protocol, gameLevel, skill, language, voiceOn, subtitlesOn, reducedMotion, minutesLeftToday, themeColours, practice, slow, assets }` | Start. `gameLevel` is the level to start at (1 = first). `skill` is the skill Somo wants practised (one of yours). `practice` is true when results will not change mastery. `themeColours` is `{ bg, panel, accent, good, text }`. `assets` maps each listed asset name to a data URL. |
+| `init` | `{ protocol, gameLevel, skill, language, voiceOn, subtitlesOn, reducedMotion, minutesLeftToday, themeColours, practice, slow, taughtLetters, taughtTricky, assets }` | Start. `taughtLetters` is a string of the letters the child has been taught (reading games use only these); `taughtTricky` is the list of tricky words taught so far. `gameLevel` is the level to start at (1 = first). `skill` is the skill Somo wants practised (one of yours). `practice` is true when results will not change mastery. `themeColours` is `{ bg, panel, accent, good, text }`. `assets` maps each listed asset name to a data URL. |
 | `pause` | `{}` | Stop everything (time cap, Somo menu). Show nothing that needs the child. |
 | `resume` | `{}` | Carry on. |
 | `end` | `{ reason }` | Somo is closing the game (`time`, `quit` or `error`). Stop at once. |

@@ -232,6 +232,36 @@ and a key box. It is hidden from children by the press-and-hold.
 - **Themes:** a "Theme" button with 9 colour palettes named after Kenya, including a high-contrast one; each child keeps their own.
   - **Dress-up themes:** 7 fun worlds (Christmas, Fairy-tale magic, Superheroes, Outer space, Dinosaurs, Under the sea, Football) and 3 Kenyan ones (Jamhuri Day, Matatu madness, Maasai Mara migration). Each changes the moving background, dresses Kuku, Kobe, Twiga and Tembo in a costume (Santa hat, tiara, hero mask and cape, space helmet, snorkel, Kenyan beads and more), and changes the greeting and praise words. All art is Somo's own: no film or comic characters. A closet hat replaces the theme hat.
 
+### 2.15 The games library and 13 new games (November 19 to 20)
+
+**Michezo · Games** holds the 20 built-in games and 13 new games made as plug-ins. Every new game has 3 levels of 8 to
+12 items, no timers, no scores, every line spoken (with subtitles, and in Kiswahili), and the same hint ladder: the
+first miss gets a nudge, the second a worked example, then the child tries again. Reading games use only the letters
+the child has learned. Kenyan settings throughout.
+
+| Game | Skill | What the child does |
+|---|---|---|
+| Sauti Sokoni | First, last and middle sounds | The market seller calls a sound; put the things with that sound in the kiondo basket |
+| Ngoma Beats | Syllables | Tap the drum once for each beat (ma-ta-tu); find the word with 3 beats; join two parts into one word |
+| Sound Boxes | Segmenting | A bead in a box for each sound; then letter tiles; then four-sound words like frog |
+| Matatu Spell | Blending and spelling | Letter passengers board the matatu in order; the conductor blends the sounds |
+| Real or Silly? | Reading made-up words | Read the word on the mango; real-word basket or silly-word basket |
+| Family Tree | Word families | Drop letter seeds on the -at tree: real words grow fruit, silly words a leaf |
+| Duka la Herufi | sh, ch, th | Finish the price tag (sh+op, ch+ick, th+umb), then read whole words |
+| Tricky Treasure | Tricky words | Find the tricky word in the sand among look-alikes; it goes in the treasure book |
+| Story Strip | Story order and retelling | Hear a Kenyan story, put the pictures in order, answer who, where or why; level 3: read it |
+| Safari Words | Vocabulary | Find what is described; sort animals, food and tools; opposites and same meanings |
+| Bao Sums | Counting on, missing number | Sow seeds pit by pit while Somo counts; start from the bigger number; 7 + ? = 10 |
+| Mizani | Equal sides | Balance the market scale; 5 + 3 = ? + 2; take sacks away to balance |
+| Kiondo Patterns | Patterns | Finish bead patterns (AB, ABB, ABC), then number patterns that grow |
+
+- **Mastery needs two days.** A skill is "mastered" only after 4 of the last 5 answers are right with no help, on at
+  least 2 different days. Answers after a hint count as practice. Stars: practising 1, independent 2, mastered 3.
+- **Teachers** can set any of the new games as a challenge in Somo 4.
+- The skill map is in `CURRICULUM.md`; how to make a game is in `GAMES.md`; a report on simulated learners is in
+  `SIMULATION.md` (these are computer models, not real children).
+- The new games' lines are spoken by the phone's own voice for now; they need recording in the Kenyan voice (see AI-LOG).
+
 ---
 
 ## 3. Somo 4: the teacher view (`somo4/`)
@@ -372,3 +402,4 @@ row-level security on with no policies, so the function is the only way in.
 | Nov 6 | The learning path (Build 2) with stage tutors, Inspire → Interpret → Impart, stories, tracing, new games; the AI key setup page; the README |
 | Nov 7 | The learning path became the main page, with feature buttons: welcome video, accounts, parent page with AI progress story, gap chart and plan, guestbook and polls, safari music and roadmap, at-home activities |
 | Nov 12 | Delete account; progress saved to Supabase and everything renamed from KenyAI to Somo; Somo 3 (admin), classes, subtitles; all data in Supabase; egg rewards removed (treasure chests back); certificates after every lesson (Somo and Turi's trail); **Somo 4**: teachers with PINs, AI teachers, the admin assigns students by age, class and one-on-one chat with voice notes, challenges, leaderboard, "See what they see"; the parent view, guestbook and polls removed from the child's app |
+| Nov 19 to 20 | Plug-in games system (registry, SDK, sandbox, offline), the Michezo games library, 13 new games, two-day mastery, CURRICULUM.md and SIMULATION.md |
