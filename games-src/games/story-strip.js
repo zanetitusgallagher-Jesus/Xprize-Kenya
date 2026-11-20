@@ -50,8 +50,8 @@ K.lines({
       const st = spec.st;
       if (spec.kind === 'order') {
         const n = spec.n, pics = st.c.slice(0, n), sent = st.s.slice(0, n);
-        const tell = () => sent.forEach(x => K.sayText(x, 'en'));
-        if (spec.read) { K.setPrompt(() => K.say('readnow')); K.say('readnow'); } else { K.setPrompt(() => { K.say('listen'); tell(); }); K.say('listen'); tell(); setTimeout(() => K.say('order'), 200); }
+        const tell = () => K.sayText(sent.join(' '), 'en');   /* one line: Somo speaks one line a second, so a story goes as one */
+        if (spec.read) { K.setPrompt(() => K.say('readnow')); K.say('readnow'); } else { K.setPrompt(() => tell()); tell(); }
         root.innerHTML = `${spec.read ? `<div class="card" style="text-align:left;align-items:flex-start;font-size:22px;max-width:380px;padding:10px">${sent.map(x => `<span>${K.esc(x)}</span>`).join('')}</div><button class="ib" id="ear" aria-label="Hear the story">🔊</button>` : ''}
           <div class="row" id="slots">${pics.map((_, i) => `<div class="slot" data-s="${i}" style="flex-direction:column;min-width:100px"><small>${K.esc(K.line(i === 0 ? 'first' : i === n - 1 ? 'last' : 'next'))}</small></div>`).join('')}</div>
           <div class="row" id="cards">${K.shuffle(pics.map((c, i) => [c, i])).map(([c, i]) => card(c, i)).join('')}</div>`;

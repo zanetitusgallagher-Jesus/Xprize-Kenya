@@ -25,7 +25,7 @@ K.lines({
     render(spec, it, root) {
       const w = spec.w, p = () => K.say('sign', { w }); K.setPrompt(p); p();
       const extra = spec.lv === 1 ? [SIM[w[1]]] : [SIM[w[0]], SIM[w[1]], SIM[w[w.length - 1]]];
-      const pass = K.shuffle([...w, ...extra.filter(x => x && !w.includes(x) && (K.canRead(x) || spec.lv === 1))]);
+      const pass = K.shuffle([...w, ...extra.filter(x => x && !w.includes(x) && K.canRead(x))]);
       root.innerHTML = `<div class="card" style="flex-direction:row;gap:10px">${K.pic(w, 70)}<span style="font-size:13px;color:#7A5A3A">ROUTE</span></div>
         <div style="position:relative;width:330px;max-width:96vw"><svg viewBox="0 0 330 120" width="100%"><path d="M8 100V36q0-20 20-20h236q20 0 30 22l10 22v40z" fill="#F2B829"/><path d="M10 64h300" stroke="#E8577A" stroke-width="8"/><circle cx="70" cy="104" r="15" fill="#2E2219"/><circle cx="260" cy="104" r="15" fill="#2E2219"/><path d="M280 26h14l12 26h-26z" fill="#BFE7F5"/></svg>
         <div class="row" id="seats" style="position:absolute;left:14px;right:60px;top:20px;gap:6px">${w.split('').map((_, i) => `<div class="slot" data-s="${i}" style="min-width:52px;min-height:56px;background:rgba(191,231,245,.9);border-color:#fff"></div>`).join('')}</div></div>

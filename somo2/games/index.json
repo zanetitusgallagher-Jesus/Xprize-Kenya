@@ -49,6 +49,10 @@
     {
       "id": "mizani",
       "enabled": true
+    },
+    {
+      "id": "kiondo-patterns",
+      "enabled": true
     }
   ]
 }

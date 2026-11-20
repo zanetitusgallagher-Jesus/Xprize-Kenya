@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Keep this CSP: it blocks all network access. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Template game</title>
+<style>
+  body{margin:0;background:#1F140E;color:#FFF7EA;font:600 20px system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px}
+  button{font:inherit;min-width:96px;min-height:96px;border-radius:18px;border:3px solid transparent;background:#FFF8EC;color:#2B1E17;font-size:40px;font-weight:800}
+  button:focus-visible{outline:4px solid #FFD447}.try{animation:n .4s}@keyframes n{30%{transform:translateX(-6px)}70%{transform:translateX(6px)}}
+</style></head><body>
+<p id="q">How many mangoes?</p><div id="pics" style="font-size:44px"></div><div id="opts" style="display:flex;gap:12px"></div>
+<script src="../somo-sdk.js"></script>
+<script>
+/* TEMPLATE: copy this folder to somo2/games/<your-id>/, change game.json and this file.
+   Rules: speak every instruction with Somo.say, report every item with Somo.newItem(...).answer(...),
+   no timers that end a round, no speed rewards, no coins of your own, never "wrong" or a red X. See GAMES.md. */
+let level = 1, n = 0, right = 0;
+const ITEMS = 8;
+function ask() {
+  if (n >= ITEMS) { Somo.levelDone({ level, itemsRight: right, itemsTotal: ITEMS }); Somo.say('Level done! Well done.'); return; }
+  const count = 1 + Math.floor(Math.random() * (level + 3)), item = Somo.newItem('cnt', 'tmpl-' + level + '-' + n); let misses = 0;
+  document.getElementById('pics').textContent = '●'.repeat(count);
+  Somo.say('How many dots? Tap the number.');
+  const opts = [...new Set([count, count + 1, Math.max(1, count - 1)])].sort(() => Math.random() - .5);
+  const box = document.getElementById('opts'); box.innerHTML = '';
+  for (const o of opts) { const b = document.createElement('button'); b.textContent = o; box.appendChild(b);
+    b.onclick = () => {
+      if (item.answer(o === count, Math.abs(o - count) === 1 ? 'miscount' : 'other')) { if (!misses) right++; n++; Somo.say('Yes!'); setTimeout(ask, 1200); return; }
+      misses++; b.classList.add('try');
+      if (misses === 1) Somo.say('Touch each dot once as you count.');            /* 1st miss: a nudge */
+      else { item.hint(); Somo.say('Let us count together: ' + Array.from({ length: count }, (_, i) => i + 1).join(', ') + '. Now you try.'); }  /* 2nd miss: worked example */
+    }; }
+}
+Somo.onInit(cfg => { level = Math.max(1, Math.min(3, cfg.gameLevel || 1)); n = 0; right = 0; ask(); });
+Somo.on('pause', () => { document.body.style.opacity = .4; });
+Somo.on('resume', () => { document.body.style.opacity = 1; });
+</script></body></html>

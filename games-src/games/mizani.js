@@ -18,13 +18,16 @@ K.lines({
 });
 (() => {
   const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
-  const sack = (n, i, k = '') => `<g ${k ? `data-k="${k}" style="cursor:pointer"` : ''}><path d="M${i * 22 + 4} 30q-6 14 0 22h18q6-8 0-22z" fill="#D9B07A" stroke="#8B5A3C"/>${n != null ? `<text x="${i * 22 + 13}" y="47" font-size="11" text-anchor="middle" font-weight="800" fill="#2B1E17">${n}</text>` : ''}</g>`;
+  /* a sack drawn at grid cell i of a pan (4 per row, rows stack upwards) */
+  const sack = (n, i, k = '') => { const x = (i % 4) * 26 + 4, y = -Math.floor(i / 4) * 24; return `<g transform="translate(${x} ${y})" ${k ? `data-k="${k}" style="cursor:pointer"` : ''}><path d="M4 14q-5 12 0 20h18q5-8 0-20l-3-4H7z" fill="#D9B07A" stroke="#8B5A3C"/><path d="M7 10h12" stroke="#8B5A3C" stroke-width="2"/>${n != null ? `<text x="13" y="29" font-size="11" text-anchor="middle" font-weight="800" fill="#2B1E17">${n}</text>` : ''}</g>`; };
   function scale(L, R, tilt) {
-    const t = Math.max(-12, Math.min(12, tilt * 3));
-    return `<svg viewBox="0 0 340 200" width="100%" style="max-width:420px"><path d="M170 60v120M130 190h80" stroke="#7D8890" stroke-width="8"/><g transform="rotate(${t} 170 60)"><path d="M30 60h280" stroke="#555F66" stroke-width="6"/><path d="M50 60l-30 60h120l-30-60M290 60l-30 60h120l-30-60" stroke="#9AA6AE" stroke-width="2" fill="none"/>
-      <g transform="translate(20 ${60 + 18})"><rect x="0" y="40" width="120" height="8" rx="4" fill="#9AA6AE"/>${L}</g><g transform="translate(260 ${60 + 18})"><rect x="0" y="40" width="120" height="8" rx="4" fill="#9AA6AE"/>${R}</g></g><circle cx="170" cy="60" r="8" fill="#F2B829"/></svg>`;
+    const t = Math.max(-10, Math.min(10, tilt * 2.5));
+    return `<svg viewBox="0 0 340 210" width="100%" style="max-width:420px"><path d="M170 70v120M120 196h100" stroke="#7D8890" stroke-width="8" stroke-linecap="round"/><g transform="rotate(${t} 170 70)"><path d="M40 70h260" stroke="#555F66" stroke-width="6" stroke-linecap="round"/>
+      <path d="M40 70l-28 74M40 70l68 74M300 70l-68 74M300 70l28 74" stroke="#9AA6AE" stroke-width="2"/>
+      <g transform="translate(-4 104)">${L}</g><rect x="4" y="142" width="112" height="7" rx="3.5" fill="#9AA6AE"/>
+      <g transform="translate(224 104)">${R}</g><rect x="224" y="142" width="112" height="7" rx="3.5" fill="#9AA6AE"/></g><circle cx="170" cy="70" r="8" fill="#F2B829"/></svg>`;
   }
-  const sacks = (n, k) => Array.from({ length: n }, (_, i) => `<g transform="translate(${(i % 5) * 0} ${-Math.floor(i / 5) * 22})">${sack(null, i % 5, k ? k + i : '')}</g>`).join('');
+  const sacks = (n, k) => Array.from({ length: n }, (_, i) => sack(null, i, k ? k + i : '')).join('');
   K.game({ id: 'mizani', levels: 3, skill: () => 'eq', icon: K.pic('sack', 110),
     items(lv) { return Array.from({ length: 8 }, () => { if (lv === 1) { const a = ri(4, 9), b = ri(1, a - 1); return { lv, a, b }; } if (lv === 2) { const a = ri(2, 6), b = ri(1, 4), c = ri(1, a + b - 1); return { lv, a, b, c, d: a + b - c }; } const a = ri(6, 10), b = ri(2, a - 1); return { lv, a, b }; }); },
     render(spec, it, root) {
@@ -37,7 +40,7 @@ K.lines({
         return;
       }
       const take = spec.lv === 3; let L = spec.a, R = spec.b; const p = () => K.say(take ? 'take3' : 'add1', { a: spec.a, b: spec.b }); K.setPrompt(p); p();
-      const draw = () => { K.$('#sc', root).innerHTML = scale(sacks(L, take ? 'L' : ''), sacks(R), R - L); K.$('#cnt', root).textContent = `${L}   ${R}`; };
+      const draw = () => { K.$('#sc', root).innerHTML = scale(sacks(L, take ? 'L' : ''), sacks(R), R - L); K.$('#cnt', root).textContent = `${L}  ${L === R ? '=' : L > R ? '>' : '<'}  ${R}`; };
       root.innerHTML = `<div id="sc"></div><div class="word" id="cnt"></div><div class="row">${take ? '' : `<button class="card letter" id="minus">−</button><button class="card letter" id="plus">+</button>`}<button class="big" id="chk">${K.esc(K.line('check'))}</button></div>`;
       draw();
       if (!take) { K.$('#plus', root).onclick = () => { if (R < 12) { R++; draw(); K.sayText(String(R), 'en'); } }; K.$('#minus', root).onclick = () => { if (R > spec.b) { R--; draw(); } }; }

@@ -1,0 +1,181 @@
+{
+  "id": "kiondo-patterns",
+  "title": "Kiondo Patterns",
+  "title_sw": "Mifumo ya Kiondo",
+  "author": "Somo team (XPRIZE Kenya)",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": [
+    "pat"
+  ],
+  "stages": [
+    1,
+    2
+  ],
+  "ages": [
+    5,
+    8
+  ],
+  "levels": 3,
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "Finish the bead pattern on the kiondo strap: AB, ABB, ABC. Level 3: growing number patterns like 2, 4, 6.",
+  "description_sw": "Malizia mfumo wa shanga kwenye kamba ya kiondo: AB, ABB, ABC. Kiwango 3: mifumo ya namba inayokua kama 2, 4, 6.",
+  "lines": [
+    {
+      "key": "level",
+      "en": "Level {n}",
+      "sw": "Kiwango {n}"
+    },
+    {
+      "key": "start",
+      "en": "Start",
+      "sw": "Anza"
+    },
+    {
+      "key": "tapstart",
+      "en": "Tap the green button to start.",
+      "sw": "Gusa kitufe cha kijani kuanza."
+    },
+    {
+      "key": "praise1",
+      "en": "Yes! Well done!",
+      "sw": "Ndiyo! Hongera!"
+    },
+    {
+      "key": "praise2",
+      "en": "You got it!",
+      "sw": "Umeweza!"
+    },
+    {
+      "key": "praise3",
+      "en": "Great thinking!",
+      "sw": "Umefikiri vizuri!"
+    },
+    {
+      "key": "praise4",
+      "en": "Super!",
+      "sw": "Safi sana!"
+    },
+    {
+      "key": "praiseHelp",
+      "en": "Yes! You worked it out.",
+      "sw": "Ndiyo! Umegundua."
+    },
+    {
+      "key": "nudge",
+      "en": "Say the pattern out loud: {p}. What comes next?",
+      "sw": "Taja mfumo kwa sauti: {p}. Nini kinafuata?"
+    },
+    {
+      "key": "look",
+      "en": "Let's look at one together.",
+      "sw": "Tuangalie mfano pamoja."
+    },
+    {
+      "key": "nowyou",
+      "en": "Now you try.",
+      "sw": "Sasa jaribu wewe."
+    },
+    {
+      "key": "leveldone",
+      "en": "Level {n} done!",
+      "sw": "Kiwango {n} kimekwisha!"
+    },
+    {
+      "key": "nextlevel",
+      "en": "Next level",
+      "sw": "Kiwango kijacho"
+    },
+    {
+      "key": "nextq",
+      "en": "Ready for the next level?",
+      "sw": "Uko tayari kwa kiwango kijacho?"
+    },
+    {
+      "key": "again",
+      "en": "Play again",
+      "sw": "Cheza tena"
+    },
+    {
+      "key": "back",
+      "en": "Back to Somo",
+      "sw": "Rudi Somo"
+    },
+    {
+      "key": "paused",
+      "en": "Resting…",
+      "sw": "Tunapumzika…"
+    },
+    {
+      "key": "intro1",
+      "en": "Beads for the kiondo strap! Look at the pattern and choose the next bead.",
+      "sw": "Shanga za kamba ya kiondo! Angalia mfumo na uchague shanga inayofuata."
+    },
+    {
+      "key": "intro2",
+      "en": "Harder patterns now. Say the colours out loud.",
+      "sw": "Mifumo migumu zaidi sasa. Taja rangi kwa sauti."
+    },
+    {
+      "key": "intro3",
+      "en": "Now number patterns that grow. Find the jump.",
+      "sw": "Sasa mifumo ya namba inayokua. Tafuta kuruka."
+    },
+    {
+      "key": "next",
+      "en": "Which bead comes next?",
+      "sw": "Shanga ipi inafuata?"
+    },
+    {
+      "key": "nextn",
+      "en": "Which number comes next?",
+      "sw": "Namba ipi inafuata?"
+    },
+    {
+      "key": "red",
+      "en": "red",
+      "sw": "nyekundu"
+    },
+    {
+      "key": "blue",
+      "en": "blue",
+      "sw": "buluu"
+    },
+    {
+      "key": "yellow",
+      "en": "yellow",
+      "sw": "njano"
+    },
+    {
+      "key": "green",
+      "en": "green",
+      "sw": "kijani"
+    },
+    {
+      "key": "white",
+      "en": "white",
+      "sw": "nyeupe"
+    },
+    {
+      "key": "nudgen",
+      "en": "How much bigger is each number? Count the jump.",
+      "sw": "Kila namba ni kubwa kwa kiasi gani? Hesabu kuruka."
+    },
+    {
+      "key": "ex",
+      "en": "The part that repeats is {u}. So next is {a}.",
+      "sw": "Sehemu inayojirudia ni {u}. Kwa hiyo inayofuata ni {a}."
+    },
+    {
+      "key": "exn",
+      "en": "Each time it goes up by {j}. {last} and {j} more is {a}.",
+      "sw": "Kila mara inaongezeka kwa {j}. {last} na {j} zaidi ni {a}."
+    }
+  ]
+}

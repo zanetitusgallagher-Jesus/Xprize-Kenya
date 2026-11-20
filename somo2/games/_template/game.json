@@ -1,0 +1,24 @@
+{
+  "id": "template",
+  "title": "Template game",
+  "title_sw": "Mchezo kiolezo",
+  "author": "Somo team",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": ["cnt"],
+  "stages": [1],
+  "ages": [5, 7],
+  "levels": 3,
+  "languages": ["en", "sw"],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "A tiny counting game to copy when you make a new game. Not in the registry.",
+  "lines": [
+    { "key": "ask", "en": "How many dots? Tap the number.", "sw": "Kuna nukta ngapi? Gusa namba." },
+    { "key": "yes", "en": "Yes!", "sw": "Ndiyo!" },
+    { "key": "nudge", "en": "Touch each dot once as you count.", "sw": "Gusa kila nukta mara moja unapohesabu." },
+    { "key": "example", "en": "Let us count together: 1, 2, 3. Now you try.", "sw": "Tuhesabu pamoja: 1, 2, 3. Sasa jaribu wewe." },
+    { "key": "done", "en": "Level done! Well done.", "sw": "Kiwango kimekwisha! Hongera." }
+  ]
+}
