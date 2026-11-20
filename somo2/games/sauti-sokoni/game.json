@@ -1,0 +1,191 @@
+{
+  "id": "sauti-sokoni",
+  "title": "Sauti Sokoni",
+  "title_sw": "Sauti Sokoni",
+  "author": "Somo team (XPRIZE Kenya)",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": [
+    "fls"
+  ],
+  "stages": [
+    1,
+    2
+  ],
+  "ages": [
+    5,
+    7
+  ],
+  "levels": 3,
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "The market seller calls a sound. Put the things with that sound in the kiondo basket. Level 1: first sound; level 2: last sound; level 3: middle sound.",
+  "description_sw": "Muuzaji anaita sauti. Weka vitu vyenye sauti hiyo kwenye kiondo. Kiwango 1: sauti ya kwanza; 2: ya mwisho; 3: ya kati.",
+  "lines": [
+    {
+      "key": "level",
+      "en": "Level {n}",
+      "sw": "Kiwango {n}"
+    },
+    {
+      "key": "start",
+      "en": "Start",
+      "sw": "Anza"
+    },
+    {
+      "key": "tapstart",
+      "en": "Tap the green button to start.",
+      "sw": "Gusa kitufe cha kijani kuanza."
+    },
+    {
+      "key": "praise1",
+      "en": "Yes! Well done!",
+      "sw": "Ndiyo! Hongera!"
+    },
+    {
+      "key": "praise2",
+      "en": "You got it!",
+      "sw": "Umeweza!"
+    },
+    {
+      "key": "praise3",
+      "en": "Great thinking!",
+      "sw": "Umefikiri vizuri!"
+    },
+    {
+      "key": "praise4",
+      "en": "Super!",
+      "sw": "Safi sana!"
+    },
+    {
+      "key": "praiseHelp",
+      "en": "Yes! You worked it out.",
+      "sw": "Ndiyo! Umegundua."
+    },
+    {
+      "key": "nudge",
+      "en": "Look again. Try once more.",
+      "sw": "Angalia tena. Jaribu tena."
+    },
+    {
+      "key": "look",
+      "en": "Let's look at one together.",
+      "sw": "Tuangalie mfano pamoja."
+    },
+    {
+      "key": "nowyou",
+      "en": "Now you try.",
+      "sw": "Sasa jaribu wewe."
+    },
+    {
+      "key": "leveldone",
+      "en": "Level {n} done!",
+      "sw": "Kiwango {n} kimekwisha!"
+    },
+    {
+      "key": "nextlevel",
+      "en": "Next level",
+      "sw": "Kiwango kijacho"
+    },
+    {
+      "key": "nextq",
+      "en": "Ready for the next level?",
+      "sw": "Uko tayari kwa kiwango kijacho?"
+    },
+    {
+      "key": "again",
+      "en": "Play again",
+      "sw": "Cheza tena"
+    },
+    {
+      "key": "back",
+      "en": "Back to Somo",
+      "sw": "Rudi Somo"
+    },
+    {
+      "key": "paused",
+      "en": "Resting…",
+      "sw": "Tunapumzika…"
+    },
+    {
+      "key": "intro1",
+      "en": "Welcome to the market! I call a sound. Put things that START with that sound in the basket.",
+      "sw": "Karibu sokoni! Ninaita sauti. Weka vitu vinavyoANZA na sauti hiyo kwenye kiondo."
+    },
+    {
+      "key": "intro2",
+      "en": "Now listen for the LAST sound, at the end of the word.",
+      "sw": "Sasa sikiliza sauti ya MWISHO, mwishoni mwa neno."
+    },
+    {
+      "key": "intro3",
+      "en": "Now listen for the MIDDLE sound, inside the word.",
+      "sw": "Sasa sikiliza sauti ya KATI, ndani ya neno."
+    },
+    {
+      "key": "call1",
+      "en": "Who has things that start with {s}? Put them in the basket.",
+      "sw": "Nani ana vitu vinavyoanza na {s}? Viweke kwenye kiondo."
+    },
+    {
+      "key": "call2",
+      "en": "Find things that end with {s}. Put them in the basket.",
+      "sw": "Tafuta vitu vinavyoishia na {s}. Viweke kwenye kiondo."
+    },
+    {
+      "key": "call3",
+      "en": "Which one has {s} in the middle? Put it in the basket.",
+      "sw": "Kipi kina {s} katikati? Kiweke kwenye kiondo."
+    },
+    {
+      "key": "tapname",
+      "en": "Tap a thing to hear its name.",
+      "sw": "Gusa kitu usikie jina lake."
+    },
+    {
+      "key": "more",
+      "en": "Yes! Is there another one?",
+      "sw": "Ndiyo! Kuna kingine?"
+    },
+    {
+      "key": "nudge1",
+      "en": "Say it slowly: {w}. Listen to the first sound. Is it {s}?",
+      "sw": "Sema polepole: {w}. Sikiliza sauti ya kwanza. Ni {s}?"
+    },
+    {
+      "key": "nudge2",
+      "en": "Say it slowly: {w}. Listen to the very end. Is it {s}?",
+      "sw": "Sema polepole: {w}. Sikiliza mwisho kabisa. Ni {s}?"
+    },
+    {
+      "key": "nudge3",
+      "en": "Say it slowly: {w}. Listen to the middle. Is it {s}?",
+      "sw": "Sema polepole: {w}. Sikiliza katikati. Ni {s}?"
+    },
+    {
+      "key": "ex1",
+      "en": "{w}. {s}... {w}. {w} starts with {s}.",
+      "sw": "{w}. {s}... {w}. {w} inaanza na {s}."
+    },
+    {
+      "key": "ex2",
+      "en": "{w}. {w}... {s}. {w} ends with {s}.",
+      "sw": "{w}. {w}... {s}. {w} inaishia na {s}."
+    },
+    {
+      "key": "ex3",
+      "en": "{w}. In the middle of {w} is {s}.",
+      "sw": "{w}. Katikati ya {w} kuna {s}."
+    },
+    {
+      "key": "shown",
+      "en": "These are the ones. Watch them go in the basket.",
+      "sw": "Hivi ndivyo. Tazama vikiingia kwenye kiondo."
+    }
+  ]
+}

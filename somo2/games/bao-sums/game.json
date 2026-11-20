@@ -1,0 +1,182 @@
+{
+  "id": "bao-sums",
+  "title": "Bao Sums",
+  "title_sw": "Hesabu za Bao",
+  "author": "Somo team (XPRIZE Kenya)",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": [
+    "facts",
+    "mad"
+  ],
+  "stages": [
+    2,
+    3
+  ],
+  "ages": [
+    6,
+    9
+  ],
+  "levels": 3,
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "Sow seeds pit by pit while Somo counts aloud, then do the sum. Level 2: start from the bigger number. Level 3: the missing number (7 + ? = 10).",
+  "description_sw": "Panda mbegu shimo kwa shimo huku Somo akihesabu kwa sauti, kisha fanya hesabu. Kiwango 2: anza na namba kubwa. Kiwango 3: namba inayokosekana (7 + ? = 10).",
+  "lines": [
+    {
+      "key": "level",
+      "en": "Level {n}",
+      "sw": "Kiwango {n}"
+    },
+    {
+      "key": "start",
+      "en": "Start",
+      "sw": "Anza"
+    },
+    {
+      "key": "tapstart",
+      "en": "Tap the green button to start.",
+      "sw": "Gusa kitufe cha kijani kuanza."
+    },
+    {
+      "key": "praise1",
+      "en": "Yes! Well done!",
+      "sw": "Ndiyo! Hongera!"
+    },
+    {
+      "key": "praise2",
+      "en": "You got it!",
+      "sw": "Umeweza!"
+    },
+    {
+      "key": "praise3",
+      "en": "Great thinking!",
+      "sw": "Umefikiri vizuri!"
+    },
+    {
+      "key": "praise4",
+      "en": "Super!",
+      "sw": "Safi sana!"
+    },
+    {
+      "key": "praiseHelp",
+      "en": "Yes! You worked it out.",
+      "sw": "Ndiyo! Umegundua."
+    },
+    {
+      "key": "nudge",
+      "en": "Look at the last pit we sowed. Its number is the answer.",
+      "sw": "Angalia shimo la mwisho tulilopanda. Namba yake ndiyo jibu."
+    },
+    {
+      "key": "look",
+      "en": "Let's look at one together.",
+      "sw": "Tuangalie mfano pamoja."
+    },
+    {
+      "key": "nowyou",
+      "en": "Now you try.",
+      "sw": "Sasa jaribu wewe."
+    },
+    {
+      "key": "leveldone",
+      "en": "Level {n} done!",
+      "sw": "Kiwango {n} kimekwisha!"
+    },
+    {
+      "key": "nextlevel",
+      "en": "Next level",
+      "sw": "Kiwango kijacho"
+    },
+    {
+      "key": "nextq",
+      "en": "Ready for the next level?",
+      "sw": "Uko tayari kwa kiwango kijacho?"
+    },
+    {
+      "key": "again",
+      "en": "Play again",
+      "sw": "Cheza tena"
+    },
+    {
+      "key": "back",
+      "en": "Back to Somo",
+      "sw": "Rudi Somo"
+    },
+    {
+      "key": "paused",
+      "en": "Resting…",
+      "sw": "Tunapumzika…"
+    },
+    {
+      "key": "intro1",
+      "en": "Here is our bao board. Some pits are full. Tap Sow to drop one seed in the next pit, and count on with me.",
+      "sw": "Hii ni bao letu. Mashimo mengine yamejaa. Gusa Panda kudondosha mbegu moja kwenye shimo linalofuata, na tuhesabu pamoja."
+    },
+    {
+      "key": "intro2",
+      "en": "Now start from the BIGGER number. It is faster to count on from the big one.",
+      "sw": "Sasa anza na namba KUBWA. Ni rahisi kuendelea kuhesabu kutoka kubwa."
+    },
+    {
+      "key": "intro3",
+      "en": "Now find the missing number. Sow until you reach the flag.",
+      "sw": "Sasa tafuta namba inayokosekana. Panda hadi ufike kwenye bendera."
+    },
+    {
+      "key": "sow",
+      "en": "Sow",
+      "sw": "Panda"
+    },
+    {
+      "key": "start1",
+      "en": "We have {a}. Sow {b} more seeds.",
+      "sw": "Tuna {a}. Panda mbegu {b} zaidi."
+    },
+    {
+      "key": "pick2",
+      "en": "{a} plus {b}. Which number do we start from?",
+      "sw": "{a} jumlisha {b}. Tuanze na namba ipi?"
+    },
+    {
+      "key": "start3",
+      "en": "We have {a}. How many more to make {t}? Sow to the flag.",
+      "sw": "Tuna {a}. Ngapi zaidi kufanya {t}? Panda hadi kwenye bendera."
+    },
+    {
+      "key": "ask",
+      "en": "So {a} plus {b} is how many?",
+      "sw": "Kwa hiyo {a} jumlisha {b} ni ngapi?"
+    },
+    {
+      "key": "ask3",
+      "en": "How many seeds did we sow? {a} plus how many is {t}?",
+      "sw": "Tumepanda mbegu ngapi? {a} jumlisha ngapi ni {t}?"
+    },
+    {
+      "key": "big",
+      "en": "Yes, the bigger one. We start at {a}.",
+      "sw": "Ndiyo, kubwa. Tunaanza na {a}."
+    },
+    {
+      "key": "nudgebig",
+      "en": "Which is bigger, {a} or {b}? Start from the bigger one.",
+      "sw": "Ipi ni kubwa, {a} au {b}? Anza na kubwa."
+    },
+    {
+      "key": "nudge3",
+      "en": "Count only the new seeds, the ones we sowed.",
+      "sw": "Hesabu mbegu mpya tu, zile tulizopanda."
+    },
+    {
+      "key": "ex",
+      "en": "Start at {a}. Count on: {seq}. {a} plus {b} is {c}.",
+      "sw": "Anza na {a}. Endelea: {seq}. {a} jumlisha {b} ni {c}."
+    }
+  ]
+}

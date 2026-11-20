@@ -11073,6 +11073,121 @@ Theme.show = function () {
 Theme.apply();
 
 /* ============================================================================
+   THE SKILL GRAPH (Nov 2026). Pure data, no browser code: tools/gen-curriculum.mjs and tools/simulate.mjs (in the
+   Xprize-Kenya repo) read this same file, so CURRICULUM.md and the simulations always match the app.
+   Each skill: stage (1 to 4), strand, prerequisites, names (English and Kiswahili) and its teaching steps.
+   path: true = a unit on the learning path (Inspire → Interpret → Impart). path: false = a skill practised in the
+   plug-in games of the games library (Michezo), opened when its prerequisites are met.
+   ========================================================================== */
+const SKILL_GRAPH = {
+  /* numeracy */
+  cnt:   { stage: 1, strand: 'Number sense', path: true, pre: [], en: 'Counting', sw: 'Kuhesabu', teach: ['Watch: touch and count each thing once', 'Together: count beans into a ten-frame', 'You: how many?'] },
+  rec:   { stage: 1, strand: 'Number sense', path: true, pre: ['cnt'], en: 'Big numbers', sw: 'Namba kubwa', teach: ['Watch: tens and ones make a number', 'Together: build it with bundles', 'You: find the number you hear'] },
+  facts: { stage: 2, strand: 'Adding and taking away', path: true, pre: ['cnt'], en: 'Quick sums', sw: 'Hesabu za haraka', teach: ['Watch: count on from the first number', 'Together: fingers and a number line', 'You: add and take away to 20'] },
+  bond:  { stage: 2, strand: 'Adding and taking away', path: true, pre: ['facts'], en: 'Make ten', sw: 'Kufanya kumi', teach: ['Watch: partners that make ten', 'Together: fill the ten-frame', 'You: find the partner'] },
+  pat:   { stage: 2, strand: 'Patterns', path: true, pre: ['cnt'], en: 'Number patterns', sw: 'Mfuatano wa namba', teach: ['Watch: find the jump', 'Together: clap and count in 2s, 5s, 10s', 'You: what comes next?'] },
+  pv:    { stage: 3, strand: 'Number sense', path: true, pre: ['rec'], en: 'Tens and ones', sw: 'Makumi na mamoja', teach: ['Watch: bundles of ten', 'Together: tie sticks into tens', 'You: how many tens and ones?'] },
+  mul:   { stage: 3, strand: 'Adding and taking away', path: true, pre: ['facts'], en: 'Equal groups', sw: 'Vikundi sawa', teach: ['Watch: the same in every bag', 'Together: share mangoes into cups', 'You: count the groups'] },
+  add:   { stage: 4, strand: 'Adding and taking away', path: true, pre: ['facts', 'pv'], en: 'Adding', sw: 'Kujumlisha', teach: ['Watch: add the ones, then the tens', 'Together: ten ones make a new ten', 'You: add'] },
+  sub:   { stage: 4, strand: 'Adding and taking away', path: true, pre: ['facts', 'pv'], en: 'Taking away', sw: 'Kutoa', teach: ['Watch: take away the ones', 'Together: open a ten when you need more', 'You: take away'] },
+  wp:    { stage: 4, strand: 'Adding and taking away', path: true, pre: ['facts'], en: 'Story sums', sw: 'Hesabu za hadithi', teach: ['Watch: coming means adding, going means taking away', 'Together: act it out with beans', 'You: solve the story'] },
+  mad:   { stage: 3, strand: 'Adding and taking away', path: false, pre: ['facts'], en: 'Missing number in a sum (7 + ? = 10)', sw: 'Namba inayokosekana (7 + ? = 10)', teach: ['Watch: count on from 7 up to 10', 'Together: sow seeds until you reach 10', 'You: how many did we add?'] },
+  eq:    { stage: 4, strand: 'Adding and taking away', path: false, pre: ['facts'], en: 'Equal: both sides the same (5 + 3 = ? + 2)', sw: 'Sawa: pande zote mbili sawa', teach: ['Watch: a balance scale stays level when both sides are the same', 'Together: add sacks to the light side', 'You: find the number that balances'] },
+  /* literacy */
+  voc:   { stage: 1, strand: 'Oral language', path: false, pre: [], en: 'Word meanings (vocabulary)', sw: 'Maana ya maneno', teach: ['Watch: hear what a word means', 'Together: find it in the picture', 'You: sort words, opposites and same meanings'] },
+  syl:   { stage: 1, strand: 'Sounds in words', path: false, pre: [], en: 'Syllables (beats in words)', sw: 'Silabi (mapigo katika maneno)', teach: ['Watch: clap ma-ta-tu', 'Together: tap the drum for each beat', 'You: how many beats? join two parts'] },
+  fls:   { stage: 1, strand: 'Sounds in words', path: false, pre: [], en: 'First, last and middle sounds', sw: 'Sauti ya kwanza, ya mwisho na ya kati', teach: ['Watch: mmm is the first sound in mango', 'Together: say it slowly and listen', 'You: find things that start, end or have that sound'] },
+  snd:   { stage: 1, strand: 'Letters and sounds', path: true, pre: [], en: 'Letter sounds', sw: 'Sauti za herufi', teach: ['Watch: trace the letter and say its sound', 'Together: s a t p i n first, then more', 'You: hear a sound, find the letter'] },
+  abc:   { stage: 1, strand: 'Letters and sounds', path: true, pre: ['snd'], en: 'Letter partners (capital and small)', sw: 'Herufi kubwa na ndogo', teach: ['Watch: B and b are partners', 'Together: match the pairs', 'You: find the partner'] },
+  seq:   { stage: 2, strand: 'Comprehension', path: false, pre: [], en: 'Story order and retelling', sw: 'Mpangilio wa hadithi na kusimulia', teach: ['Watch: first, next, last', 'Together: put the pictures in order', 'You: who, where and why?'] },
+  rhy:   { stage: 2, strand: 'Sounds in words', path: true, pre: [], en: 'Rhyming', sw: 'Maneno yanayofanana mwisho', teach: ['Watch: cat and hat end the same', 'Together: rhyme songs', 'You: find the rhyme'] },
+  seg:   { stage: 2, strand: 'Sounds in words', path: false, pre: ['fls'], en: 'Segmenting (pulling a word into its sounds)', sw: 'Kugawa neno katika sauti zake', teach: ['Watch: c-a-t has three sounds', 'Together: a bead in a box for each sound', 'You: count the sounds, then use letters'] },
+  cvc:   { stage: 2, strand: 'Decoding', path: true, pre: ['snd'], en: 'Blending and spelling short words', sw: 'Kuunganisha sauti na kuandika maneno mafupi', teach: ['Watch: say each sound, push them together', 'Together: blend on the matatu', 'You: read and spell'] },
+  sight: { stage: 3, strand: 'Decoding', path: true, pre: ['snd'], en: 'Tricky words', sw: 'Maneno magumu', teach: ['Watch: look at every letter of the', 'Together: say it, spell it, say it', 'You: find the tricky word'] },
+  nonw:  { stage: 3, strand: 'Decoding', path: false, pre: ['cvc'], en: 'Reading made-up words (true decoding)', sw: 'Kusoma maneno ya kubuni', teach: ['Watch: zim is not a real word, but we can read it', 'Together: sound out each letter', 'You: real or silly?'] },
+  fam:   { stage: 3, strand: 'Decoding', path: false, pre: ['cvc'], en: 'Word families (-at, -an, -ig, -op)', sw: 'Familia za maneno', teach: ['Watch: c + at = cat, h + at = hat', 'Together: change the first letter', 'You: make real words'] },
+  dig:   { stage: 3, strand: 'Decoding', path: false, pre: ['cvc'], en: 'sh, ch, th', sw: 'sh, ch, th', teach: ['Watch: s and h together say sh', 'Together: sh-o-p, ch-i-p, th-i-n', 'You: finish the word and read it'] },
+  pic:   { stage: 3, strand: 'Decoding', path: true, pre: ['cvc'], en: 'Read and find', sw: 'Soma na utafute', teach: ['Watch: read the word, find its picture', 'Together: sound it out', 'You: read and find'] },
+  sent:  { stage: 4, strand: 'Comprehension', path: true, pre: ['pic', 'sight'], en: 'Sentences', sw: 'Sentensi', teach: ['Watch: small words change the picture', 'Together: read on, in, by', 'You: read the sentence, find the picture'] },
+};
+/* mistake tags added with the new skills (the older tags are in core.js) */
+const GRAPH_TAGS = {
+  firstLast: 'Mixed up the first and the last sound', syllableCount: 'Counted the beats in a word wrongly', segCount: 'Too many or too few sounds in a word',
+  digraph: 'Mixed up sh, ch and th', addedBoth: 'Added both sides instead of balancing', nonWordReal: 'Called a made-up word real (or a real word made-up)',
+  sequence: 'Put story events out of order',
+};
+if (typeof module !== 'undefined') module.exports = { SKILL_GRAPH, GRAPH_TAGS };
+
+/* ============================================================================
+   FIVE MASTERY STATES (Nov 2026). Pure functions (tools/simulate.mjs runs this same file).
+   0 not introduced · 1 learning · 2 practising · 3 independent · 4 mastered.
+   Every answer is kept per skill as [day, right, hinted] (the last 10). An answer after a miss, with a hint or in a
+   fix-it round is "hinted": it counts as practising, never as mastery.
+   - learning: fewer than 3 answers.
+   - independent: 3 of the last 4 right with no help.
+   - mastered: 4 of the last 5 right with no help, on at least 2 different days, and the newest of them came on a
+     later day than the first (a spaced review). So a skill can never be mastered in one sitting.
+   The window rolls, so a skill that slips drops back a state by itself. Stars map to states: practising 1,
+   independent 2, mastered 3.
+   ========================================================================== */
+const MSTATE = ['not introduced', 'learning', 'practising', 'independent', 'mastered'];
+function masteryState(h) {
+  if (!h || !h.length) return 0; if (h.length < 3) return 1;
+  const alone = x => x[1] && !x[2];
+  const l5 = h.slice(-5), ok5 = l5.filter(alone);
+  if (l5.length >= 5 && ok5.length >= 4) { const days = [...new Set(ok5.map(x => x[0]))]; if (days.length >= 2 && ok5[ok5.length - 1][0] !== ok5[0][0]) return 4; }
+  const l4 = h.slice(-4); if (l4.length >= 4 && l4.filter(alone).length >= 3) return 3;
+  return 2;
+}
+const stateStars = s => s >= 4 ? 3 : s >= 3 ? 2 : s >= 2 ? 1 : 0;
+if (typeof module !== 'undefined') module.exports = { masteryState, stateStars, MSTATE };
+
+/* ============================================================================
+   The skill graph and the five mastery states, wired into Somo (Nov 2026). See graph-data.js and mastery.js.
+   - The games-library skills (path: false) join SKILL, so plug-in games can report them and the engine records them.
+     They are not added to the engine's question lists (the built-in games never draw them).
+   - Such a skill opens when its prerequisites are met: a prerequisite counts when it has a star, or when the path
+     has already moved past it.
+   - Every answer is kept with its day and whether it was hinted; stars are capped by the mastery state, so 3 stars
+     (mastered) always needs 2 different days.
+   ========================================================================== */
+for (const [id, g] of Object.entries(SKILL_GRAPH)) {
+  if (!SKILL[id]) SKILL[id] = { id, name: g.en, diff: g.stage >= 3 ? 2 : 1, mode: /Number|Adding|Pattern/.test(g.strand) ? 'num' : 'lit', extra: true };
+  if (!SHORT[id]) SHORT[id] = g.en.replace(/ \(.*\)$/, ''); if (!DESC[id]) DESC[id] = g.teach[0] + '.'; if (!SKILL_SW[id]) SKILL_SW[id] = g.sw;
+}
+Object.assign(TAGS, GRAPH_TAGS);
+Object.assign(TAG_SKILL, { firstLast: 'fls', syllableCount: 'syl', segCount: 'seg', digraph: 'dig', addedBoth: 'eq', nonWordReal: 'nonw', sequence: 'seq' });
+Object.assign(HINTS, {
+  fls: 'Say the word slowly. Listen to the very first sound. Then the last.', syl: 'Clap as you say it slowly: ma-ta-tu.', seg: 'Say it slowly, one sound at a time. Put one bead for each sound.',
+  nonw: 'Sound out every letter, then push the sounds together. Is it a word you know?', fam: 'Keep the ending. Change only the first sound.', dig: 'Two letters, one sound: sh, ch or th.',
+  seq: 'What happened first? Then what?', voc: 'Think about what it looks like and what it does.', mad: 'Count on from the first number until you reach the total.', eq: 'Both sides must be the same. Count each side.',
+});
+Object.assign(ACT, {
+  fls: ['playing "I spy" with sounds: "I spy something that starts with mmm"', 'kucheza "naona" kwa sauti: "naona kitu kinachoanza na mmm"'], syl: ['clapping the beats in names and in words like ma-ta-tu', 'kupiga makofi kwa silabi za majina na maneno kama ma-ta-tu'],
+  seg: ['saying a short word slowly and putting a bean down for each sound', 'kusema neno fupi polepole na kuweka harage kwa kila sauti'], nonw: ['making up silly words like zim and reading them together', 'kubuni maneno ya kuchekesha kama zim na kuyasoma pamoja'],
+  fam: ['making rhyming words that end in -at: cat, hat, mat, sat', 'kutunga maneno yanayoishia -at: cat, hat, mat, sat'], dig: ['finding things whose names start with sh, ch or th', 'kutafuta vitu ambavyo majina yake yanaanza na sh, ch au th'],
+  seq: ['telling the story of the day: first, next, last', 'kusimulia hadithi ya siku: kwanza, kisha, mwisho'], voc: ['naming things in the kitchen and saying what each one is for', 'kutaja vitu vya jikoni na kusema kila kimoja ni cha nini'],
+  mad: ['putting 7 beans down and asking how many more make 10', 'kuweka maharagwe 7 na kuuliza mangapi zaidi yanafanya 10'], eq: ['balancing two piles of bottle caps so both are the same', 'kusawazisha mafungu mawili ya vifuniko ili yalingane'],
+});
+const graphStage = id => (SKILL_GRAPH[id] || {}).stage || 1;
+/* a prerequisite counts when it has a star, or the path has moved past it */
+function prereqMet(p) {
+  if (stars(p) >= 1) return true; const g = SKILL_GRAPH[p]; if (!g) return false;
+  if (g.path && SKILL[p]) { const path = PATH[SKILL[p].mode] || [], i = path.indexOf(p); if (i >= 0 && i < path.length - 1 && isOpen(path[i + 1])) return true; }
+  return false;
+}
+{ const _io = isOpen; isOpen = function (id) { const g = SKILL_GRAPH[id]; if (g && !g.path && SKILL[id] && SKILL[id].extra) return g.pre.every(prereqMet); return _io(id); }; }
+/* answer history with days and hints; stars capped by the mastery state */
+{ const _a = Engine.answer; Engine.answer = function (it, chosen, extra = {}) {
+    const r = _a.call(this, it, chosen, extra); if (r && r.practice) return r;
+    const st = sk(it.skill); const h = st.h || (st.h = []); h.push([todayKey(), r.correct ? 1 : 0, extra.hinted ? 1 : 0]); if (h.length > 10) h.shift();
+    return r;
+  }; }
+function skillState(id) { const s = S.skills[id]; return masteryState(s && s.h); }
+{ const _sn = starsNow; starsNow = function (id) { if (SKILL[id] && SKILL[id].extra) return stateStars(skillState(id)); const n = _sn(id); const s = S.skills[id]; if (!s || !s.h) return Math.min(n, 2); return Math.min(n, stateStars(skillState(id)) || (n ? 1 : 0)); }; }
+window.__ky = Object.assign(window.__ky || {}, { skillState, masteryState, SKILL_GRAPH, prereqMet });
+
+/* ============================================================================
    PLUG-IN GAMES (Nov 2026, phase A): the games library ("Michezo") can hold games made as small packages in
    somo2/games/<id>/ (index.html + game.json), listed in somo2/games/index.json. See GAMES.md in the Xprize-Kenya repo.
    A1: the registry. It is read when Somo starts (and cached by the service worker for offline use).
@@ -11125,6 +11240,10 @@ window.__ky = Object.assign(window.__ky || {}, { GameReg });
    say, hint, quit. Every message is checked (source, envelope, shape), rate-limited and clamped; anything else is
    ignored and shown in the console in development. No name, age or personal data is ever sent to a game.
    ========================================================================== */
+/* what the child has been taught (reading games use only these): letters from the phonics level, tricky words by level */
+const TRICKY_SETS = [['the', 'a', 'I', 'is', 'to', 'my', 'was', 'said'], ['he', 'she', 'we', 'me', 'be', 'you', 'are', 'they', 'of'], ['come', 'some', 'have', 'were', 'what', 'where', 'there', 'one', 'here', 'this', 'from', 'your', 'saw']];
+function taughtLetters() { const lv = Math.max(sk('snd').level || 1, sk('cvc').level || 1, stars('snd') >= 3 ? 3 : 1); return taught(Math.min(3, lv)); }
+function taughtTricky() { const lv = Math.min(3, Math.max(1, sk('sight').level || 1, stars('sight') + 1)); return TRICKY_SETS.slice(0, lv).flat(); }
 const GP = () => { const k = KY(); return k.gp || (k.gp = {}); };            /* per game: { levels: n done, plays, mins } */
 const GamePlayer = {
   g: null, frame: null, opts: null, ready: false, paused: false, t0: 0, sess: null,
@@ -11157,7 +11276,7 @@ const GamePlayer = {
   post(type, data = {}) { if (this.frame && this.frame.contentWindow) this.frame.contentWindow.postMessage({ somo: 'host', v: 1, type, data }, '*'); },
   init() {
     const g = this.g, o = this.opts; const skill = o.skill && g.skills.includes(o.skill) ? o.skill : g.skills[0];
-    this.post('init', { protocol: 1, gameLevel: this.sess.level, skill, language: o.lang || (S.lang === 'sw' && g.languages.includes('sw') ? 'sw' : 'en'), voiceOn: S.voice !== false, subtitlesOn: Subs.on(), reducedMotion: reduced() || !!S.lowEnd, minutesLeftToday: Math.max(0, Math.floor(this.minutesLeft())), themeColours: this.themeColours(), practice: !!o.practice, slow: !!S.slowGames, assets: this.assets || {} });
+    this.post('init', { protocol: 1, gameLevel: this.sess.level, skill, language: o.lang || (S.lang === 'sw' && g.languages.includes('sw') ? 'sw' : 'en'), voiceOn: S.voice !== false, subtitlesOn: Subs.on(), reducedMotion: reduced() || !!S.lowEnd, minutesLeftToday: Math.max(0, Math.floor(this.minutesLeft())), themeColours: this.themeColours(), practice: !!o.practice, slow: !!S.slowGames, taughtLetters: taughtLetters(), taughtTricky: taughtTricky(), assets: this.assets || {} });
     const l = this.box && this.box.querySelector('.gload'); if (l) l.remove();
   },
   /* rate limits: 30 messages in 10 s; items 2 a second; say 1 a second */
@@ -11299,7 +11418,7 @@ window.__ky = Object.assign(window.__ky || {}, { TimeCap });
    ========================================================================== */
 /* Kiswahili names for the built-in games (our own translations) */
 const GAME_SW = { boda: 'Mbio za Boda Boda', star: 'Mrusha Nyota', river: 'Mkimbiaji wa Mto', penalty: 'Mfalme wa Penalti', mango: 'Mdaka Maembe', jumper: 'Mrukaji wa Mstari', market: 'Siku ya Soko', drum: 'Mdundo wa Ngoma', firefly: 'Vimulimuli', train: 'Treni ya Maneno', memory: 'Kumbuka Jozi', bridge: 'Mjenzi wa Daraja', matatu: 'Kondakta wa Matatu', fishing: 'Uvuvi Ziwani', tug: 'Kuvuta Kamba', story: 'Kitabu cha Hadithi', safari: 'Safari ya Sauti', rhyme: 'Maneno Yanayofanana', sounds: 'Linganisha Sauti', partners: 'Herufi Pacha' };
-const STAGE_OF_SKILL = id => (STAGES.find(s => s.skills.includes(id)) || {}).n || 0;
+const STAGE_OF_SKILL = id => (STAGES.find(s => s.skills.includes(id)) || {}).n || (typeof graphStage === 'function' ? graphStage(id) : 0);
 const Lib = {
   /* one list for both kinds: {id, ext, title, sw, skills, stages, thumb} */
   all() {
@@ -11314,7 +11433,14 @@ const Lib = {
     const n = gstate(x.id).plays || 0; return { done: Math.min(5, n), of: 5, text: n ? `Played ${n} time${n === 1 ? '' : 's'}` : 'New' };
   },
   /* the skills the engine wants next: the current step of each path, then due reviews (B6 refines this) */
-  wanted() { const ids = []; try { for (const m of ['num', 'lit']) ids.push(nextStep(m).id); } catch (e) { } try { ids.push(...dueSkills()); } catch (e) { } return [...new Set(ids)].filter(id => SKILL[id] && isOpen(id)); },
+  wanted() {
+    const ids = []; try { for (const m of ['num', 'lit']) ids.push(nextStep(m).id); } catch (e) { } try { ids.push(...dueSkills()); } catch (e) { }
+    /* the games-library skills that sit next to the current steps (same stage or the one before), not yet mastered */
+    const cur = ids.slice(0, 2).map(id => STAGE_OF_SKILL(id)); const maxSt = Math.max(1, ...cur);
+    const extra = Object.keys(SKILL_GRAPH).filter(id => !SKILL_GRAPH[id].path && isOpen(id) && skillState(id) < 4 && SKILL_GRAPH[id].stage <= maxSt).sort((a, b) => skillState(a) - skillState(b) || SKILL_GRAPH[a].stage - SKILL_GRAPH[b].stage);
+    const out = []; const a = ids.filter(id => SKILL[id] && isOpen(id)); while (a.length || extra.length) { if (extra.length) out.push(extra.shift()); if (a.length) out.push(a.shift()); }
+    return [...new Set(out)];
+  },
   forYou() {
     const list = this.all(), out = [];
     for (const id of this.wanted()) { const c = list.filter(x => x.skills.includes(id) && !out.some(o => o.x.id === x.id)).sort((a, b) => this.progress(a).done - this.progress(b).done || (a.ext ? -1 : 1)); if (c[0]) out.push({ x: c[0], skill: id }); if (out.length >= 3) break; }
@@ -11341,7 +11467,7 @@ const Michezo = {
     if (this.tab === 'you') { const fy = Lib.forYou(); body = `<div class="sect">Next for you</div><div class="mgrid">${fy.length ? fy.map(o => this.tile(o.x, o.skill)).join('') : '<p class="sub">Finish a lesson first, then games for it show here.</p>'}</div><div class="sect">All games</div><div class="mgrid">${all.map(x => this.tile(x)).join('')}</div>`; }
     else if (this.tab === 'skill') {
       const sk = this.skill && SKILL[this.skill] ? this.skill : (Lib.wanted()[0] || NUM_PATH[0]); this.skill = sk;
-      body = `<div class="mchips">${[...NUM_PATH, ...LIT_PATH].map(id => `<button class="mchip${id === sk ? ' on' : ''}${isOpen(id) ? '' : ' soon'}" data-mz="skill" data-id="${id}" aria-pressed="${id === sk}">${skillIcon(id, 26)}${esc(SHORT[id] || id)}</button>`).join('')}</div><div class="mgrid">${all.filter(x => x.skills.includes(sk)).map(x => this.tile(x, sk)).join('') || '<p class="sub">No game for this skill yet.</p>'}</div>`;
+      body = `<div class="mchips">${[...NUM_PATH, ...LIT_PATH, ...Object.keys(SKILL_GRAPH).filter(id => !SKILL_GRAPH[id].path)].map(id => `<button class="mchip${id === sk ? ' on' : ''}${isOpen(id) ? '' : ' soon'}" data-mz="skill" data-id="${id}" aria-pressed="${id === sk}">${skillIcon(id, 26)}${esc(SHORT[id] || id)}</button>`).join('')}</div><div class="mgrid">${all.filter(x => x.skills.includes(sk)).map(x => this.tile(x, sk)).join('') || '<p class="sub">No game for this skill yet.</p>'}</div>`;
     } else { body = `<div class="mchips">${STAGES.map(s => `<button class="mchip${s.n === this.stage ? ' on' : ''}" data-mz="stage" data-n="${s.n}" aria-pressed="${s.n === this.stage}">${friendFace(s.friend, 'happy', 26)}${s.n} ${esc(s.sw)}</button>`).join('')}</div><div class="mgrid">${all.filter(x => x.stages.includes(this.stage)).map(x => this.tile(x)).join('')}</div>`; }
     setScreen(`<div class="scr jr mz"><div class="toprow"><button class="hb" data-j="home" aria-label="Back to the map">${BACK_SVG}</button><div class="logo" style="flex:1">Michezo<small>Games · every game trains a skill</small></div>${coinsHTML()}</div>
       <div class="seg" role="group" aria-label="Show games">${tabs.map(([k, n]) => `<button data-mz="tab" data-k="${k}" aria-pressed="${this.tab === k}">${n}</button>`).join('')}</div>${body}${grownBtn()}</div>`);

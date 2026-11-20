@@ -1,0 +1,165 @@
+{
+  "id": "sound-boxes",
+  "title": "Sound Boxes",
+  "title_sw": "Visanduku vya Sauti",
+  "author": "Somo team (XPRIZE Kenya)",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": [
+    "seg"
+  ],
+  "stages": [
+    2
+  ],
+  "ages": [
+    5,
+    8
+  ],
+  "levels": 3,
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "Hear a word and put a bead in a box for each sound. Level 2: use letter tiles instead of beads. Level 3: four-sound words like frog and nest.",
+  "description_sw": "Sikiliza neno na uweke shanga kwenye kisanduku kwa kila sauti. Kiwango 2: tumia herufi badala ya shanga. Kiwango 3: maneno ya sauti nne kama frog na nest.",
+  "lines": [
+    {
+      "key": "level",
+      "en": "Level {n}",
+      "sw": "Kiwango {n}"
+    },
+    {
+      "key": "start",
+      "en": "Start",
+      "sw": "Anza"
+    },
+    {
+      "key": "tapstart",
+      "en": "Tap the green button to start.",
+      "sw": "Gusa kitufe cha kijani kuanza."
+    },
+    {
+      "key": "praise1",
+      "en": "Yes! Well done!",
+      "sw": "Ndiyo! Hongera!"
+    },
+    {
+      "key": "praise2",
+      "en": "You got it!",
+      "sw": "Umeweza!"
+    },
+    {
+      "key": "praise3",
+      "en": "Great thinking!",
+      "sw": "Umefikiri vizuri!"
+    },
+    {
+      "key": "praise4",
+      "en": "Super!",
+      "sw": "Safi sana!"
+    },
+    {
+      "key": "praiseHelp",
+      "en": "Yes! You worked it out.",
+      "sw": "Ndiyo! Umegundua."
+    },
+    {
+      "key": "nudge",
+      "en": "Look again. Try once more.",
+      "sw": "Angalia tena. Jaribu tena."
+    },
+    {
+      "key": "look",
+      "en": "Let's look at one together.",
+      "sw": "Tuangalie mfano pamoja."
+    },
+    {
+      "key": "nowyou",
+      "en": "Now you try.",
+      "sw": "Sasa jaribu wewe."
+    },
+    {
+      "key": "leveldone",
+      "en": "Level {n} done!",
+      "sw": "Kiwango {n} kimekwisha!"
+    },
+    {
+      "key": "nextlevel",
+      "en": "Next level",
+      "sw": "Kiwango kijacho"
+    },
+    {
+      "key": "nextq",
+      "en": "Ready for the next level?",
+      "sw": "Uko tayari kwa kiwango kijacho?"
+    },
+    {
+      "key": "again",
+      "en": "Play again",
+      "sw": "Cheza tena"
+    },
+    {
+      "key": "back",
+      "en": "Back to Somo",
+      "sw": "Rudi Somo"
+    },
+    {
+      "key": "paused",
+      "en": "Resting…",
+      "sw": "Tunapumzika…"
+    },
+    {
+      "key": "intro1",
+      "en": "Listen to the word. Put one bead in a box for every sound. Then tap Done.",
+      "sw": "Sikiliza neno. Weka shanga moja kwenye kisanduku kwa kila sauti. Kisha gusa Tayari."
+    },
+    {
+      "key": "intro2",
+      "en": "Now use letters. Put each letter in its box, in order.",
+      "sw": "Sasa tumia herufi. Weka kila herufi kwenye kisanduku chake, kwa mpangilio."
+    },
+    {
+      "key": "intro3",
+      "en": "Longer words now, with four sounds. Listen carefully.",
+      "sw": "Sasa maneno marefu, yenye sauti nne. Sikiliza kwa makini."
+    },
+    {
+      "key": "hear",
+      "en": "{w}. How many sounds in {w}?",
+      "sw": "{w}. Kuna sauti ngapi katika {w}?"
+    },
+    {
+      "key": "spell",
+      "en": "{w}. Put the letters for {w} in the boxes.",
+      "sw": "{w}. Weka herufi za {w} kwenye visanduku."
+    },
+    {
+      "key": "done",
+      "en": "Done",
+      "sw": "Tayari"
+    },
+    {
+      "key": "clear",
+      "en": "Start again",
+      "sw": "Anza tena"
+    },
+    {
+      "key": "nudge1",
+      "en": "Say it slowly, one sound at a time: {s}.",
+      "sw": "Sema polepole, sauti moja kwa wakati: {s}."
+    },
+    {
+      "key": "nudge2",
+      "en": "Which sound comes next in {w}? Say it slowly.",
+      "sw": "Sauti ipi inafuata katika {w}? Sema polepole."
+    },
+    {
+      "key": "ex",
+      "en": "{w}: {s}. That is {n} sounds.",
+      "sw": "{w}: {s}. Hizo ni sauti {n}."
+    }
+  ]
+}

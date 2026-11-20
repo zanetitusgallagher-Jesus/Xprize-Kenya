@@ -1,0 +1,171 @@
+{
+  "id": "story-strip",
+  "title": "Story Strip",
+  "title_sw": "Mstari wa Hadithi",
+  "author": "Somo team (XPRIZE Kenya)",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": [
+    "seq"
+  ],
+  "stages": [
+    2,
+    3
+  ],
+  "ages": [
+    5,
+    9
+  ],
+  "levels": 3,
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "Hear a short Kenyan story, put the picture cards in order (first, next, last), then answer who, where or why. Level 3: read the story yourself.",
+  "description_sw": "Sikiliza hadithi fupi ya Kenya, panga picha kwa mpangilio (kwanza, kisha, mwisho), kisha jibu nani, wapi au kwa nini. Kiwango 3: soma hadithi mwenyewe.",
+  "lines": [
+    {
+      "key": "level",
+      "en": "Level {n}",
+      "sw": "Kiwango {n}"
+    },
+    {
+      "key": "start",
+      "en": "Start",
+      "sw": "Anza"
+    },
+    {
+      "key": "tapstart",
+      "en": "Tap the green button to start.",
+      "sw": "Gusa kitufe cha kijani kuanza."
+    },
+    {
+      "key": "praise1",
+      "en": "Yes! Well done!",
+      "sw": "Ndiyo! Hongera!"
+    },
+    {
+      "key": "praise2",
+      "en": "You got it!",
+      "sw": "Umeweza!"
+    },
+    {
+      "key": "praise3",
+      "en": "Great thinking!",
+      "sw": "Umefikiri vizuri!"
+    },
+    {
+      "key": "praise4",
+      "en": "Super!",
+      "sw": "Safi sana!"
+    },
+    {
+      "key": "praiseHelp",
+      "en": "Yes! You worked it out.",
+      "sw": "Ndiyo! Umegundua."
+    },
+    {
+      "key": "nudge",
+      "en": "What happened at the very start of the story?",
+      "sw": "Nini kilitokea mwanzoni kabisa mwa hadithi?"
+    },
+    {
+      "key": "look",
+      "en": "Let's look at one together.",
+      "sw": "Tuangalie mfano pamoja."
+    },
+    {
+      "key": "nowyou",
+      "en": "Now you try.",
+      "sw": "Sasa jaribu wewe."
+    },
+    {
+      "key": "leveldone",
+      "en": "Level {n} done!",
+      "sw": "Kiwango {n} kimekwisha!"
+    },
+    {
+      "key": "nextlevel",
+      "en": "Next level",
+      "sw": "Kiwango kijacho"
+    },
+    {
+      "key": "nextq",
+      "en": "Ready for the next level?",
+      "sw": "Uko tayari kwa kiwango kijacho?"
+    },
+    {
+      "key": "again",
+      "en": "Play again",
+      "sw": "Cheza tena"
+    },
+    {
+      "key": "back",
+      "en": "Back to Somo",
+      "sw": "Rudi Somo"
+    },
+    {
+      "key": "paused",
+      "en": "Resting…",
+      "sw": "Tunapumzika…"
+    },
+    {
+      "key": "intro1",
+      "en": "Listen to the story. Then put the pictures in order: first, next, last.",
+      "sw": "Sikiliza hadithi. Kisha panga picha kwa mpangilio: kwanza, kisha, mwisho."
+    },
+    {
+      "key": "intro2",
+      "en": "Longer stories now, with four pictures.",
+      "sw": "Hadithi ndefu zaidi sasa, zenye picha nne."
+    },
+    {
+      "key": "intro3",
+      "en": "Now YOU read the story. Then put the pictures in order.",
+      "sw": "Sasa WEWE soma hadithi. Kisha panga picha kwa mpangilio."
+    },
+    {
+      "key": "listen",
+      "en": "Listen.",
+      "sw": "Sikiliza."
+    },
+    {
+      "key": "readnow",
+      "en": "Read the story. Tap the ear only if you need help.",
+      "sw": "Soma hadithi. Gusa sikio ukihitaji msaada tu."
+    },
+    {
+      "key": "order",
+      "en": "Put the pictures in order. What happened first?",
+      "sw": "Panga picha kwa mpangilio. Nini kilitokea kwanza?"
+    },
+    {
+      "key": "first",
+      "en": "First",
+      "sw": "Kwanza"
+    },
+    {
+      "key": "next",
+      "en": "Next",
+      "sw": "Kisha"
+    },
+    {
+      "key": "last",
+      "en": "Last",
+      "sw": "Mwisho"
+    },
+    {
+      "key": "nudgeq",
+      "en": "Think about the story again. {q}",
+      "sw": "Fikiria hadithi tena. {q}"
+    },
+    {
+      "key": "ex",
+      "en": "The story goes: {s}",
+      "sw": "Hadithi inaenda hivi: {s}"
+    }
+  ]
+}

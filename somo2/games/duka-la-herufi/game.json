@@ -1,0 +1,155 @@
+{
+  "id": "duka-la-herufi",
+  "title": "Duka la Herufi",
+  "title_sw": "Duka la Herufi",
+  "author": "Somo team (XPRIZE Kenya)",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": [
+    "dig"
+  ],
+  "stages": [
+    3
+  ],
+  "ages": [
+    6,
+    9
+  ],
+  "levels": 3,
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "The shopkeeper asks for an item. Choose sh, ch or th to finish its name on the price tag, then read it. Level 2: at the end of the word. Level 3: read the whole word and find it.",
+  "description_sw": "Mwenye duka anaomba kitu. Chagua sh, ch au th kumalizia jina lake kwenye lebo ya bei, kisha ulisome.",
+  "lines": [
+    {
+      "key": "level",
+      "en": "Level {n}",
+      "sw": "Kiwango {n}"
+    },
+    {
+      "key": "start",
+      "en": "Start",
+      "sw": "Anza"
+    },
+    {
+      "key": "tapstart",
+      "en": "Tap the green button to start.",
+      "sw": "Gusa kitufe cha kijani kuanza."
+    },
+    {
+      "key": "praise1",
+      "en": "Yes! Well done!",
+      "sw": "Ndiyo! Hongera!"
+    },
+    {
+      "key": "praise2",
+      "en": "You got it!",
+      "sw": "Umeweza!"
+    },
+    {
+      "key": "praise3",
+      "en": "Great thinking!",
+      "sw": "Umefikiri vizuri!"
+    },
+    {
+      "key": "praise4",
+      "en": "Super!",
+      "sw": "Safi sana!"
+    },
+    {
+      "key": "praiseHelp",
+      "en": "Yes! You worked it out.",
+      "sw": "Ndiyo! Umegundua."
+    },
+    {
+      "key": "nudge",
+      "en": "Two letters, one sound. Say {w} slowly. Is it shh, ch or th?",
+      "sw": "Herufi mbili, sauti moja. Sema {w} polepole. Ni shh, ch au th?"
+    },
+    {
+      "key": "look",
+      "en": "Let's look at one together.",
+      "sw": "Tuangalie mfano pamoja."
+    },
+    {
+      "key": "nowyou",
+      "en": "Now you try.",
+      "sw": "Sasa jaribu wewe."
+    },
+    {
+      "key": "leveldone",
+      "en": "Level {n} done!",
+      "sw": "Kiwango {n} kimekwisha!"
+    },
+    {
+      "key": "nextlevel",
+      "en": "Next level",
+      "sw": "Kiwango kijacho"
+    },
+    {
+      "key": "nextq",
+      "en": "Ready for the next level?",
+      "sw": "Uko tayari kwa kiwango kijacho?"
+    },
+    {
+      "key": "again",
+      "en": "Play again",
+      "sw": "Cheza tena"
+    },
+    {
+      "key": "back",
+      "en": "Back to Somo",
+      "sw": "Rudi Somo"
+    },
+    {
+      "key": "paused",
+      "en": "Resting…",
+      "sw": "Tunapumzika…"
+    },
+    {
+      "key": "intro1",
+      "en": "Welcome to my shop! Finish the name on the price tag with sh, ch or th.",
+      "sw": "Karibu dukani kwangu! Malizia jina kwenye lebo ya bei kwa sh, ch au th."
+    },
+    {
+      "key": "intro2",
+      "en": "Now the sound is at the END of the word.",
+      "sw": "Sasa sauti iko MWISHONI mwa neno."
+    },
+    {
+      "key": "intro3",
+      "en": "Now read the word on the tag and find the thing in the shop.",
+      "sw": "Sasa soma neno kwenye lebo na utafute kitu dukani."
+    },
+    {
+      "key": "ask",
+      "en": "I need a {w}. Which sound finishes the tag?",
+      "sw": "Nahitaji {w}. Sauti ipi inamalizia lebo?"
+    },
+    {
+      "key": "find",
+      "en": "Read the price tag. Which thing is it?",
+      "sw": "Soma lebo ya bei. Ni kitu gani?"
+    },
+    {
+      "key": "readit",
+      "en": "{d} ... {w}. Asante! Here it is.",
+      "sw": "{d} ... {w}. Asante! Hiki hapa."
+    },
+    {
+      "key": "nudge3",
+      "en": "Look at the first two letters, or the last two. sh, ch or th?",
+      "sw": "Angalia herufi mbili za kwanza, au za mwisho. sh, ch au th?"
+    },
+    {
+      "key": "ex",
+      "en": "{w} has {d}: {parts}.",
+      "sw": "{w} ina {d}: {parts}."
+    }
+  ]
+}

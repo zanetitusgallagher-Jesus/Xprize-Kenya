@@ -1,0 +1,145 @@
+{
+  "id": "tricky-treasure",
+  "title": "Tricky Treasure",
+  "title_sw": "Hazina ya Maneno",
+  "author": "Somo team (XPRIZE Kenya)",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": [
+    "sight"
+  ],
+  "stages": [
+    3
+  ],
+  "ages": [
+    6,
+    9
+  ],
+  "levels": 3,
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "Dig in the sand at the coast. Somo says a tricky word (the, said, was); tap the shell with that word among look-alikes. It goes into your treasure book.",
+  "description_sw": "Chimba mchangani pwani. Somo anasema neno gumu; gusa kombe lenye neno hilo kati ya yanayofanana. Linaingia kwenye kitabu chako cha hazina.",
+  "lines": [
+    {
+      "key": "level",
+      "en": "Level {n}",
+      "sw": "Kiwango {n}"
+    },
+    {
+      "key": "start",
+      "en": "Start",
+      "sw": "Anza"
+    },
+    {
+      "key": "tapstart",
+      "en": "Tap the green button to start.",
+      "sw": "Gusa kitufe cha kijani kuanza."
+    },
+    {
+      "key": "praise1",
+      "en": "Yes! Well done!",
+      "sw": "Ndiyo! Hongera!"
+    },
+    {
+      "key": "praise2",
+      "en": "You got it!",
+      "sw": "Umeweza!"
+    },
+    {
+      "key": "praise3",
+      "en": "Great thinking!",
+      "sw": "Umefikiri vizuri!"
+    },
+    {
+      "key": "praise4",
+      "en": "Super!",
+      "sw": "Safi sana!"
+    },
+    {
+      "key": "praiseHelp",
+      "en": "Yes! You worked it out.",
+      "sw": "Ndiyo! Umegundua."
+    },
+    {
+      "key": "nudge",
+      "en": "Look at every letter. {w} is spelled {s}.",
+      "sw": "Angalia kila herufi. {w} inaandikwa {s}."
+    },
+    {
+      "key": "look",
+      "en": "Let's look at one together.",
+      "sw": "Tuangalie mfano pamoja."
+    },
+    {
+      "key": "nowyou",
+      "en": "Now you try.",
+      "sw": "Sasa jaribu wewe."
+    },
+    {
+      "key": "leveldone",
+      "en": "Level {n} done!",
+      "sw": "Kiwango {n} kimekwisha!"
+    },
+    {
+      "key": "nextlevel",
+      "en": "Next level",
+      "sw": "Kiwango kijacho"
+    },
+    {
+      "key": "nextq",
+      "en": "Ready for the next level?",
+      "sw": "Uko tayari kwa kiwango kijacho?"
+    },
+    {
+      "key": "again",
+      "en": "Play again",
+      "sw": "Cheza tena"
+    },
+    {
+      "key": "back",
+      "en": "Back to Somo",
+      "sw": "Rudi Somo"
+    },
+    {
+      "key": "paused",
+      "en": "Resting…",
+      "sw": "Tunapumzika…"
+    },
+    {
+      "key": "intro1",
+      "en": "Treasure is hiding in the sand! Listen to the tricky word and tap the shell that has it.",
+      "sw": "Hazina imejificha mchangani! Sikiliza neno gumu na ugusa kombe lenye neno hilo."
+    },
+    {
+      "key": "intro2",
+      "en": "More tricky words now. Look at every letter.",
+      "sw": "Maneno magumu zaidi sasa. Angalia kila herufi."
+    },
+    {
+      "key": "intro3",
+      "en": "All your tricky words, mixed up. Take your time.",
+      "sw": "Maneno yako yote magumu, yamechanganywa. Chukua muda wako."
+    },
+    {
+      "key": "find",
+      "en": "Find the word: {w}.",
+      "sw": "Tafuta neno: {w}."
+    },
+    {
+      "key": "got",
+      "en": "{w} goes in your treasure book!",
+      "sw": "{w} linaingia kwenye kitabu chako cha hazina!"
+    },
+    {
+      "key": "ex",
+      "en": "{w}: {s}. Say it, spell it, say it.",
+      "sw": "{w}: {s}. Litamke, liandike, litamke."
+    }
+  ]
+}

@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Real or Silly?</title>
+<!-- Real or Silly? (Kweli au Kichekesho?): a Somo game. Original work by the Somo team. Built from games-src/ by tools/build-games.mjs. -->
+<style>:root{--bg:#1F140E;--panel:#2E1E15;--accent:#F2B829;--good:#3FA34D;--text:#FFF7EA;--paper:#FFF8EC;--ink:#2B1E17}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font:600 18px/1.25 "Baloo 2","Trebuchet MS",system-ui,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#app{position:absolute;inset:0;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:8px;padding:6px 8px}.top .lv{font-weight:800;font-size:17px;white-space:nowrap}
+.dots{flex:1;display:flex;gap:4px}.dots i{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.18)}.dots i.on{background:var(--accent)}.dots i.cur{background:#fff}
+.ib{width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:var(--text);display:grid;place-items:center;font:800 24px/1 system-ui;flex:none}
+.ib svg{width:26px;height:26px}
+button{font:inherit;color:inherit;cursor:pointer}button:focus-visible,.tok:focus-visible,.slot:focus-visible{outline:4px solid #FFD447;outline-offset:2px}
+.bub{margin:0 10px;padding:8px 12px;background:var(--paper);color:var(--ink);border-radius:14px;min-height:44px;font-size:17px;display:flex;align-items:center;gap:8px}
+.bub .who{flex:none;width:34px;height:34px}
+#play{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px;min-height:0}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.card{background:var(--paper);color:var(--ink);border-radius:16px;border:3px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:84px;min-height:84px;padding:6px}
+.tok{touch-action:none}.tok.sel{border-color:var(--accent);box-shadow:0 0 0 4px rgba(242,184,41,.45)}.tok.lift{position:relative;z-index:50;pointer-events:none;box-shadow:0 10px 24px rgba(0,0,0,.4)}
+.tok.gone{visibility:hidden}.tok.try{animation:nudge .4s}.tok.good,.card.good{border-color:var(--good);box-shadow:0 0 0 4px rgba(63,163,77,.45)}.glow{animation:glow 1s infinite alternate}
+.slot{border:3px dashed rgba(255,255,255,.5);border-radius:16px;min-width:84px;min-height:84px;display:grid;place-items:center}.slot.hot{border-color:var(--accent);background:rgba(242,184,41,.15)}
+.big{min-height:64px;padding:10px 24px;border-radius:32px;border:0;background:var(--good);color:#fff;font-weight:800;font-size:22px;box-shadow:0 5px 0 rgba(0,0,0,.25)}.big.ghost{background:rgba(255,255,255,.15)}.big:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.word{font-weight:800;font-size:30px;letter-spacing:.02em;font-family:"Andika","Comic Sans MS","Trebuchet MS",sans-serif}
+.letter{font-weight:800;font-size:34px;font-family:"Andika","Comic Sans MS","Trebuchet MS",sans-serif}
+.center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;flex:1;padding:16px}.center h1{margin:0;font-size:32px}.center p{margin:0;max-width:320px}
+.ex{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(20,12,8,.92);border:2px solid var(--accent);border-radius:16px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:40}
+.ex b{color:var(--accent)}
+.pause{position:absolute;inset:0;background:rgba(20,12,8,.9);display:grid;place-items:center;z-index:90;font-size:26px;font-weight:800}
+@keyframes nudge{20%{transform:translateX(-6px)}60%{transform:translateX(6px)}}@keyframes glow{to{box-shadow:0 0 0 6px rgba(242,184,41,.7)}}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}.pop{animation:pop .35s ease-out}
+.rm *{animation:none!important;transition:none!important}
+</style></head><body><div id="app"></div>
+<script src="../somo-sdk.js"></script>
+<script>
+const IK='#2E2219';
+const ICON={
+  cat:`<path d="M13 30 17 7 29 20Z M51 30 47 7 35 20Z" fill="#C98242"/><circle cx="32" cy="36" r="20" fill="#E09A55"/><circle cx="25" cy="33" r="2.8" fill="${IK}"/><circle cx="39" cy="33" r="2.8" fill="${IK}"/><path d="M29 40h6l-3 3.5z" fill="#8A3A22"/><path d="M10 40h13M11 46h12M41 40h13M41 46h12" stroke="${IK}" stroke-width="1.6" stroke-linecap="round"/>`,
+  dog:`<ellipse cx="14" cy="32" rx="7" ry="14" fill="#6B4226"/><ellipse cx="50" cy="32" rx="7" ry="14" fill="#6B4226"/><circle cx="32" cy="34" r="19" fill="#A9714A"/><ellipse cx="32" cy="43" rx="10" ry="7" fill="#E7C9A5"/><circle cx="25" cy="30" r="2.8" fill="${IK}"/><circle cx="39" cy="30" r="2.8" fill="${IK}"/><ellipse cx="32" cy="40" rx="4" ry="3" fill="${IK}"/>`,
+  hen:`<path d="M29 13q3-8 7 0q4-6 6 3z" fill="#C8352B"/><ellipse cx="29" cy="39" rx="20" ry="15" fill="#F7F0E4" stroke="#D3C2A6" stroke-width="2"/><circle cx="38" cy="23" r="10" fill="#F7F0E4" stroke="#D3C2A6" stroke-width="2"/><path d="M47 22l8 3-8 3z" fill="#F2A33A"/><circle cx="40" cy="21" r="2.3" fill="${IK}"/><path d="M44 29q2 5-1 6" stroke="#C8352B" stroke-width="3" fill="none"/><path d="M23 53v8M33 53v8" stroke="#E08A1E" stroke-width="3" stroke-linecap="round"/><path d="M13 37q8 8 18 2" stroke="#D3C2A6" stroke-width="2" fill="none"/>`,
+  sun:`<g stroke="#E08A1E" stroke-width="4" stroke-linecap="round"><path d="M32 4v8M32 52v8M4 32h8M52 32h8M12 12l6 6M46 46l6 6M52 12l-6 6M18 46l-6 6"/></g><circle cx="32" cy="32" r="14" fill="#F2A33A"/>`,
+  cup:`<path d="M44 25h5a7 7 0 0 1 0 14h-6" stroke="#2F6A8E" stroke-width="5" fill="none"/><path d="M13 18h31l-3 34a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4z" fill="#3E7FA6"/><rect x="12" y="16" width="33" height="5" rx="2" fill="#2F6A8E"/>`,
+  bus:`<rect x="4" y="15" width="56" height="33" rx="7" fill="#F2C230"/><rect x="4" y="35" width="56" height="5" fill="#3B7836"/><rect x="9" y="20" width="10" height="10" rx="2" fill="#BFE0F0"/><rect x="22" y="20" width="10" height="10" rx="2" fill="#BFE0F0"/><rect x="35" y="20" width="10" height="10" rx="2" fill="#BFE0F0"/><rect x="48" y="20" width="8" height="13" rx="2" fill="#BFE0F0"/><circle cx="16" cy="49" r="6" fill="${IK}"/><circle cx="48" cy="49" r="6" fill="${IK}"/><circle cx="16" cy="49" r="2" fill="#ddd"/><circle cx="48" cy="49" r="2" fill="#ddd"/>`,
+  hat:`<ellipse cx="32" cy="45" rx="27" ry="8" fill="#A9692F"/><path d="M18 45q0-25 14-25t14 25z" fill="#C98B4E"/><rect x="18" y="37" width="28" height="5" fill="#A4472A"/>`,
+  bag:`<path d="M22 23q0-13 10-13t10 13" stroke="#7A3220" stroke-width="4" fill="none"/><path d="M12 22h40l4 32a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z" fill="#C46A3C"/><path d="M10 34h44M9.5 44h45" stroke="#F2A33A" stroke-width="3"/>`,
+  pot:`<path d="M6 30H1M58 30h5" stroke="#5E676C" stroke-width="5" stroke-linecap="round"/><rect x="10" y="24" width="44" height="28" rx="6" fill="#9AA3A8"/><rect x="6" y="20" width="52" height="7" rx="3" fill="#7D878C"/>`,
+  bed:`<rect x="6" y="18" width="6" height="38" rx="2" fill="#7A3220"/><rect x="52" y="32" width="6" height="24" rx="2" fill="#7A3220"/><rect x="8" y="36" width="50" height="12" rx="3" fill="#3E7FA6"/><rect x="13" y="29" width="14" height="9" rx="4" fill="#fff" stroke="#D3C2A6"/><rect x="8" y="46" width="50" height="4" fill="#7A3220"/>`,
+  pig:`<path d="M14 18l8 8-10 2zM50 18l-8 8 10 2z" fill="#E58E9C"/><circle cx="32" cy="36" r="20" fill="#F2AAB5"/><ellipse cx="32" cy="42" rx="9" ry="6" fill="#E58E9C"/><circle cx="29" cy="42" r="1.8" fill="#8A3A4A"/><circle cx="35" cy="42" r="1.8" fill="#8A3A4A"/><circle cx="24" cy="31" r="2.6" fill="${IK}"/><circle cx="40" cy="31" r="2.6" fill="${IK}"/>`,
+  net:`<path d="M32 44L54 60" stroke="#7A3220" stroke-width="5" stroke-linecap="round"/><ellipse cx="26" cy="27" rx="19" ry="21" fill="#E3F1F8"/><g stroke="#2F6A8E" stroke-width="1.6"><path d="M13 12l26 30M9 24l24 24M19 7l25 26M13 42L39 12M9 30L31 7M21 47l23-27"/></g><ellipse cx="26" cy="27" rx="19" ry="21" fill="none" stroke="#2F6A8E" stroke-width="4"/>`,
+  box:`<path d="M8 24l24-8 24 8v28l-24 8-24-8z" fill="#C98B4E"/><path d="M8 24l24 8 24-8M32 32v28" stroke="#8C6232" stroke-width="2" fill="none"/><path d="M8 24l-4-8 24-6 4 6zM56 24l4-8-24-6-4 6z" fill="#D9A066"/>`,
+  ball:`<circle cx="32" cy="32" r="24" fill="#fff"/><path d="M32 23l8.6 6.2-3.3 10.1H27.7l-3.3-10.1z" fill="${IK}"/><path d="M26 9.5l6 3.5 6-3.5q-6-2-12 0zM53 24l-4.5 1.5-1 6.5 5 3.5q1.5-6 .5-11.5zM45 51l-1-5.5-6-2.5-3 4.5 1 6q5-1 9-2.5zM19 51l1-5.5 6-2.5 3 4.5-1 6q-5-1-9-2.5zM11 24l4.5 1.5 1 6.5-5 3.5q-1.5-6-.5-11.5z" fill="${IK}"/><path d="M32 23v-10M40.6 29.2l8-3.2M37.3 39.3l1 4.7M27.7 39.3l-1 4.7M24.4 29.2l-8-3.2" stroke="${IK}" stroke-width="1.6"/><circle cx="32" cy="32" r="24" fill="none" stroke="${IK}" stroke-width="2.5"/>`,
+  mango:`<ellipse cx="32" cy="36" rx="19" ry="22" transform="rotate(-20 32 36)" fill="#F2A33A"/><ellipse cx="26" cy="30" rx="6" ry="9" transform="rotate(-20 26 30)" fill="#F7C46A"/><path d="M38 14q8-10 18-6q-6 10-18 6z" fill="#3B7836"/>`,
+  goat:`<path d="M22 16q-9-8-3-14M42 16q9-8 3-14" stroke="#8C6232" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M10 25l11 3-5 8zM54 25l-11 3 5 8z" fill="#D9CDBE"/><path d="M20 21q12-8 24 0l-4 27q-8 6-16 0z" fill="#EFE6DA" stroke="#CDBFAD" stroke-width="2"/><path d="M28 50q4 11 8 0" fill="#CDBFAD"/><circle cx="26" cy="32" r="2.5" fill="${IK}"/><circle cx="38" cy="32" r="2.5" fill="${IK}"/>`,
+  fish:`<path d="M44 32l14-10v20z" fill="#2F6A8E"/><path d="M6 32q17-18 38 0q-21 18-38 0z" fill="#3E7FA6"/><circle cx="17" cy="30" r="2.6" fill="#fff"/>`,
+  tin:`<rect x="16" y="14" width="32" height="40" rx="3" fill="#B9C2C7"/><ellipse cx="32" cy="14" rx="16" ry="5" fill="#D5DCE0"/><rect x="16" y="26" width="32" height="14" fill="#A4472A"/>`,
+  crown:`<path d="M8 46l4-28 12 14 8-18 8 18 12-14 4 28z" fill="#F2C230" stroke="#C99A10" stroke-width="2"/><rect x="8" y="46" width="48" height="8" rx="2" fill="#F2A33A"/>`,
+  jerrycan:`<rect x="20" y="7" width="14" height="10" rx="3" fill="none" stroke="#C99A10" stroke-width="4"/><path d="M14 14h26l10 10v32a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3V17a3 3 0 0 1 3-3z" fill="#F2C230"/><rect x="42" y="11" width="7" height="6" rx="1" fill="#3B7836"/><path d="M17 28h26M17 40h26" stroke="#C99A10" stroke-width="2"/>`,
+  egg:`<ellipse cx="32" cy="34" rx="16" ry="21" fill="#F7EBD8" stroke="#D3C2A6" stroke-width="2"/>`,
+  mangoTree:`<rect x="28" y="36" width="8" height="26" rx="3" fill="#7A4A2A"/><circle cx="20" cy="28" r="14" fill="#3B7836"/><circle cx="44" cy="28" r="14" fill="#3B7836"/><circle cx="32" cy="18" r="16" fill="#4A8C42"/><circle cx="22" cy="32" r="3.5" fill="#F2A33A"/><circle cx="40" cy="22" r="3.5" fill="#F2A33A"/><circle cx="46" cy="34" r="3.5" fill="#F2A33A"/>`,
+  bicycle:`<g fill="none" stroke="${IK}" stroke-width="3"><circle cx="15" cy="44" r="11"/><circle cx="49" cy="44" r="11"/></g><path d="M15 44l12-18h16l6 18M27 26l8 18 8-18M25 22h8M43 26l-3-8h6" fill="none" stroke="#A4472A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  cow:`<rect x="8" y="22" width="40" height="22" rx="10" fill="#F4EEE6" stroke="#CDBFAD" stroke-width="2"/><circle cx="20" cy="30" r="5" fill="#5A3A28"/><circle cx="36" cy="36" r="4" fill="#5A3A28"/><path d="M14 44v14M22 44v14M36 44v14M44 44v14" stroke="#5A3A28" stroke-width="4" stroke-linecap="round"/><rect x="44" y="14" width="16" height="16" rx="6" fill="#F4EEE6" stroke="#CDBFAD" stroke-width="2"/><path d="M45 14l-3-5M59 14l3-5" stroke="#8C6232" stroke-width="3" stroke-linecap="round"/><circle cx="52" cy="22" r="2" fill="${IK}"/>`,
+  tank:`<rect x="12" y="44" width="40" height="4" fill="#7A4A2A"/><path d="M16 48v12M48 48v12" stroke="#7A4A2A" stroke-width="4"/><rect x="14" y="12" width="36" height="32" rx="4" fill="#2F6A8E"/><ellipse cx="32" cy="12" rx="18" ry="4" fill="#3E7FA6"/><path d="M14 22h36M14 32h36" stroke="#245675" stroke-width="2"/>`,
+  flowers:`<path d="M16 60V36M32 60V28M48 60V38" stroke="#3B7836" stroke-width="3"/><g fill="#E0607E"><circle cx="16" cy="32" r="6"/><circle cx="48" cy="34" r="6"/></g><circle cx="32" cy="24" r="7" fill="#F2A33A"/><g fill="#F2C230"><circle cx="16" cy="32" r="2.5"/><circle cx="48" cy="34" r="2.5"/></g><circle cx="32" cy="24" r="3" fill="#A4472A"/>`,
+  radio:`<path d="M44 20L54 6" stroke="${IK}" stroke-width="2.5" stroke-linecap="round"/><rect x="6" y="20" width="52" height="34" rx="6" fill="#A4472A"/><circle cx="22" cy="37" r="10" fill="#7A3220"/><circle cx="22" cy="37" r="5" fill="#5A2416"/><rect x="38" y="28" width="14" height="6" rx="2" fill="#FCE6C2"/><circle cx="45" cy="44" r="4" fill="#F2A33A"/>`,
+  banana:`<path d="M32 62V26" stroke="#5E7A3A" stroke-width="6"/><path d="M32 30q-24-6-28 12q14-14 28-8zM32 26q22-10 30 6q-14-10-30-2zM32 22q-6-18 10-20q-8 8-10 20z" fill="#4A8C42"/><path d="M36 38q8 2 8 10q-6-2-8-6z" fill="#F2C230"/>`,
+  kite:`<path d="M32 4l16 18-16 22-16-22z" fill="#E0607E"/><path d="M32 4v40M16 22h32" stroke="#fff" stroke-width="2"/><path d="M32 44q-6 6 0 10t0 10" stroke="${IK}" stroke-width="1.6" fill="none"/>`,
+  bench:`<rect x="6" y="28" width="52" height="8" rx="2" fill="#A9692F"/><rect x="6" y="18" width="52" height="6" rx="2" fill="#C98B4E"/><path d="M12 36v18M52 36v18" stroke="#7A4A2A" stroke-width="5"/>`,
+  lamp:`<path d="M32 62V22" stroke="#66523F" stroke-width="4"/><rect x="18" y="8" width="28" height="10" rx="2" fill="#2F6A8E"/><path d="M22 10h20M22 14h20" stroke="#BFE0F0" stroke-width="1.4"/><circle cx="32" cy="26" r="6" fill="#F2C230"/>`,
+};
+
+/* More pictures for the plug-in games, drawn in code for Somo (64×64). Our own art. */
+Object.assign(ICON, {
+  pen: `<path d="M14 50l30-30 6 6-30 30-8 2z" fill="#2F6FB0"/><path d="M44 20l5-5 6 6-5 5z" fill="#1E4E80"/><path d="M14 50l-2 8 8-2z" fill="${IK}"/>`,
+  pan: `<ellipse cx="28" cy="36" rx="20" ry="10" fill="#555F66"/><ellipse cx="28" cy="33" rx="17" ry="7" fill="#7D8890"/><rect x="46" y="31" width="16" height="5" rx="2.5" fill="${IK}"/>`,
+  map: `<path d="M6 14l16-5 18 5 18-5v41l-18 5-18-5-16 5z" fill="#F4E6C3" stroke="#B89A5E" stroke-width="2"/><path d="M22 9v41M40 14v41" stroke="#B89A5E" stroke-width="2"/><path d="M12 36q10-10 18-2t20-8" stroke="#3FA34D" stroke-width="3" fill="none"/><path d="M44 18l4 4m0-4l-4 4" stroke="#D63A3A" stroke-width="2.4"/>`,
+  mop: `<path d="M32 4v38" stroke="#9A6A3A" stroke-width="4"/><path d="M18 42h28l4 16H14z" fill="#E3E8EC"/><path d="M20 46v12M26 46v12M32 46v12M38 46v12M44 46v12" stroke="#B9C3CA" stroke-width="2"/>`,
+  nut: `<path d="M32 8c14 0 22 12 22 26S44 58 32 58 10 48 10 34 18 8 32 8z" fill="#B57A3E"/><path d="M20 22q12-6 24 0M18 34q14-6 28 0M20 46q12-6 24 0" stroke="#8A5728" stroke-width="2" fill="none"/>`,
+  rat: `<ellipse cx="30" cy="40" rx="20" ry="12" fill="#9AA0A6"/><circle cx="48" cy="32" r="9" fill="#9AA0A6"/><circle cx="46" cy="24" r="5" fill="#D9B8B8"/><circle cx="51" cy="31" r="1.8" fill="${IK}"/><circle cx="57" cy="34" r="1.6" fill="#D97A8A"/><path d="M10 42q-8 2-6 12" stroke="#D9B8B8" stroke-width="2.4" fill="none"/>`,
+  rug: `<rect x="8" y="16" width="48" height="32" rx="3" fill="#C2452B"/><rect x="13" y="21" width="38" height="22" fill="none" stroke="#F2B829" stroke-width="2.5"/><path d="M24 32h16M32 26v12" stroke="#F2B829" stroke-width="2.5"/><path d="M8 18H4M8 24H4M8 30H4M8 36H4M8 42H4M56 18h4M56 24h4M56 30h4M56 36h4M56 42h4" stroke="#E8C27A" stroke-width="2"/>`,
+  jug: `<path d="M18 14h24l-2 6q8 6 8 20 0 18-16 18T16 40q0-14 8-20z" fill="#6FA8DC"/><path d="M44 24q12 2 8 16-2 6-8 6" stroke="#4A85BF" stroke-width="4" fill="none"/><path d="M18 14h24" stroke="#4A85BF" stroke-width="3"/>`,
+  leg: `<path d="M26 4h12v34q0 6 4 10h12v10H26z" fill="#8B5A3C"/><path d="M26 54h28" stroke="#5A3A22" stroke-width="2"/>`,
+  fan: `<circle cx="32" cy="28" r="20" fill="none" stroke="#7D8890" stroke-width="2.5"/><path d="M32 28l-4-16q4-4 8 0zM32 28l16 4q2 5-2 7zM32 28l-12 12q-5-1-4-6z" fill="#56B4E9"/><circle cx="32" cy="28" r="3.5" fill="#555F66"/><path d="M32 48v8M22 58h20" stroke="#555F66" stroke-width="4"/>`,
+  mug: `<rect x="14" y="16" width="30" height="38" rx="5" fill="#E8577A"/><path d="M44 24h6q6 0 6 8t-6 8h-6" stroke="#C23B5A" stroke-width="4" fill="none"/><path d="M20 10q2-4 0-8M28 10q2-4 0-8" stroke="#B9C3CA" stroke-width="2" fill="none"/>`,
+  cap: `<path d="M10 40q0-26 24-26t22 22z" fill="#2F6FB0"/><path d="M10 40q22-6 50 2-2 6-8 6-22-6-42-2z" fill="#1E4E80"/><circle cx="34" cy="14" r="3" fill="#F2B829"/>`,
+  tap: `<rect x="8" y="14" width="34" height="10" rx="4" fill="#9AA6AE"/><rect x="20" y="8" width="10" height="6" rx="2" fill="#555F66"/><path d="M36 24v12h-8V24" fill="#9AA6AE"/><path d="M32 40q-4 8 0 12 4-4 0-12z" fill="#56B4E9"/>`,
+  jam: `<rect x="16" y="20" width="32" height="38" rx="6" fill="#C2283A"/><rect x="14" y="12" width="36" height="10" rx="3" fill="#F2B829"/><rect x="22" y="30" width="20" height="14" rx="3" fill="#FFF3D6"/><circle cx="32" cy="37" r="4" fill="#C2283A"/>`,
+  van: `<path d="M4 44V22q0-6 6-6h30l12 12h6q2 0 2 4v12z" fill="#F2B829"/><rect x="10" y="20" width="12" height="10" rx="2" fill="#BFE7F5"/><rect x="26" y="20" width="10" height="10" rx="2" fill="#BFE7F5"/><path d="M40 20l8 8h-8z" fill="#BFE7F5"/><circle cx="16" cy="46" r="6" fill="${IK}"/><circle cx="48" cy="46" r="6" fill="${IK}"/>`,
+  web: `<g stroke="#7D8890" stroke-width="1.6" fill="none"><path d="M32 6v52M6 32h52M12 12l40 40M52 12L12 52"/><circle cx="32" cy="32" r="8"/><circle cx="32" cy="32" r="16"/><circle cx="32" cy="32" r="24"/></g><circle cx="42" cy="22" r="4" fill="${IK}"/>`,
+  six: `<rect x="8" y="8" width="48" height="48" rx="10" fill="#FFF3D6" stroke="#C9A06A" stroke-width="2"/>${[[20, 20], [20, 32], [20, 44], [44, 20], [44, 32], [44, 44]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5" fill="#E8577A"/>`).join('')}`,
+  ten: `<rect x="4" y="16" width="56" height="32" rx="4" fill="#FFF3D6" stroke="#C9A06A" stroke-width="2"/>${[0, 1, 2, 3, 4].map(i => [0, 1].map(j => `<circle cx="${12 + i * 10}" cy="${25 + j * 14}" r="4" fill="#3FA34D"/>`).join('')).join('')}`,
+  zip: `<rect x="26" y="4" width="12" height="56" fill="#3C4A55"/>${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<rect x="${i % 2 ? 32 : 26}" y="${10 + i * 5}" width="6" height="3" fill="#B9C3CA"/>`).join('')}<rect x="24" y="46" width="16" height="12" rx="3" fill="#F2B829"/>`,
+  hut: `<path d="M4 34L32 8l28 26z" fill="#C9A24A"/><path d="M8 34q24 -6 48 0" stroke="#9A7A2A" stroke-width="2" fill="none"/><rect x="12" y="34" width="40" height="24" fill="#B36A3B"/><rect x="27" y="42" width="10" height="16" fill="#5A3A22"/>`,
+  duck: `<ellipse cx="30" cy="42" rx="20" ry="13" fill="#F2C230"/><circle cx="44" cy="24" r="10" fill="#F2C230"/><path d="M52 24l10 3-10 4z" fill="#F28A1E"/><circle cx="46" cy="21" r="2" fill="${IK}"/><path d="M14 40q10 8 22 0" stroke="#D9A41E" stroke-width="2.4" fill="none"/>`,
+  drum: `<ellipse cx="32" cy="18" rx="22" ry="8" fill="#F4E6C3" stroke="#8A5A2A" stroke-width="2"/><path d="M10 18v28q0 8 22 8t22-8V18q0 8-22 8T10 18z" fill="#C2452B"/><path d="M10 22l11 28M21 26l11 28M32 26l11 28M43 26l11 22" stroke="#F2B829" stroke-width="2"/>`,
+  fox: `<path d="M10 14l10 14h24l10-14-6 26q-6 14-16 14T16 40z" fill="#E8792A"/><path d="M20 40q12 10 24 0l-12 14z" fill="#FFF3E6"/><circle cx="25" cy="34" r="2.4" fill="${IK}"/><circle cx="39" cy="34" r="2.4" fill="${IK}"/><circle cx="32" cy="48" r="2.6" fill="${IK}"/>`,
+  lid: `<ellipse cx="32" cy="40" rx="26" ry="8" fill="#7D8890"/><ellipse cx="32" cy="36" rx="26" ry="8" fill="#B9C3CA"/><rect x="26" y="22" width="12" height="10" rx="4" fill="#555F66"/>`,
+  pin: `<circle cx="32" cy="18" r="10" fill="#E8577A"/><path d="M32 28v30" stroke="#7D8890" stroke-width="3"/><circle cx="28" cy="15" r="3" fill="#F7B3C4"/>`,
+  bat: `<path d="M32 30q-8-14-28-12 6 6 4 14 8-2 10 6 6-6 14-8z" fill="#3C3A4A"/><path d="M32 30q8-14 28-12-6 6-4 14-8-2-10 6-6-6-14-8z" fill="#3C3A4A"/><ellipse cx="32" cy="34" rx="6" ry="9" fill="#2A2834"/><circle cx="30" cy="31" r="1.3" fill="#fff"/><circle cx="34" cy="31" r="1.3" fill="#fff"/>`,
+  bun: `<path d="M8 40q0-24 24-24t24 24z" fill="#D99A4E"/><rect x="8" y="40" width="48" height="10" rx="4" fill="#C2803A"/><g fill="#FFF3D6"><ellipse cx="22" cy="28" rx="2" ry="1"/><ellipse cx="32" cy="24" rx="2" ry="1"/><ellipse cx="42" cy="29" rx="2" ry="1"/></g>`,
+  log: `<rect x="6" y="22" width="44" height="22" rx="4" fill="#8B5A3C"/><ellipse cx="50" cy="33" rx="8" ry="11" fill="#D9B07A"/><ellipse cx="50" cy="33" rx="4" ry="6" fill="none" stroke="#A47A44" stroke-width="2"/><path d="M12 28h30M14 38h28" stroke="#6B4226" stroke-width="2"/>`,
+  sock: `<path d="M22 6h18v30l10 8q6 6 0 12-6 4-12-2L24 44q-2-2-2-6z" fill="#2F9E8E"/><rect x="22" y="6" width="18" height="8" fill="#F2B829"/>`,
+  mat: `<rect x="6" y="20" width="52" height="26" rx="2" fill="#D9B07A"/><path d="M6 26h52M6 32h52M6 38h52M14 20v26M24 20v26M34 20v26M44 20v26" stroke="#B88A4E" stroke-width="2"/>`,
+  wig: `<path d="M12 40q-4-30 20-30t20 30q-2 14-8 16-2-16-12-16t-12 16q-6-2-8-16z" fill="#E8792A"/><circle cx="18" cy="26" r="6" fill="#E8792A"/><circle cx="46" cy="26" r="6" fill="#E8792A"/>`,
+  matatu: `<path d="M2 44V18q0-8 8-8h38q8 0 12 10l2 6v18z" fill="#F2B829"/><path d="M4 30h56" stroke="#E8577A" stroke-width="5"/>${[8, 20, 32].map(x => `<rect x="${x}" y="14" width="10" height="9" rx="2" fill="#BFE7F5"/>`).join('')}<path d="M46 14h6l4 9h-10z" fill="#BFE7F5"/><circle cx="14" cy="46" r="6" fill="${IK}"/><circle cx="48" cy="46" r="6" fill="${IK}"/>`,
+  chapati: `<ellipse cx="32" cy="36" rx="26" ry="16" fill="#E8B866"/><ellipse cx="32" cy="34" rx="24" ry="14" fill="#F2CC85"/><g fill="#C9873A"><circle cx="22" cy="30" r="2"/><circle cx="36" cy="38" r="2.4"/><circle cx="42" cy="28" r="1.8"/><circle cx="28" cy="40" r="1.6"/></g>`,
+  ugali: `<ellipse cx="32" cy="46" rx="26" ry="8" fill="#B9C3CA"/><ellipse cx="32" cy="44" rx="24" ry="6" fill="#E3E8EC"/><path d="M14 44q0-26 18-26t18 26z" fill="#FBF6E6" stroke="#E2D7B8" stroke-width="2"/>`,
+  basket: `<path d="M8 26h48l-6 30H14z" fill="#C9A24A"/><path d="M10 34h44M12 42h40M14 50h36" stroke="#9A7A2A" stroke-width="2"/><path d="M16 26q16-22 32 0" stroke="#9A7A2A" stroke-width="3" fill="none"/><path d="M8 26h48" stroke="#E8577A" stroke-width="3"/>`,
+  elephant: `<ellipse cx="30" cy="34" rx="22" ry="16" fill="#A7B3BC"/><circle cx="48" cy="26" r="11" fill="#A7B3BC"/><ellipse cx="42" cy="26" rx="7" ry="10" fill="#8796A0"/><path d="M56 30q4 10-2 22" stroke="#A7B3BC" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="51" cy="23" r="2" fill="${IK}"/><rect x="12" y="44" width="8" height="14" fill="#A7B3BC"/><rect x="30" y="44" width="8" height="14" fill="#A7B3BC"/>`,
+  giraffe: `<path d="M30 54V40q-12 0-14-8l2-10h12l6-16h8l-4 18v16h4v14h-6V44h-4v10z" fill="#F2B24A"/><g fill="#B5651D"><circle cx="24" cy="30" r="2.6"/><circle cx="34" cy="36" r="2.4"/><circle cx="38" cy="22" r="2"/><circle cx="40" cy="12" r="1.8"/></g><circle cx="42" cy="8" r="1.4" fill="${IK}"/>`,
+  lion: `<circle cx="32" cy="32" r="24" fill="#B5651D"/><circle cx="32" cy="34" r="15" fill="#F2B24A"/><circle cx="26" cy="31" r="2.2" fill="${IK}"/><circle cx="38" cy="31" r="2.2" fill="${IK}"/><path d="M29 38h6l-3 3z" fill="${IK}"/><path d="M28 44q4 3 8 0" stroke="${IK}" stroke-width="1.6" fill="none"/>`,
+  rabbit: `<ellipse cx="24" cy="14" rx="5" ry="12" fill="#E3E3E3"/><ellipse cx="38" cy="14" rx="5" ry="12" fill="#E3E3E3"/><circle cx="31" cy="34" r="13" fill="#F2F2F2" stroke="#D0D0D0"/><ellipse cx="31" cy="52" rx="16" ry="9" fill="#F2F2F2" stroke="#D0D0D0"/><circle cx="26" cy="32" r="2" fill="${IK}"/><circle cx="36" cy="32" r="2" fill="${IK}"/><circle cx="31" cy="38" r="2" fill="#E8A0B0"/>`,
+  pencil: `<path d="M10 54l6-16 30-30 10 10-30 30z" fill="#F2B829"/><path d="M46 8l10 10 4-4-10-10z" fill="#E8A0B0"/><path d="M10 54l6-16 10 10z" fill="#F2D9A6"/><path d="M10 54l2-6 4 4z" fill="${IK}"/>`,
+  butterfly: `<path d="M32 30q-10-20-24-14t6 18q-8 6-2 14t20-14z" fill="#E8577A"/><path d="M32 30q10-20 24-14t-6 18q8 6 2 14t-20-14z" fill="#56B4E9"/><rect x="30" y="18" width="4" height="30" rx="2" fill="${IK}"/><path d="M31 18q-4-8-8-10M33 18q4-8 8-10" stroke="${IK}" stroke-width="1.6" fill="none"/>`,
+  tomato: `<circle cx="32" cy="36" r="22" fill="#D63A3A"/><path d="M22 16l10 6 10-6-4 8 8 2-14 2-14-2 8-2z" fill="#3FA34D"/><circle cx="24" cy="30" r="4" fill="#F28A8A" opacity=".6"/>`,
+  foot: `<path d="M20 8q14 0 14 18 0 10 6 16 8 8 0 14-8 6-22 0Q8 46 10 26 12 8 20 8z" fill="#C98A5A"/>${[[40, 44], [46, 48], [50, 53], [44, 58], [36, 59]].map(([x, y], i) => `<circle cx="${x + 4}" cy="${y - 6}" r="${3.4 - i * .3}" fill="#B87A4A"/>`).join('')}`,
+  football: `<circle cx="32" cy="32" r="24" fill="#fff" stroke="${IK}" stroke-width="2"/><path d="M32 20l10 8-4 12H26l-4-12z" fill="${IK}"/><path d="M32 20V8M42 28l11-4M38 40l7 10M26 40l-7 10M22 28l-11-4" stroke="${IK}" stroke-width="2"/>`,
+  flower: `<g fill="#E8577A"><circle cx="32" cy="16" r="8"/><circle cx="44" cy="26" r="8"/><circle cx="40" cy="40" r="8"/><circle cx="24" cy="40" r="8"/><circle cx="20" cy="26" r="8"/></g><circle cx="32" cy="29" r="7" fill="#F2B829"/><path d="M32 46v16" stroke="#3FA34D" stroke-width="4"/>`,
+  sunflower: `<g fill="#F2C230">${Array.from({ length: 12 }, (_, i) => `<ellipse cx="32" cy="10" rx="4" ry="9" transform="rotate(${i * 30} 32 26)"/>`).join('')}</g><circle cx="32" cy="26" r="10" fill="#6B4226"/><path d="M32 36v26" stroke="#3FA34D" stroke-width="4"/><path d="M32 50q-10-8-16-4 6 8 16 4z" fill="#3FA34D"/>`,
+  cake: `<rect x="10" y="30" width="44" height="24" rx="4" fill="#F2CC85"/><path d="M10 34q6 6 11 0t11 0 11 0 11 0v-4H10z" fill="#F7B3C4"/><rect x="30" y="18" width="4" height="12" fill="#56B4E9"/><path d="M32 10q4 4 0 8-4-4 0-8z" fill="#F2B829"/>`,
+  cupcake: `<path d="M16 36h32l-4 22H20z" fill="#56B4E9"/><path d="M20 36v22M28 36v22M36 36v22M44 36v22" stroke="#3A8FC7" stroke-width="2"/><path d="M12 36q0-18 20-18t20 18z" fill="#F7B3C4"/><circle cx="32" cy="16" r="4" fill="#D63A3A"/>`,
+  star: `<path d="M32 6l7 16 17 2-13 11 4 17-15-9-15 9 4-17L8 24l17-2z" fill="#F2C230" stroke="#C98A0C" stroke-width="2"/>`,
+  starfish: `<path d="M32 6l7 16 17 2-13 11 4 17-15-9-15 9 4-17L8 24l17-2z" fill="#E8792A" stroke="#B55A1A" stroke-width="2"/><g fill="#FBD1A8"><circle cx="32" cy="18" r="1.6"/><circle cx="44" cy="28" r="1.6"/><circle cx="40" cy="42" r="1.6"/><circle cx="24" cy="42" r="1.6"/><circle cx="20" cy="28" r="1.6"/></g><circle cx="29" cy="30" r="1.5" fill="${IK}"/><circle cx="35" cy="30" r="1.5" fill="${IK}"/>`,
+  tooth: `<path d="M16 12q8-6 16 0 8-6 16 0 6 8 2 20-2 8-4 22-2 6-6 0l-4-12q-4-4-8 0l-4 12q-4 6-6 0-2-14-4-22-4-12 2-20z" fill="#fff" stroke="#B9C3CA" stroke-width="2"/>`,
+  brush: `<rect x="8" y="34" width="40" height="8" rx="4" fill="#2F6FB0"/><rect x="40" y="24" width="18" height="10" rx="2" fill="#2F6FB0"/>${[0, 1, 2, 3, 4].map(i => `<rect x="${41 + i * 3.4}" y="14" width="2" height="10" fill="#E3E8EC"/>`).join('')}`,
+  toothbrush: `<rect x="4" y="36" width="44" height="7" rx="3.5" fill="#3FA34D"/><rect x="42" y="28" width="16" height="9" rx="2" fill="#3FA34D"/>${[0, 1, 2, 3].map(i => `<rect x="${43 + i * 3.6}" y="18" width="2.2" height="10" fill="#E3E8EC"/>`).join('')}<path d="M44 16q6-6 12 0" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="16" cy="18" r="9" fill="#fff" stroke="#B9C3CA"/>`,
+  hand: `<path d="M18 58q-8-10-6-26l2-14q2-4 5 0l1 14V8q2-5 5 0v20V4q3-5 6 0v24V8q3-5 6 0v26l4-8q4-4 6 0l-6 18q-4 10-14 14z" fill="#C98A5A"/>`,
+  handbag: `<path d="M10 26h44l-4 30H14z" fill="#8E3B6E"/><path d="M20 26q0-16 12-16t12 16" stroke="#5E2448" stroke-width="4" fill="none"/><rect x="28" y="32" width="8" height="6" rx="2" fill="#F2B829"/>`,
+  frog: `<ellipse cx="32" cy="40" rx="22" ry="14" fill="#3FA34D"/><circle cx="22" cy="24" r="8" fill="#3FA34D"/><circle cx="42" cy="24" r="8" fill="#3FA34D"/><circle cx="22" cy="23" r="4" fill="#fff"/><circle cx="42" cy="23" r="4" fill="#fff"/><circle cx="22" cy="24" r="2" fill="${IK}"/><circle cx="42" cy="24" r="2" fill="${IK}"/><path d="M22 42q10 6 20 0" stroke="#24702F" stroke-width="2.4" fill="none"/>`,
+  flag: `<path d="M14 6v54" stroke="#6B4226" stroke-width="4"/><rect x="16" y="8" width="38" height="8" fill="#1A1A1A"/><rect x="16" y="16" width="38" height="8" fill="#BB2B2B"/><rect x="16" y="24" width="38" height="8" fill="#1E7A3A"/><path d="M16 15.5h38M16 24.5h38" stroke="#fff" stroke-width="1.4"/>`,
+  nest: `<ellipse cx="32" cy="42" rx="26" ry="12" fill="#8B5A3C"/><path d="M8 40q24 10 48 0M10 46q22 8 44 0" stroke="#5A3A22" stroke-width="2" fill="none"/><ellipse cx="24" cy="34" rx="6" ry="7" fill="#EAF2F8"/><ellipse cx="34" cy="32" rx="6" ry="7" fill="#DCEBF5"/><ellipse cx="43" cy="35" rx="6" ry="7" fill="#EAF2F8"/>`,
+  crab: `<ellipse cx="32" cy="38" rx="18" ry="12" fill="#E8573A"/><path d="M14 30q-10-6-6-16 6 6 12 4 0 8-6 12zM50 30q10-6 6-16-6 6-12 4 0 8 6 12z" fill="#E8573A"/><path d="M16 44l-8 6M18 48l-6 8M48 44l8 6M46 48l6 8" stroke="#C2402A" stroke-width="3"/><circle cx="27" cy="28" r="2.4" fill="${IK}"/><circle cx="37" cy="28" r="2.4" fill="${IK}"/>`,
+  desk: `<rect x="6" y="20" width="52" height="8" rx="2" fill="#B36A3B"/><rect x="10" y="28" width="6" height="28" fill="#8B5A3C"/><rect x="48" y="28" width="6" height="28" fill="#8B5A3C"/><rect x="34" y="28" width="16" height="14" fill="#9A6A3A"/><rect x="38" y="33" width="8" height="2" fill="#F2B829"/>`,
+  plum: `<circle cx="32" cy="38" r="20" fill="#7A3E8E"/><path d="M32 18q0-10 6-12" stroke="#5A3A22" stroke-width="3" fill="none"/><path d="M34 14q10-8 16 0-8 6-16 0z" fill="#3FA34D"/><ellipse cx="25" cy="32" rx="4" ry="6" fill="#A06AB4" opacity=".6"/>`,
+  stop: `<path d="M22 6h20l14 14v20L42 54H22L8 40V20z" fill="#D63A3A" stroke="#fff" stroke-width="3"/><rect x="18" y="26" width="28" height="8" rx="2" fill="#fff"/><path d="M32 54v8" stroke="#7D8890" stroke-width="4"/>`,
+  milk: `<path d="M22 4h20v8l6 10v36H16V22l6-10z" fill="#fff" stroke="#B9C3CA" stroke-width="2"/><rect x="16" y="30" width="32" height="14" fill="#56B4E9"/>`,
+  tent: `<path d="M4 54L32 10l28 44z" fill="#2F9E8E"/><path d="M32 10v44M24 54l8-20 8 20z" fill="#1E6E62"/><path d="M2 54h60" stroke="#6B4226" stroke-width="3"/>`,
+  ship: `<path d="M6 40h52l-8 14H14z" fill="#2F6FB0"/><rect x="18" y="26" width="28" height="14" fill="#fff"/><rect x="22" y="30" width="5" height="5" fill="#56B4E9"/><rect x="30" y="30" width="5" height="5" fill="#56B4E9"/><rect x="38" y="30" width="5" height="5" fill="#56B4E9"/><rect x="28" y="12" width="8" height="14" fill="#D63A3A"/><path d="M2 58q8-4 15 0t15 0 15 0 15 0" stroke="#56B4E9" stroke-width="3" fill="none"/>`,
+  shop: `<rect x="8" y="24" width="48" height="34" fill="#F4E6C3"/><path d="M4 24l6-14h44l6 14z" fill="#E8577A"/><path d="M4 24q4 6 8 0 4 6 8 0 4 6 8 0 4 6 8 0 4 6 8 0 4 6 8 0 4 6 8 0" fill="#C23B5A"/><rect x="14" y="34" width="16" height="12" fill="#BFE7F5"/><rect x="36" y="34" width="12" height="24" fill="#8B5A3C"/>`,
+  shell: `<path d="M32 56L8 30q4-20 24-22 20 2 24 22z" fill="#F7C9A8" stroke="#D99A74" stroke-width="2"/><path d="M32 56L18 16M32 56V8M32 56l14-40M32 56L10 28M32 56l22-28" stroke="#D99A74" stroke-width="2"/>`,
+  chips: `<path d="M14 26h36l-6 32H20z" fill="#D63A3A"/><path d="M20 26l-2-16 6 2 2 14M28 26l-1-20 6 1v19M36 26l1-18 6 2-2 16M44 26l3-14 5 3-4 11" fill="#F2C230" stroke="#D9A41E" stroke-width="1"/><path d="M14 26h36" stroke="#fff" stroke-width="3"/>`,
+  chick: `<circle cx="32" cy="38" r="18" fill="#F2C230"/><circle cx="32" cy="20" r="11" fill="#F2C230"/><path d="M30 22l2 4 2-4z" fill="#F28A1E"/><circle cx="28" cy="18" r="1.8" fill="${IK}"/><circle cx="36" cy="18" r="1.8" fill="${IK}"/><path d="M14 38q-6-4-8 4M50 38q6-4 8 4" stroke="#D9A41E" stroke-width="3" fill="none"/>`,
+  thumb: `<path d="M18 30q2-10 8-16 4-6 6 0l-2 12h18q6 2 4 8l-4 18q-2 6-8 6H18z" fill="#C98A5A"/><rect x="8" y="28" width="10" height="32" rx="2" fill="#2F6FB0"/><path d="M30 14q4-4 4 4" stroke="#B87A4A" stroke-width="2" fill="none"/>`,
+  bath: `<path d="M6 30h52v6q0 16-16 16H22Q6 52 6 36z" fill="#fff" stroke="#B9C3CA" stroke-width="2"/><path d="M14 52l-2 6M50 52l2 6" stroke="#7D8890" stroke-width="3"/><path d="M8 30V12q0-6 6-6h4" stroke="#7D8890" stroke-width="3" fill="none"/>${[0, 1, 2].map(i => `<circle cx="${22 + i * 10}" cy="${26 - i * 3}" r="${4 + i}" fill="#BFE7F5"/>`).join('')}`,
+  moth: `<path d="M32 30q-6-18-22-16-4 12 10 18-12 6-6 16 12 0 18-18z" fill="#B5A07A"/><path d="M32 30q6-18 22-16 4 12-10 18 12 6 6 16-12 0-18-18z" fill="#B5A07A"/><ellipse cx="32" cy="32" rx="4" ry="12" fill="#6B5A3A"/><path d="M30 20q-4-8-8-8M34 20q4-8 8-8" stroke="#6B5A3A" stroke-width="1.6" fill="none"/>`,
+  dish: `<ellipse cx="32" cy="40" rx="28" ry="10" fill="#E3E8EC"/><ellipse cx="32" cy="38" rx="20" ry="6" fill="#fff"/><path d="M20 36q12-10 24 0" fill="#F2B24A"/>`,
+  three: `<rect x="8" y="8" width="48" height="48" rx="10" fill="#FFF3D6" stroke="#C9A06A" stroke-width="2"/><circle cx="20" cy="20" r="5" fill="#2F6FB0"/><circle cx="32" cy="32" r="5" fill="#2F6FB0"/><circle cx="44" cy="44" r="5" fill="#2F6FB0"/>`,
+  moon: `<path d="M44 52A24 24 0 1 1 30 8a18 18 0 1 0 14 44z" fill="#F2C230"/>`,
+  ice: `<rect x="12" y="16" width="20" height="20" rx="3" fill="#BFE7F5" stroke="#7FC4E0" stroke-width="2"/><rect x="30" y="30" width="22" height="22" rx="3" fill="#D4F0FA" stroke="#7FC4E0" stroke-width="2"/><path d="M16 20l6 6M34 34l6 6" stroke="#fff" stroke-width="2"/>`,
+  fire: `<path d="M32 4q16 18 14 34-2 18-14 20-12-2-14-20Q16 26 26 18q0 10 6 12 2-12 0-26z" fill="#F28A1E"/><path d="M32 30q8 10 6 18-2 8-6 8t-6-8q0-10 6-18z" fill="#F2C230"/>`,
+  happy: `<circle cx="32" cy="32" r="26" fill="#F2C230"/><circle cx="23" cy="26" r="3" fill="${IK}"/><circle cx="41" cy="26" r="3" fill="${IK}"/><path d="M20 38q12 12 24 0" stroke="${IK}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  sad: `<circle cx="32" cy="32" r="26" fill="#9FC3E0"/><circle cx="23" cy="26" r="3" fill="${IK}"/><circle cx="41" cy="26" r="3" fill="${IK}"/><path d="M20 46q12-12 24 0" stroke="${IK}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  up: `<path d="M32 6l20 22H40v30H24V28H12z" fill="#3FA34D"/>`,
+  down: `<path d="M32 58l20-22H40V6H24v30H12z" fill="#E8792A"/>`,
+  mouse: `<ellipse cx="30" cy="42" rx="14" ry="9" fill="#9AA0A6"/><circle cx="42" cy="36" r="7" fill="#9AA0A6"/><circle cx="40" cy="30" r="4" fill="#D9B8B8"/><circle cx="45" cy="35" r="1.5" fill="${IK}"/><path d="M16 44q-8 2-8 10" stroke="#D9B8B8" stroke-width="2" fill="none"/>`,
+  hoe: `<path d="M8 56L46 14" stroke="#9A6A3A" stroke-width="4"/><path d="M40 8l16 6-6 14-14-6z" fill="#7D8890"/>`,
+  broom: `<path d="M48 4L28 34" stroke="#9A6A3A" stroke-width="4"/><path d="M28 30l-20 20 6 10 22-24z" fill="#D9B07A"/><path d="M12 50l20-16M16 56l18-18" stroke="#B88A4E" stroke-width="2"/>`,
+  hammer: `<path d="M30 22l18 36" stroke="#9A6A3A" stroke-width="6" stroke-linecap="round"/><path d="M12 14l26-8 4 12-26 8z" fill="#555F66"/>`,
+  bucket: `<path d="M12 18h40l-5 40H17z" fill="#56B4E9"/><ellipse cx="32" cy="18" rx="20" ry="5" fill="#7FC4E0"/><path d="M12 18q20-22 40 0" stroke="#555F66" stroke-width="2" fill="none"/>`,
+  zebra: `<ellipse cx="28" cy="34" rx="20" ry="12" fill="#fff" stroke="${IK}" stroke-width="2"/><path d="M44 30l10-18 6 4-6 16z" fill="#fff" stroke="${IK}" stroke-width="2"/><path d="M14 26v16M22 23v22M30 22v24M38 24v20M50 16l4 2M48 22l5 2" stroke="${IK}" stroke-width="3"/><path d="M14 44v14M38 44v14" stroke="${IK}" stroke-width="4"/>`,
+  tree: `<rect x="28" y="34" width="8" height="26" fill="#6B4226"/><circle cx="32" cy="24" r="18" fill="#3FA34D"/><circle cx="20" cy="30" r="10" fill="#348A41"/><circle cx="44" cy="30" r="10" fill="#348A41"/>`,
+  girl: `<circle cx="32" cy="18" r="10" fill="#6B4226"/><path d="M22 14q10-12 20 0" fill="${IK}"/><circle cx="22" cy="12" r="4" fill="${IK}"/><circle cx="42" cy="12" r="4" fill="${IK}"/><path d="M18 58l6-26h16l6 26z" fill="#E8577A"/><circle cx="28" cy="18" r="1.4" fill="#fff"/><circle cx="36" cy="18" r="1.4" fill="#fff"/>`,
+  boy: `<circle cx="32" cy="18" r="10" fill="#6B4226"/><path d="M22 14q10-10 20 0v-4q-10-6-20 0z" fill="${IK}"/><rect x="20" y="30" width="24" height="18" rx="4" fill="#2F6FB0"/><rect x="22" y="48" width="8" height="12" fill="#3C4A55"/><rect x="34" y="48" width="8" height="12" fill="#3C4A55"/><circle cx="28" cy="18" r="1.4" fill="#fff"/><circle cx="36" cy="18" r="1.4" fill="#fff"/>`,
+  grandma: `<circle cx="32" cy="18" r="10" fill="#6B4226"/><path d="M20 16q12-16 24 0-12-6-24 0z" fill="#E3E3E3"/><path d="M14 60l8-30h20l8 30z" fill="#7A3E8E"/><path d="M18 40h28" stroke="#F2B829" stroke-width="3"/><circle cx="28" cy="18" r="1.4" fill="#fff"/><circle cx="36" cy="18" r="1.4" fill="#fff"/>`,
+  school: `<rect x="8" y="26" width="48" height="32" fill="#F4E6C3"/><path d="M4 28L32 8l28 20z" fill="#C2452B"/><rect x="28" y="40" width="8" height="18" fill="#8B5A3C"/><rect x="14" y="34" width="8" height="8" fill="#BFE7F5"/><rect x="42" y="34" width="8" height="8" fill="#BFE7F5"/><path d="M32 8V0" stroke="#6B4226" stroke-width="2"/><path d="M32 0h10v5H32" fill="#3FA34D"/>`,
+  market: `<path d="M4 22l6-12h44l6 12z" fill="#F2B829"/><rect x="8" y="22" width="48" height="6" fill="#E8577A"/><rect x="10" y="28" width="4" height="30" fill="#8B5A3C"/><rect x="50" y="28" width="4" height="30" fill="#8B5A3C"/><rect x="8" y="40" width="48" height="8" fill="#B36A3B"/><circle cx="20" cy="36" r="5" fill="#F6A623"/><circle cx="32" cy="36" r="5" fill="#D63A3A"/><circle cx="44" cy="36" r="5" fill="#3FA34D"/>`,
+  rain: `<path d="M14 30q-10 0-10-9t12-9q4-10 16-8 10 2 12 10 12 0 12 8t-10 8z" fill="#9AA6AE"/>${[[16, 38], [28, 42], [40, 38], [22, 52], [36, 54], [48, 48]].map(([x, y]) => `<path d="M${x} ${y}l-3 6" stroke="#56B4E9" stroke-width="3" stroke-linecap="round"/>`).join('')}`,
+  water: `<path d="M32 6q20 26 20 36a20 20 0 0 1-40 0Q12 32 32 6z" fill="#56B4E9"/><path d="M22 40q0 10 10 12" stroke="#BFE7F5" stroke-width="3" fill="none"/>`,
+  seed: `<ellipse cx="32" cy="34" rx="12" ry="18" fill="#8B5A3C" transform="rotate(20 32 34)"/><path d="M28 22q4 12 8 24" stroke="#5A3A22" stroke-width="2" fill="none"/>`,
+  sack: `<path d="M18 16q-10 20-6 36 4 8 20 8t20-8q4-16-6-36z" fill="#D9B07A"/><path d="M18 16q14 4 28 0l-4-8H22z" fill="#C49A5E"/><path d="M20 16h24" stroke="#8B5A3C" stroke-width="3"/>`,
+});
+
+/* Somo game kit (shared by every plug-in game; written for Somo, owned by the Somo team).
+   Rounds of 8 to 12 items, 3 levels, a hint ladder (1st miss: a nudge; 2nd miss: a worked example, then try again;
+   after that the answer is shown gently), spoken lines through Somo.say (with subtitles), drag or tap-to-pick then
+   tap-to-place, item messages for every item. No timers, no scores, no rewards of its own. */
+'use strict';
+const K = (() => {
+  const st = { cfg: null, lines: {}, g: null, level: 1, items: [], idx: 0, first: 0, q: [], last: 0, paused: false, cur: null, prompt: null };
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const lang = () => st.cfg && st.cfg.language === 'sw' ? 'sw' : 'en';
+  const fill = (s, v) => String(s).replace(/\{(\w+)\}/g, (_, k) => v && v[k] != null ? v[k] : '');
+  const line = (key, v) => { const L = st.lines[key]; return L ? fill(L[lang()] || L.en, v) : fill(key, v); };
+  /* spoken lines: Somo accepts one "say" a second, so lines wait their turn (at most 2 waiting) */
+  function pump() { if (!st.q.length) return; const now = Date.now(), wait = 1150 - (now - st.last); if (wait > 0) { clearTimeout(st.qt); st.qt = setTimeout(pump, wait); return; } const [t, l] = st.q.shift(); st.last = now; Somo.say(t, l); const b = $('#bubt'); if (b) b.textContent = t; if (st.q.length) st.qt = setTimeout(pump, 1150); }
+  function sayText(t, l) { if (!t) return; st.q.push([String(t).slice(0, 240), l || lang()]); if (st.q.length > 2) st.q.splice(0, st.q.length - 2); pump(); }
+  const say = (key, v) => sayText(line(key, v));
+  const sayNow = (key, v) => { st.q = []; sayText(line(key, v)); };
+  const pic = (n, s = 64) => `<svg viewBox="0 0 64 64" width="${s}" height="${s}" aria-hidden="true">${ICON[n] || `<text x="32" y="40" text-anchor="middle" font-size="16" font-weight="800" fill="#2B1E17">${esc(n)}</text>`}</svg>`;
+  const ICONS = { help: '<svg viewBox="0 0 24 24"><path d="M9.2 9.3a2.9 2.9 0 1 1 4 2.7c-.8.4-1.2.9-1.2 1.8v.6" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="12" cy="17.8" r="1.5" fill="#fff"/></svg>', ear: '<svg viewBox="0 0 32 32"><path d="M5 12h5l7-6v20l-7-6H5z" fill="#fff"/><path d="M21 11q3 5 0 10M24.5 8q6 8 0 16" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>' };
+  const FRIEND = '<svg viewBox="0 0 30 30"><path d="M11 6q1-5 3-2q1-4 3 0q2-3 3 2z" fill="#C8352B"/><circle cx="15" cy="14" r="10" fill="#FBF5EC" stroke="#D8C7AE"/><circle cx="11" cy="12" r="1.8" fill="#2B1B12"/><circle cx="19" cy="12" r="1.8" fill="#2B1B12"/><path d="M13 15.5l2 3.6 2-3.6z" fill="#F2A33A"/></svg>';
+  /* letters the child has been taught (from Somo's init) */
+  const letters = () => (st.cfg && typeof st.cfg.taughtLetters === 'string' && st.cfg.taughtLetters.length >= 6) ? st.cfg.taughtLetters : 'satpinmdgockeurhbfl';
+  const canRead = (w, extra = '') => [...w].every(c => letters().includes(c) || extra.includes(c));
+  const tricky = () => (st.cfg && Array.isArray(st.cfg.taughtTricky) && st.cfg.taughtTricky.length) ? st.cfg.taughtTricky : ['the', 'a', 'I', 'is', 'to', 'my', 'was', 'said'];
+  /* ---------- drag, or tap-to-pick then tap-to-place ---------- */
+  function dnd(root, { drag = '.tok', drop = '.slot', onDrop, onTap, onTapSlot } = {}) {
+    let d = null, sel = null;
+    const clear = () => { if (sel) sel.classList.remove('sel'); sel = null; };
+    root.addEventListener('pointerdown', e => { const el = e.target.closest(drag); if (!el || el.classList.contains('gone') || el.dataset.off) return; d = { el, x: e.clientX, y: e.clientY, moved: false, id: e.pointerId }; try { el.setPointerCapture(e.pointerId); } catch (_) { } });
+    root.addEventListener('pointermove', e => { if (!d || e.pointerId !== d.id) return; const dx = e.clientX - d.x, dy = e.clientY - d.y; if (!d.moved && Math.hypot(dx, dy) < 10) return; if (!d.moved) { d.moved = true; clear(); d.el.classList.add('lift'); } d.el.style.transform = `translate(${dx}px,${dy}px)`; const t = document.elementFromPoint(e.clientX, e.clientY); $$(drop, root).forEach(s => s.classList.toggle('hot', !!t && s.contains(t))); });
+    const end = e => { if (!d || e.pointerId !== d.id) return; const el = d.el, moved = d.moved; d = null; el.classList.remove('lift'); el.style.transform = ''; $$(drop, root).forEach(s => s.classList.remove('hot'));
+      if (moved) { const t = document.elementFromPoint(e.clientX, e.clientY), slot = t && t.closest(drop); if (slot && root.contains(slot)) onDrop(el, slot); return; }
+      if (sel === el) { clear(); return; } clear(); sel = el; el.classList.add('sel'); if (onTap) onTap(el); };
+    root.addEventListener('pointerup', end); root.addEventListener('pointercancel', e => { if (d) { d.el.classList.remove('lift'); d.el.style.transform = ''; d = null; } });
+    root.addEventListener('click', e => { const slot = e.target.closest(drop); if (!slot || !root.contains(slot) || e.target.closest(drag)) return; if (sel) { const el = sel; clear(); onDrop(el, slot); } else if (onTapSlot) onTapSlot(slot); });
+    return { clear };
+  }
+  /* ---------- the round ---------- */
+  function shell() {
+    document.body.classList.toggle('rm', !!(st.cfg && st.cfg.reducedMotion));
+    const c = st.cfg && st.cfg.themeColours; if (c) for (const k of ['bg', 'panel', 'accent', 'good', 'text']) if (typeof c[k] === 'string' && /^#[0-9a-f]{3,8}$|^rgb/i.test(c[k])) document.documentElement.style.setProperty('--' + k, c[k]);
+    $('#app').innerHTML = `<div class="top"><span class="lv" id="lv"></span><div class="dots" id="dots"></div><button class="ib" id="hear" aria-label="Hear it again">${ICONS.ear}</button><button class="ib" id="help" aria-label="Help">${ICONS.help}</button></div><div class="bub"><span class="who">${FRIEND}</span><span id="bubt"></span></div><div id="play"></div>`;
+    $('#hear').onclick = () => { if (st.prompt) st.prompt(); };
+    $('#help').onclick = () => { const it = st.cur; if (!it) return; it.hints++; Somo.hint(); if (st.g.nudge) st.g.nudge(it.spec, it); };
+  }
+  /* a new play area for every item, so no listeners carry over from the last one */
+  function fresh() { const old = $('#play'), n = old.cloneNode(false); old.replaceWith(n); return n; }
+  function dots() { $('#dots').innerHTML = st.items.map((_, i) => `<i class="${i < st.idx ? 'on' : i === st.idx ? 'cur' : ''}"></i>`).join(''); $('#lv').textContent = line('level', { n: st.level }); }
+  function intro() {
+    st.cur = null; st.prompt = () => say('intro' + st.level); fresh().innerHTML = `<div class="center"><div style="width:110px">${st.g.icon || FRIEND}</div><h1>${esc(line('level', { n: st.level }))}</h1><p>${esc(line('intro' + st.level))}</p><button class="big" id="go">${esc(line('start'))}</button></div>`;
+    $('#lv').textContent = line('level', { n: st.level }); $('#dots').innerHTML = ''; sayNow('intro' + st.level); say('tapstart'); $('#go').onclick = () => { st.items = st.g.items(st.level); st.idx = 0; st.first = 0; next(); };
+  }
+  function next() {
+    if (st.idx >= st.items.length) return done(); dots(); const spec = st.items[st.idx];
+    const it = st.cur = { spec, t0: Date.now(), misses: 0, hints: 0, first: null, tag: null, over: false, n: st.idx,
+      miss(tag) { if (this.over) return; if (this.first === null) { this.first = false; if (tag) this.tag = tag; } this.misses++;
+        if (this.misses === 1) { if (st.g.nudge) st.g.nudge(spec, this); else say('nudge'); }
+        else if (this.misses === 2) { this.hints++; if (st.g.example) st.g.example(spec, this); else say('nudge'); }
+        else if (st.g.reveal) st.g.reveal(spec, this); },
+      right(after) { if (this.over) return; this.over = true; if (this.first === null) this.first = true;
+        const firstTry = this.first && this.hints === 0; if (firstTry) st.first++;
+        const r = { itemId: `${st.g.id}-${st.level}-${st.idx}-${Date.now() % 1e6}`.slice(0, 40), skill: spec.skill || st.g.skill(st.level), correct: !!this.first, firstTry, hintsUsed: Math.min(9, this.hints), ms: Date.now() - this.t0 };
+        if (!this.first && this.tag) r.mistakeTag = this.tag; Somo.item(r);
+        if (after !== false) say(firstTry ? pick(['praise1', 'praise2', 'praise3', 'praise4']) : 'praiseHelp');
+        setTimeout(() => { st.idx++; next(); }, after === false ? 600 : 1500); } };
+    st.prompt = null; st.g.render(spec, it, fresh());
+  }
+  function done() {
+    st.cur = null; st.prompt = () => say('leveldone', { n: st.level }); Somo.levelDone({ level: st.level, itemsRight: st.first, itemsTotal: st.items.length });
+    const more = st.level < st.g.levels; fresh(); $('#dots').innerHTML = st.items.map(() => '<i class="on"></i>').join('');
+    $('#play').innerHTML = `<div class="center pop"><div style="width:120px">${st.g.icon || FRIEND}</div><h1>${esc(line('leveldone', { n: st.level }))}</h1>${more ? `<button class="big" id="nx">${esc(line('nextlevel'))}</button>` : ''}<button class="big ghost" id="again">${esc(line('again'))}</button><button class="big ghost" id="bye">${esc(line('back'))}</button></div>`;
+    sayNow('leveldone', { n: st.level }); if (more) say('nextq');
+    if (more) $('#nx').onclick = () => { st.level++; intro(); }; $('#again').onclick = () => intro(); $('#bye').onclick = () => Somo.quit();
+  }
+  /* a worked example box: html, the line to say, then "now you try" */
+  function example(html, key, v, after) { const old = $('#play .ex'); if (old) old.remove(); const box = document.createElement('div'); box.className = 'ex pop'; box.innerHTML = `<b>${esc(line('look'))}</b>${html}<button class="big" id="exok">${esc(line('nowyou'))}</button>`; $('#play').appendChild(box); st.q = []; say('look'); if (key) say(key, v); $('#exok').onclick = () => { box.remove(); say('nowyou'); if (after) after(); }; }
+  function game(g) {
+    st.g = g;
+    Somo.on('pause', () => { st.paused = true; if (!$('.pause')) document.body.insertAdjacentHTML('beforeend', `<div class="pause">${esc(line('paused'))}</div>`); });
+    Somo.on('resume', () => { st.paused = false; const p = $('.pause'); if (p) p.remove(); });
+    Somo.on('end', () => { st.q = []; clearTimeout(st.qt); $('#app').innerHTML = ''; });
+    Somo.onInit(cfg => { st.cfg = cfg || {}; st.level = Math.max(1, Math.min(g.levels, cfg && cfg.gameLevel | 0 || 1)); shell(); intro(); });
+  }
+  const LINES = {
+    level: { en: 'Level {n}', sw: 'Kiwango {n}' }, start: { en: 'Start', sw: 'Anza' }, tapstart: { en: 'Tap the green button to start.', sw: 'Gusa kitufe cha kijani kuanza.' },
+    praise1: { en: 'Yes! Well done!', sw: 'Ndiyo! Hongera!' }, praise2: { en: 'You got it!', sw: 'Umeweza!' }, praise3: { en: 'Great thinking!', sw: 'Umefikiri vizuri!' }, praise4: { en: 'Super!', sw: 'Safi sana!' },
+    praiseHelp: { en: 'Yes! You worked it out.', sw: 'Ndiyo! Umegundua.' }, nudge: { en: 'Look again. Try once more.', sw: 'Angalia tena. Jaribu tena.' },
+    look: { en: "Let's look at one together.", sw: 'Tuangalie mfano pamoja.' }, nowyou: { en: 'Now you try.', sw: 'Sasa jaribu wewe.' },
+    leveldone: { en: 'Level {n} done!', sw: 'Kiwango {n} kimekwisha!' }, nextlevel: { en: 'Next level', sw: 'Kiwango kijacho' }, nextq: { en: 'Ready for the next level?', sw: 'Uko tayari kwa kiwango kijacho?' },
+    again: { en: 'Play again', sw: 'Cheza tena' }, back: { en: 'Back to Somo', sw: 'Rudi Somo' }, paused: { en: 'Resting…', sw: 'Tunapumzika…' },
+  };
+  return { st, $, $$, esc, shuffle, pick, line, say, sayNow, sayText, pic, dnd, example, letters, canRead, tricky, lang, FRIEND,
+    lines(o) { st.lines = Object.assign({}, LINES, o); }, meta() { }, game, setPrompt(fn) { st.prompt = fn; }, get cfg() { return st.cfg; }, KIT_LINES: LINES };
+})();
+
+/* Real or Silly? Reading real and made-up words (true decoding). Original game for Somo. */
+K.meta({ id: 'real-or-silly', title: 'Real or Silly?', title_sw: 'Kweli au Kichekesho?', skills: ['nonw'], stages: [3], ages: [6, 9],
+  description: 'Mangoes carry words. Read each one and put it in the real-word basket or the silly-word basket. Made-up words like zim test true sounding-out.',
+  description_sw: 'Maembe yamebeba maneno. Soma kila moja na uliweke kwenye kikapu cha maneno halisi au cha maneno ya kuchekesha.',
+  thumb: { bg: '#3FA34D', bg2: '#123A1C', icons: ['mango', 'happy'] } });
+K.lines({
+  intro1: { en: 'Read the word on the mango. Is it a real word, or a silly word? Put it in the right basket.', sw: 'Soma neno kwenye embe. Ni neno halisi, au la kuchekesha? Liweke kwenye kikapu sahihi.' },
+  intro2: { en: 'More letters now. Sound out every letter.', sw: 'Herufi zaidi sasa. Taja sauti ya kila herufi.' },
+  intro3: { en: 'Longer words now. Read carefully!', sw: 'Maneno marefu sasa. Soma kwa makini!' },
+  read: { en: 'Read this word. Real or silly?', sw: 'Soma neno hili. Halisi au la kuchekesha?' },
+  real: { en: 'Real word', sw: 'Neno halisi' }, silly: { en: 'Silly word', sw: 'Neno la kuchekesha' },
+  isreal: { en: '{w} is a real word.', sw: '{w} ni neno halisi.' }, issilly: { en: '{w} is a silly word. We can still read it!', sw: '{w} ni neno la kuchekesha. Bado tunaweza kulisoma!' },
+  nudge: { en: 'Sound out every letter, then push them together. Now you can tap the ear to hear it.', sw: 'Taja sauti ya kila herufi, kisha ziunganishe. Sasa unaweza kugusa sikio kusikia.' },
+  ex: { en: '{s}... {w}. {verdict}', sw: '{s}... {w}. {verdict}' },
+});
+(() => {
+  const SAY = { a: 'ah', b: 'buh', c: 'kuh', d: 'duh', e: 'eh', f: 'fff', g: 'guh', h: 'huh', i: 'ih', j: 'juh', k: 'kuh', l: 'lll', m: 'mmm', n: 'nnn', o: 'aw', p: 'puh', r: 'rrr', s: 'sss', t: 'tuh', u: 'uh', v: 'vvv', w: 'wuh', x: 'ks', z: 'zzz' };
+  const REAL3 = ['sat', 'pat', 'tap', 'sip', 'tin', 'pin', 'nap', 'pan', 'man', 'mat', 'map', 'dad', 'dig', 'dog', 'cot', 'cat', 'cap', 'pot', 'top', 'mop', 'kid', 'sun', 'cup', 'hen', 'bed', 'red', 'rat', 'hut', 'hug', 'bus', 'fan', 'fun', 'leg', 'log', 'pet', 'ten', 'net', 'big', 'bag', 'hot', 'hit', 'mud', 'rug', 'bin', 'fin'];
+  const SILLY3 = ['zim', 'vop', 'tib', 'mup', 'dop', 'gid', 'nup', 'bim', 'fot', 'kep', 'mib', 'rop', 'sut', 'tep', 'lom', 'fep', 'hib', 'sap', 'pid', 'nim', 'tas', 'dap', 'mog', 'kan', 'nis', 'pim', 'sop', 'tud', 'gan', 'hap', 'rif', 'lut', 'bod', 'nop'].filter(w => !['sap'].includes(w));
+  const REAL4 = ['frog', 'drum', 'flag', 'nest', 'crab', 'desk', 'hand', 'plum', 'stop', 'lamp', 'tent', 'milk', 'spot', 'step', 'swim', 'trip', 'clap', 'grin'];
+  const SILLY4 = ['frim', 'drob', 'flep', 'nost', 'crim', 'dask', 'hund', 'plim', 'stog', 'lomp', 'tunt', 'molk', 'spet', 'blap', 'trin', 'clom', 'grop', 'snib'];
+  const ALL_REAL = new Set([...REAL3, ...REAL4]);
+  const near = w => [...ALL_REAL].some(r => r.length === w.length && [...r].filter((c, i) => c !== w[i]).length === 1 && 'aeiou'.includes([...r].find((c, i) => c !== w[i])));
+  K.game({ id: 'real-or-silly', levels: 3, skill: () => 'nonw', icon: K.pic('mango', 110),
+    items(lv) {
+      const ok = l => l.filter(w => K.canRead(w)), r = lv === 3 ? ok(REAL4) : ok(REAL3), s = lv === 3 ? ok(SILLY4) : ok(SILLY3);
+      const R = r.length >= 4 ? r : (lv === 3 ? REAL4 : REAL3), Sl = s.length >= 4 ? s : (lv === 3 ? SILLY4 : SILLY3);
+      return K.shuffle([...K.shuffle(R).slice(0, 4), ...K.shuffle(Sl).slice(0, 4)].map(w => ({ lv, w, real: ALL_REAL.has(w) })));
+    },
+    render(spec, it, root) {
+      const w = spec.w, p = () => K.say('read'); K.setPrompt(p); p(); this.heard = false;
+      root.innerHTML = `<button class="card tok" id="mango" style="background:none;border:0;position:relative" aria-label="Mango with a word"><svg viewBox="0 0 120 100" width="210" height="175"><ellipse cx="60" cy="56" rx="54" ry="40" fill="#F6A623" stroke="#C9781A" stroke-width="3"/><path d="M66 18q14-20 32-12-12 16-32 12z" fill="#3E7D32"/></svg><span class="word" style="position:absolute;left:0;right:0;top:78px;text-align:center;color:#2B1E17;font-size:38px">${w}</span></button>
+        <button class="ib" id="ear" style="visibility:hidden" aria-label="Hear the word">🔊</button>
+        <div class="row"><div class="slot" data-b="real" style="width:150px;height:120px;flex-direction:column">${K.pic('basket', 64)}<b>${K.esc(K.line('real'))}</b></div><div class="slot" data-b="silly" style="width:150px;height:120px;flex-direction:column">${K.pic('happy', 54)}<b>${K.esc(K.line('silly'))}</b></div></div>`;
+      K.$('#ear', root).onclick = () => K.sayText(w, 'en');
+      K.dnd(root, { onDrop: (el, slot) => {
+        const said = slot.dataset.b === 'real';
+        if (said === spec.real) { el.classList.add('gone'); K.say(spec.real ? 'isreal' : 'issilly', { w }); it.right(false); }
+        else { el.classList.remove('try'); void el.offsetWidth; el.classList.add('try'); K.$('#ear', root).style.visibility = 'visible'; it.miss(spec.real ? 'nonWordReal' : near(w) ? 'vowel' : 'firstLetter'); } } });
+    },
+    nudge() { K.say('nudge'); },
+    example(spec) { K.example(`<div class="row">${spec.w.split('').map(c => `<span class="letter">${c}</span>`).join(' ')}</div><div class="word">${spec.w}</div>`, 'ex', { s: spec.w.split('').map(c => SAY[c]).join('... '), w: spec.w, verdict: K.line(spec.real ? 'isreal' : 'issilly', { w: spec.w }) }); },
+    reveal(spec, it) { it.right(false); },
+  });
+})();
+
+</script></body></html>

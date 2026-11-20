@@ -1,0 +1,181 @@
+{
+  "id": "ngoma-beats",
+  "title": "Ngoma Beats",
+  "title_sw": "Mdundo wa Ngoma",
+  "author": "Somo team (XPRIZE Kenya)",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": [
+    "syl"
+  ],
+  "stages": [
+    1,
+    2
+  ],
+  "ages": [
+    5,
+    7
+  ],
+  "levels": 3,
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "Hear a word and tap the drum once for each beat (ma-ta-tu is 3). Level 2: find the picture with that many beats. Level 3: join two word parts into one word.",
+  "description_sw": "Sikiliza neno na upige ngoma mara moja kwa kila pigo (ma-ta-tu ni 3). Kiwango 2: tafuta picha yenye mapigo hayo. Kiwango 3: unganisha sehemu mbili kuwa neno moja.",
+  "lines": [
+    {
+      "key": "level",
+      "en": "Level {n}",
+      "sw": "Kiwango {n}"
+    },
+    {
+      "key": "start",
+      "en": "Start",
+      "sw": "Anza"
+    },
+    {
+      "key": "tapstart",
+      "en": "Tap the green button to start.",
+      "sw": "Gusa kitufe cha kijani kuanza."
+    },
+    {
+      "key": "praise1",
+      "en": "Yes! Well done!",
+      "sw": "Ndiyo! Hongera!"
+    },
+    {
+      "key": "praise2",
+      "en": "You got it!",
+      "sw": "Umeweza!"
+    },
+    {
+      "key": "praise3",
+      "en": "Great thinking!",
+      "sw": "Umefikiri vizuri!"
+    },
+    {
+      "key": "praise4",
+      "en": "Super!",
+      "sw": "Safi sana!"
+    },
+    {
+      "key": "praiseHelp",
+      "en": "Yes! You worked it out.",
+      "sw": "Ndiyo! Umegundua."
+    },
+    {
+      "key": "nudge",
+      "en": "Look again. Try once more.",
+      "sw": "Angalia tena. Jaribu tena."
+    },
+    {
+      "key": "look",
+      "en": "Let's look at one together.",
+      "sw": "Tuangalie mfano pamoja."
+    },
+    {
+      "key": "nowyou",
+      "en": "Now you try.",
+      "sw": "Sasa jaribu wewe."
+    },
+    {
+      "key": "leveldone",
+      "en": "Level {n} done!",
+      "sw": "Kiwango {n} kimekwisha!"
+    },
+    {
+      "key": "nextlevel",
+      "en": "Next level",
+      "sw": "Kiwango kijacho"
+    },
+    {
+      "key": "nextq",
+      "en": "Ready for the next level?",
+      "sw": "Uko tayari kwa kiwango kijacho?"
+    },
+    {
+      "key": "again",
+      "en": "Start again",
+      "sw": "Anza tena"
+    },
+    {
+      "key": "back",
+      "en": "Back to Somo",
+      "sw": "Rudi Somo"
+    },
+    {
+      "key": "paused",
+      "en": "Resting…",
+      "sw": "Tunapumzika…"
+    },
+    {
+      "key": "intro1",
+      "en": "Listen to the word. Tap the drum once for every beat. Then tap Done.",
+      "sw": "Sikiliza neno. Piga ngoma mara moja kwa kila pigo. Kisha gusa Tayari."
+    },
+    {
+      "key": "intro2",
+      "en": "I say a number of beats. Find the picture with that many beats.",
+      "sw": "Ninasema idadi ya mapigo. Tafuta picha yenye mapigo hayo."
+    },
+    {
+      "key": "intro3",
+      "en": "Listen to two parts. Put them together and find the whole word.",
+      "sw": "Sikiliza sehemu mbili. Ziunganishe na utafute neno zima."
+    },
+    {
+      "key": "tap1",
+      "en": "{w}. Tap the drum for each beat.",
+      "sw": "{w}. Piga ngoma kwa kila pigo."
+    },
+    {
+      "key": "find2",
+      "en": "Which one has {n} beats?",
+      "sw": "Kipi kina mapigo {n}?"
+    },
+    {
+      "key": "join3",
+      "en": "{a} ... {b}. Put them together. Which word is it?",
+      "sw": "{a} ... {b}. Ziunganishe. Ni neno gani?"
+    },
+    {
+      "key": "done",
+      "en": "Done",
+      "sw": "Tayari"
+    },
+    {
+      "key": "count",
+      "en": "{n}",
+      "sw": "{n}"
+    },
+    {
+      "key": "nudge1",
+      "en": "Say it slowly and clap: {s}.",
+      "sw": "Sema polepole na upige makofi: {s}."
+    },
+    {
+      "key": "nudge2",
+      "en": "Clap each picture name slowly. Count the claps.",
+      "sw": "Piga makofi kwa kila jina polepole. Hesabu makofi."
+    },
+    {
+      "key": "nudge3",
+      "en": "Say the two parts close together: {a}{b}.",
+      "sw": "Sema sehemu mbili karibu karibu: {a}{b}."
+    },
+    {
+      "key": "ex1",
+      "en": "{s}. That is {n} beats.",
+      "sw": "{s}. Hiyo ni mapigo {n}."
+    },
+    {
+      "key": "ex3",
+      "en": "{a} and {b} make {w}.",
+      "sw": "{a} na {b} zinafanya {w}."
+    }
+  ]
+}

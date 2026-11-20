@@ -1,0 +1,27 @@
+:root{--bg:#1F140E;--panel:#2E1E15;--accent:#F2B829;--good:#3FA34D;--text:#FFF7EA;--paper:#FFF8EC;--ink:#2B1E17}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font:600 18px/1.25 "Baloo 2","Trebuchet MS",system-ui,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#app{position:absolute;inset:0;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:8px;padding:6px 8px}.top .lv{font-weight:800;font-size:17px;white-space:nowrap}
+.dots{flex:1;display:flex;gap:4px}.dots i{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.18)}.dots i.on{background:var(--accent)}.dots i.cur{background:#fff}
+.ib{width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:var(--text);display:grid;place-items:center;font:800 24px/1 system-ui;flex:none}
+.ib svg{width:26px;height:26px}
+button{font:inherit;color:inherit;cursor:pointer}button:focus-visible,.tok:focus-visible,.slot:focus-visible{outline:4px solid #FFD447;outline-offset:2px}
+.bub{margin:0 10px;padding:8px 12px;background:var(--paper);color:var(--ink);border-radius:14px;min-height:44px;font-size:17px;display:flex;align-items:center;gap:8px}
+.bub .who{flex:none;width:34px;height:34px}
+#play{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px;min-height:0}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.card{background:var(--paper);color:var(--ink);border-radius:16px;border:3px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:84px;min-height:84px;padding:6px}
+.tok{touch-action:none}.tok.sel{border-color:var(--accent);box-shadow:0 0 0 4px rgba(242,184,41,.45)}.tok.lift{position:relative;z-index:50;pointer-events:none;box-shadow:0 10px 24px rgba(0,0,0,.4)}
+.tok.gone{visibility:hidden}.tok.try{animation:nudge .4s}.tok.good,.card.good{border-color:var(--good);box-shadow:0 0 0 4px rgba(63,163,77,.45)}.glow{animation:glow 1s infinite alternate}
+.slot{border:3px dashed rgba(255,255,255,.5);border-radius:16px;min-width:84px;min-height:84px;display:grid;place-items:center}.slot.hot{border-color:var(--accent);background:rgba(242,184,41,.15)}
+.big{min-height:64px;padding:10px 24px;border-radius:32px;border:0;background:var(--good);color:#fff;font-weight:800;font-size:22px;box-shadow:0 5px 0 rgba(0,0,0,.25)}.big.ghost{background:rgba(255,255,255,.15)}.big:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.word{font-weight:800;font-size:30px;letter-spacing:.02em;font-family:"Andika","Comic Sans MS","Trebuchet MS",sans-serif}
+.letter{font-weight:800;font-size:34px;font-family:"Andika","Comic Sans MS","Trebuchet MS",sans-serif}
+.center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;flex:1;padding:16px}.center h1{margin:0;font-size:32px}.center p{margin:0;max-width:320px}
+.ex{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(20,12,8,.92);border:2px solid var(--accent);border-radius:16px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:40}
+.ex b{color:var(--accent)}
+.pause{position:absolute;inset:0;background:rgba(20,12,8,.9);display:grid;place-items:center;z-index:90;font-size:26px;font-weight:800}
+@keyframes nudge{20%{transform:translateX(-6px)}60%{transform:translateX(6px)}}@keyframes glow{to{box-shadow:0 0 0 6px rgba(242,184,41,.7)}}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}.pop{animation:pop .35s ease-out}
+.rm *{animation:none!important;transition:none!important}

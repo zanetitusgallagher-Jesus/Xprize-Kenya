@@ -1,0 +1,160 @@
+{
+  "id": "real-or-silly",
+  "title": "Real or Silly?",
+  "title_sw": "Kweli au Kichekesho?",
+  "author": "Somo team (XPRIZE Kenya)",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": [
+    "nonw"
+  ],
+  "stages": [
+    3
+  ],
+  "ages": [
+    6,
+    9
+  ],
+  "levels": 3,
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "Mangoes carry words. Read each one and put it in the real-word basket or the silly-word basket. Made-up words like zim test true sounding-out.",
+  "description_sw": "Maembe yamebeba maneno. Soma kila moja na uliweke kwenye kikapu cha maneno halisi au cha maneno ya kuchekesha.",
+  "lines": [
+    {
+      "key": "level",
+      "en": "Level {n}",
+      "sw": "Kiwango {n}"
+    },
+    {
+      "key": "start",
+      "en": "Start",
+      "sw": "Anza"
+    },
+    {
+      "key": "tapstart",
+      "en": "Tap the green button to start.",
+      "sw": "Gusa kitufe cha kijani kuanza."
+    },
+    {
+      "key": "praise1",
+      "en": "Yes! Well done!",
+      "sw": "Ndiyo! Hongera!"
+    },
+    {
+      "key": "praise2",
+      "en": "You got it!",
+      "sw": "Umeweza!"
+    },
+    {
+      "key": "praise3",
+      "en": "Great thinking!",
+      "sw": "Umefikiri vizuri!"
+    },
+    {
+      "key": "praise4",
+      "en": "Super!",
+      "sw": "Safi sana!"
+    },
+    {
+      "key": "praiseHelp",
+      "en": "Yes! You worked it out.",
+      "sw": "Ndiyo! Umegundua."
+    },
+    {
+      "key": "nudge",
+      "en": "Sound out every letter, then push them together. Now you can tap the ear to hear it.",
+      "sw": "Taja sauti ya kila herufi, kisha ziunganishe. Sasa unaweza kugusa sikio kusikia."
+    },
+    {
+      "key": "look",
+      "en": "Let's look at one together.",
+      "sw": "Tuangalie mfano pamoja."
+    },
+    {
+      "key": "nowyou",
+      "en": "Now you try.",
+      "sw": "Sasa jaribu wewe."
+    },
+    {
+      "key": "leveldone",
+      "en": "Level {n} done!",
+      "sw": "Kiwango {n} kimekwisha!"
+    },
+    {
+      "key": "nextlevel",
+      "en": "Next level",
+      "sw": "Kiwango kijacho"
+    },
+    {
+      "key": "nextq",
+      "en": "Ready for the next level?",
+      "sw": "Uko tayari kwa kiwango kijacho?"
+    },
+    {
+      "key": "again",
+      "en": "Play again",
+      "sw": "Cheza tena"
+    },
+    {
+      "key": "back",
+      "en": "Back to Somo",
+      "sw": "Rudi Somo"
+    },
+    {
+      "key": "paused",
+      "en": "Resting…",
+      "sw": "Tunapumzika…"
+    },
+    {
+      "key": "intro1",
+      "en": "Read the word on the mango. Is it a real word, or a silly word? Put it in the right basket.",
+      "sw": "Soma neno kwenye embe. Ni neno halisi, au la kuchekesha? Liweke kwenye kikapu sahihi."
+    },
+    {
+      "key": "intro2",
+      "en": "More letters now. Sound out every letter.",
+      "sw": "Herufi zaidi sasa. Taja sauti ya kila herufi."
+    },
+    {
+      "key": "intro3",
+      "en": "Longer words now. Read carefully!",
+      "sw": "Maneno marefu sasa. Soma kwa makini!"
+    },
+    {
+      "key": "read",
+      "en": "Read this word. Real or silly?",
+      "sw": "Soma neno hili. Halisi au la kuchekesha?"
+    },
+    {
+      "key": "real",
+      "en": "Real word",
+      "sw": "Neno halisi"
+    },
+    {
+      "key": "silly",
+      "en": "Silly word",
+      "sw": "Neno la kuchekesha"
+    },
+    {
+      "key": "isreal",
+      "en": "{w} is a real word.",
+      "sw": "{w} ni neno halisi."
+    },
+    {
+      "key": "issilly",
+      "en": "{w} is a silly word. We can still read it!",
+      "sw": "{w} ni neno la kuchekesha. Bado tunaweza kulisoma!"
+    },
+    {
+      "key": "ex",
+      "en": "{s}... {w}. {verdict}",
+      "sw": "{s}... {w}. {verdict}"
+    }
+  ]
+}

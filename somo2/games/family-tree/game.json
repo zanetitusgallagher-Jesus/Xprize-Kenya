@@ -1,0 +1,160 @@
+{
+  "id": "family-tree",
+  "title": "Family Tree",
+  "title_sw": "Mti wa Familia",
+  "author": "Somo team (XPRIZE Kenya)",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": [
+    "fam"
+  ],
+  "stages": [
+    3
+  ],
+  "ages": [
+    6,
+    9
+  ],
+  "levels": 3,
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "The tree has a word ending such as -at. Drop a first-letter seed on it: a real word grows a fruit, a silly word grows a leaf. Level 3: make three new words from one family.",
+  "description_sw": "Mti una mwisho wa neno kama -at. Dondosha mbegu ya herufi ya kwanza: neno halisi linazaa tunda, neno la kuchekesha linaota jani.",
+  "lines": [
+    {
+      "key": "level",
+      "en": "Level {n}",
+      "sw": "Kiwango {n}"
+    },
+    {
+      "key": "start",
+      "en": "Start",
+      "sw": "Anza"
+    },
+    {
+      "key": "tapstart",
+      "en": "Tap the green button to start.",
+      "sw": "Gusa kitufe cha kijani kuanza."
+    },
+    {
+      "key": "praise1",
+      "en": "Yes! Well done!",
+      "sw": "Ndiyo! Hongera!"
+    },
+    {
+      "key": "praise2",
+      "en": "You got it!",
+      "sw": "Umeweza!"
+    },
+    {
+      "key": "praise3",
+      "en": "Great thinking!",
+      "sw": "Umefikiri vizuri!"
+    },
+    {
+      "key": "praise4",
+      "en": "Super!",
+      "sw": "Safi sana!"
+    },
+    {
+      "key": "praiseHelp",
+      "en": "Yes! You worked it out.",
+      "sw": "Ndiyo! Umegundua."
+    },
+    {
+      "key": "nudge",
+      "en": "Put each seed with {f} and read it. Is it a word you know?",
+      "sw": "Weka kila mbegu na {f} na usome. Ni neno unalolijua?"
+    },
+    {
+      "key": "look",
+      "en": "Let's look at one together.",
+      "sw": "Tuangalie mfano pamoja."
+    },
+    {
+      "key": "nowyou",
+      "en": "Now you try.",
+      "sw": "Sasa jaribu wewe."
+    },
+    {
+      "key": "leveldone",
+      "en": "Level {n} done!",
+      "sw": "Kiwango {n} kimekwisha!"
+    },
+    {
+      "key": "nextlevel",
+      "en": "Next level",
+      "sw": "Kiwango kijacho"
+    },
+    {
+      "key": "nextq",
+      "en": "Ready for the next level?",
+      "sw": "Uko tayari kwa kiwango kijacho?"
+    },
+    {
+      "key": "again",
+      "en": "Play again",
+      "sw": "Cheza tena"
+    },
+    {
+      "key": "back",
+      "en": "Back to Somo",
+      "sw": "Rudi Somo"
+    },
+    {
+      "key": "paused",
+      "en": "Resting…",
+      "sw": "Tunapumzika…"
+    },
+    {
+      "key": "intro1",
+      "en": "This tree is the {f} family. Drop a letter seed on the tree to make a real word.",
+      "sw": "Mti huu ni familia ya {f}. Dondosha mbegu ya herufi kwenye mti kufanya neno halisi."
+    },
+    {
+      "key": "intro2",
+      "en": "New families now. Find a seed that makes a real word.",
+      "sw": "Familia mpya sasa. Tafuta mbegu inayofanya neno halisi."
+    },
+    {
+      "key": "intro3",
+      "en": "Now make three different real words from one family!",
+      "sw": "Sasa tengeneza maneno matatu tofauti halisi kutoka familia moja!"
+    },
+    {
+      "key": "fam",
+      "en": "The {f} family. Which seed makes a real word?",
+      "sw": "Familia ya {f}. Mbegu ipi inafanya neno halisi?"
+    },
+    {
+      "key": "fam3",
+      "en": "The {f} family. Make three real words.",
+      "sw": "Familia ya {f}. Tengeneza maneno matatu halisi."
+    },
+    {
+      "key": "grew",
+      "en": "{w}! A real word. A fruit grows.",
+      "sw": "{w}! Neno halisi. Tunda linaota."
+    },
+    {
+      "key": "leaf",
+      "en": "{w} is a silly word, so a leaf grows. Try another seed.",
+      "sw": "{w} ni neno la kuchekesha, kwa hiyo jani linaota. Jaribu mbegu nyingine."
+    },
+    {
+      "key": "more",
+      "en": "{w}! {n} more to go.",
+      "sw": "{w}! Bado {n}."
+    },
+    {
+      "key": "ex",
+      "en": "{l} and {f} make {w}.",
+      "sw": "{l} na {f} zinafanya {w}."
+    }
+  ]
+}

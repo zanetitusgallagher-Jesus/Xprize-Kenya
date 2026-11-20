@@ -1,0 +1,191 @@
+{
+  "id": "safari-words",
+  "title": "Safari Words",
+  "title_sw": "Maneno ya Safari",
+  "author": "Somo team (XPRIZE Kenya)",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": [
+    "voc"
+  ],
+  "stages": [
+    1,
+    2
+  ],
+  "ages": [
+    5,
+    8
+  ],
+  "levels": 3,
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "Hear what a word means (\"an animal with a very long neck\") and find it in the savanna or the village. Level 2: sort things into animals, food and tools. Level 3: opposites and words that mean the same.",
+  "description_sw": "Sikiliza maana ya neno (\"mnyama mwenye shingo ndefu sana\") na ulitafute porini au kijijini. Kiwango 2: panga vitu kuwa wanyama, chakula na vifaa. Kiwango 3: kinyume na maneno yenye maana sawa.",
+  "lines": [
+    {
+      "key": "level",
+      "en": "Level {n}",
+      "sw": "Kiwango {n}"
+    },
+    {
+      "key": "start",
+      "en": "Start",
+      "sw": "Anza"
+    },
+    {
+      "key": "tapstart",
+      "en": "Tap the green button to start.",
+      "sw": "Gusa kitufe cha kijani kuanza."
+    },
+    {
+      "key": "praise1",
+      "en": "Yes! Well done!",
+      "sw": "Ndiyo! Hongera!"
+    },
+    {
+      "key": "praise2",
+      "en": "You got it!",
+      "sw": "Umeweza!"
+    },
+    {
+      "key": "praise3",
+      "en": "Great thinking!",
+      "sw": "Umefikiri vizuri!"
+    },
+    {
+      "key": "praise4",
+      "en": "Super!",
+      "sw": "Safi sana!"
+    },
+    {
+      "key": "praiseHelp",
+      "en": "Yes! You worked it out.",
+      "sw": "Ndiyo! Umegundua."
+    },
+    {
+      "key": "nudge",
+      "en": "Look again. Try once more.",
+      "sw": "Angalia tena. Jaribu tena."
+    },
+    {
+      "key": "look",
+      "en": "Let's look at one together.",
+      "sw": "Tuangalie mfano pamoja."
+    },
+    {
+      "key": "nowyou",
+      "en": "Now you try.",
+      "sw": "Sasa jaribu wewe."
+    },
+    {
+      "key": "leveldone",
+      "en": "Level {n} done!",
+      "sw": "Kiwango {n} kimekwisha!"
+    },
+    {
+      "key": "nextlevel",
+      "en": "Next level",
+      "sw": "Kiwango kijacho"
+    },
+    {
+      "key": "nextq",
+      "en": "Ready for the next level?",
+      "sw": "Uko tayari kwa kiwango kijacho?"
+    },
+    {
+      "key": "again",
+      "en": "Play again",
+      "sw": "Cheza tena"
+    },
+    {
+      "key": "back",
+      "en": "Back to Somo",
+      "sw": "Rudi Somo"
+    },
+    {
+      "key": "paused",
+      "en": "Resting…",
+      "sw": "Tunapumzika…"
+    },
+    {
+      "key": "intro1",
+      "en": "Welcome to the safari! Listen to what I describe, then find it in the picture.",
+      "sw": "Karibu safarini! Sikiliza ninachoeleza, kisha kitafute kwenye picha."
+    },
+    {
+      "key": "intro2",
+      "en": "Now sort things into groups: animals, food and tools.",
+      "sw": "Sasa panga vitu katika makundi: wanyama, chakula na vifaa."
+    },
+    {
+      "key": "intro3",
+      "en": "Now opposites, and words that mean the same.",
+      "sw": "Sasa vinyume, na maneno yenye maana sawa."
+    },
+    {
+      "key": "where",
+      "en": "Where is the group for {w}?",
+      "sw": "Kundi la {w} liko wapi?"
+    },
+    {
+      "key": "animals",
+      "en": "Animals",
+      "sw": "Wanyama"
+    },
+    {
+      "key": "food",
+      "en": "Food",
+      "sw": "Chakula"
+    },
+    {
+      "key": "tools",
+      "en": "Tools",
+      "sw": "Vifaa"
+    },
+    {
+      "key": "opp",
+      "en": "What is the opposite of {w}?",
+      "sw": "Kinyume cha {w} ni nini?"
+    },
+    {
+      "key": "same",
+      "en": "Which word means the same as {w}?",
+      "sw": "Neno lipi lina maana sawa na {w}?"
+    },
+    {
+      "key": "nudge1",
+      "en": "Listen again: {d}",
+      "sw": "Sikiliza tena: {d}"
+    },
+    {
+      "key": "nudge2",
+      "en": "Is it an animal, a food or a tool?",
+      "sw": "Ni mnyama, chakula au kifaa?"
+    },
+    {
+      "key": "nudge3",
+      "en": "Think: {w}. Is it the same, or the opposite?",
+      "sw": "Fikiria: {w}. Ni sawa, au kinyume?"
+    },
+    {
+      "key": "ex1",
+      "en": "This is the {w}. {d}",
+      "sw": "Hiki ni {w}. {d}"
+    },
+    {
+      "key": "ex2",
+      "en": "{w} goes with the {g}.",
+      "sw": "{w} inaenda na {g}."
+    },
+    {
+      "key": "ex3",
+      "en": "{a} and {b}.",
+      "sw": "{a} na {b}."
+    }
+  ]
+}

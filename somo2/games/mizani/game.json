@@ -1,0 +1,176 @@
+{
+  "id": "mizani",
+  "title": "Mizani",
+  "title_sw": "Mizani",
+  "author": "Somo team (XPRIZE Kenya)",
+  "licence": "Owned by the Somo team",
+  "version": "1.0.0",
+  "skills": [
+    "eq"
+  ],
+  "stages": [
+    3,
+    4
+  ],
+  "ages": [
+    6,
+    9
+  ],
+  "levels": 3,
+  "languages": [
+    "en",
+    "sw"
+  ],
+  "assets": [],
+  "thumbnail": "thumb.svg",
+  "slowModeSupported": true,
+  "description": "At the market scale, add sacks to make both sides balance. Level 2: 5 + 3 = ? + 2. Level 3: take sacks away to balance.",
+  "description_sw": "Kwenye mizani ya sokoni, ongeza magunia ili pande zote mbili zilingane. Kiwango 2: 5 + 3 = ? + 2. Kiwango 3: toa magunia kusawazisha.",
+  "lines": [
+    {
+      "key": "level",
+      "en": "Level {n}",
+      "sw": "Kiwango {n}"
+    },
+    {
+      "key": "start",
+      "en": "Start",
+      "sw": "Anza"
+    },
+    {
+      "key": "tapstart",
+      "en": "Tap the green button to start.",
+      "sw": "Gusa kitufe cha kijani kuanza."
+    },
+    {
+      "key": "praise1",
+      "en": "Yes! Well done!",
+      "sw": "Ndiyo! Hongera!"
+    },
+    {
+      "key": "praise2",
+      "en": "You got it!",
+      "sw": "Umeweza!"
+    },
+    {
+      "key": "praise3",
+      "en": "Great thinking!",
+      "sw": "Umefikiri vizuri!"
+    },
+    {
+      "key": "praise4",
+      "en": "Super!",
+      "sw": "Safi sana!"
+    },
+    {
+      "key": "praiseHelp",
+      "en": "Yes! You worked it out.",
+      "sw": "Ndiyo! Umegundua."
+    },
+    {
+      "key": "nudge",
+      "en": "Look again. Try once more.",
+      "sw": "Angalia tena. Jaribu tena."
+    },
+    {
+      "key": "look",
+      "en": "Let's look at one together.",
+      "sw": "Tuangalie mfano pamoja."
+    },
+    {
+      "key": "nowyou",
+      "en": "Now you try.",
+      "sw": "Sasa jaribu wewe."
+    },
+    {
+      "key": "leveldone",
+      "en": "Level {n} done!",
+      "sw": "Kiwango {n} kimekwisha!"
+    },
+    {
+      "key": "nextlevel",
+      "en": "Next level",
+      "sw": "Kiwango kijacho"
+    },
+    {
+      "key": "nextq",
+      "en": "Ready for the next level?",
+      "sw": "Uko tayari kwa kiwango kijacho?"
+    },
+    {
+      "key": "again",
+      "en": "Play again",
+      "sw": "Cheza tena"
+    },
+    {
+      "key": "back",
+      "en": "Back to Somo",
+      "sw": "Rudi Somo"
+    },
+    {
+      "key": "paused",
+      "en": "Resting…",
+      "sw": "Tunapumzika…"
+    },
+    {
+      "key": "intro1",
+      "en": "This is the market scale. Add sacks to the light side until both sides are the same. Then tap Check.",
+      "sw": "Hii ni mizani ya sokoni. Ongeza magunia upande mwepesi hadi pande zote mbili zilingane. Kisha gusa Angalia."
+    },
+    {
+      "key": "intro2",
+      "en": "Now find the number that makes both sides the same.",
+      "sw": "Sasa tafuta namba inayofanya pande zote mbili zilingane."
+    },
+    {
+      "key": "intro3",
+      "en": "Now take sacks AWAY from the heavy side to balance it.",
+      "sw": "Sasa ONDOA magunia upande mzito kuisawazisha."
+    },
+    {
+      "key": "add1",
+      "en": "This side has {a}. That side has {b}. Add sacks to make them the same.",
+      "sw": "Upande huu una {a}. Ule una {b}. Ongeza magunia ili zilingane."
+    },
+    {
+      "key": "eq2",
+      "en": "{a} plus {b} is the same as what plus {c}?",
+      "sw": "{a} jumlisha {b} ni sawa na nini jumlisha {c}?"
+    },
+    {
+      "key": "take3",
+      "en": "This side has {a}. That side has {b}. Tap sacks on the heavy side to take them away.",
+      "sw": "Upande huu una {a}. Ule una {b}. Gusa magunia upande mzito kuyaondoa."
+    },
+    {
+      "key": "check",
+      "en": "Check",
+      "sw": "Angalia"
+    },
+    {
+      "key": "balanced",
+      "en": "Balanced! Both sides are {n}.",
+      "sw": "Imesawazika! Pande zote ni {n}."
+    },
+    {
+      "key": "nudge1",
+      "en": "Count both sides. Which side needs more?",
+      "sw": "Hesabu pande zote. Upande upi unahitaji zaidi?"
+    },
+    {
+      "key": "nudge2",
+      "en": "First add {a} and {b}. Then think: what plus {c} makes that?",
+      "sw": "Kwanza jumlisha {a} na {b}. Kisha fikiria: nini jumlisha {c} inafanya hivyo?"
+    },
+    {
+      "key": "ex",
+      "en": "{a} on one side, {b} on the other. {c} more makes them the same.",
+      "sw": "{a} upande mmoja, {b} upande mwingine. {c} zaidi zinazifanya zilingane."
+    },
+    {
+      "key": "ex2",
+      "en": "{a} plus {b} is {s}. {d} plus {c} is {s} too.",
+      "sw": "{a} jumlisha {b} ni {s}. {d} jumlisha {c} pia ni {s}."
+    }
+  ]
+}

@@ -2,23 +2,150 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Somo game package (game.json)",
   "type": "object",
-  "required": ["id", "title", "title_sw", "author", "licence", "version", "skills", "stages", "ages", "levels", "languages", "assets", "thumbnail", "slowModeSupported"],
+  "required": [
+    "id",
+    "title",
+    "title_sw",
+    "author",
+    "licence",
+    "version",
+    "skills",
+    "stages",
+    "ages",
+    "levels",
+    "languages",
+    "assets",
+    "thumbnail",
+    "slowModeSupported",
+    "lines"
+  ],
   "additionalProperties": false,
   "properties": {
-    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{2,39}$", "description": "Same as the folder name." },
-    "title": { "type": "string", "minLength": 2, "maxLength": 40 },
-    "title_sw": { "type": "string", "minLength": 2, "maxLength": 40 },
-    "author": { "type": "string", "minLength": 2, "maxLength": 80, "description": "Who made it (a team member or the team). Original work only." },
-    "licence": { "type": "string", "minLength": 2, "maxLength": 40, "description": "For example: 'Owned by the Somo team (XPRIZE entry)'." },
-    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
-    "skills": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Somo skill ids, e.g. cnt, facts, snd. See CURRICULUM.md." },
-    "stages": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1, "maximum": 4 } },
-    "ages": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 3, "maximum": 12 } },
-    "levels": { "type": "integer", "minimum": 1, "maximum": 20 },
-    "languages": { "type": "array", "minItems": 1, "items": { "enum": ["en", "sw"] } },
-    "assets": { "type": "array", "items": { "type": "string", "pattern": "^[a-zA-Z0-9_./-]+$" }, "description": "Files in the folder (besides index.html and game.json) to cache for offline. Somo sends them to the game as data URLs." },
-    "thumbnail": { "type": "string", "description": "An SVG or PNG in the folder, shown on the tile." },
-    "slowModeSupported": { "const": true, "description": "Must be true: a slow child must still be able to show what they know." },
-    "entry": { "type": "string", "default": "index.html" }
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{2,39}$",
+      "description": "Same as the folder name."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 40
+    },
+    "title_sw": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 40
+    },
+    "author": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 80,
+      "description": "Who made it (a team member or the team). Original work only."
+    },
+    "licence": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 40,
+      "description": "For example: 'Owned by the Somo team (XPRIZE entry)'."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      },
+      "description": "Somo skill ids, e.g. cnt, facts, snd. See CURRICULUM.md."
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 4
+      }
+    },
+    "ages": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "integer",
+        "minimum": 3,
+        "maximum": 12
+      }
+    },
+    "levels": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20
+    },
+    "languages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "en",
+          "sw"
+        ]
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9_./-]+$"
+      },
+      "description": "Files in the folder (besides index.html and game.json) to cache for offline. Somo sends them to the game as data URLs."
+    },
+    "thumbnail": {
+      "type": "string",
+      "description": "An SVG or PNG in the folder, shown on the tile."
+    },
+    "slowModeSupported": {
+      "const": true,
+      "description": "Must be true: a slow child must still be able to show what they know."
+    },
+    "entry": {
+      "type": "string",
+      "default": "index.html"
+    },
+    "lines": {
+      "type": "array",
+      "description": "Every line the game speaks, in English and Kiswahili ({word} marks a word filled in while playing).",
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "en",
+          "sw"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "en": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sw": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 300
+    },
+    "description_sw": {
+      "type": "string",
+      "maxLength": 300
+    }
   }
 }

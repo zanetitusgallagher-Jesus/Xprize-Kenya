@@ -1,5 +1,54 @@
 {
   "protocol": 1,
   "about": "Somo's plug-in games. Add a game: put its folder in somo2/games/<id>/ and add one line below. Set enabled to false to hide it everywhere (the admin can also switch games off in somo3/). See GAMES.md.",
-  "games": []
+  "games": [
+    {
+      "id": "sauti-sokoni",
+      "enabled": true
+    },
+    {
+      "id": "ngoma-beats",
+      "enabled": true
+    },
+    {
+      "id": "sound-boxes",
+      "enabled": true
+    },
+    {
+      "id": "matatu-spell",
+      "enabled": true
+    },
+    {
+      "id": "real-or-silly",
+      "enabled": true
+    },
+    {
+      "id": "family-tree",
+      "enabled": true
+    },
+    {
+      "id": "duka-la-herufi",
+      "enabled": true
+    },
+    {
+      "id": "tricky-treasure",
+      "enabled": true
+    },
+    {
+      "id": "story-strip",
+      "enabled": true
+    },
+    {
+      "id": "safari-words",
+      "enabled": true
+    },
+    {
+      "id": "bao-sums",
+      "enabled": true
+    },
+    {
+      "id": "mizani",
+      "enabled": true
+    }
+  ]
 }
