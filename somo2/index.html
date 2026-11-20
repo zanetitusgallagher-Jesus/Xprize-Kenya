@@ -11329,7 +11329,7 @@ const GamePlayer = {
   close(silent) {
     clearTimeout(this.readyTimer); if (this.frame) { this.post('end', { reason: silent ? 'quit' : 'quit' }); }
     const g = this.g; if (this.box) this.box.remove(); this.box = null; this.frame = null; this.g = null;
-    if (g && !silent) { this.onClose(g); if (App.state === 'extgame' || App.state === 'tutor') { App.state = 'hub'; (typeof Michezo !== 'undefined' && Michezo.back) ? Michezo.back() : showHome(); } }
+    if (g && !silent) { const ret = this.opts && this.opts.ret; this.onClose(g); if (App.state === 'extgame' || App.state === 'tutor') { App.state = 'hub'; ret ? ret() : (typeof Michezo !== 'undefined' && Michezo.back) ? Michezo.back() : showHome(); } }
   },
   onClose(g) { const p = GP()[g.id] || (GP()[g.id] = { levels: 0, plays: 0, mins: 0 }); p.plays++; kSave(); },
 };
@@ -11520,6 +11520,123 @@ $('#stage').addEventListener('click', e => {
 .mz .mbig{width:100%;border-radius:${u(16)};aspect-ratio:16/10;object-fit:cover}`; document.head.appendChild(el); }
 window.__ky = Object.assign(window.__ky || {}, { Michezo, Lib });
 { const _sh = showHome; showHome = function () { _sh(); const b = document.querySelector('#screen [data-j="arcade"]'); if (b) b.innerHTML = `${PAD_SVG}Michezo · Games`; }; }
+
+/* ============================================================================
+   THE PATH ADJUSTS TO THE CHILD (Nov 2026)
+   1. Show me first: before a new unit, a quick check (4 new questions, no hints). 4 of 4 right → "You already know
+      it!": the lesson and games are skipped (the child still teaches the friend, and the skill is reviewed later).
+      Two misses end the check early and the unit starts as usual, so nobody struggles through a test.
+   2. More help when it is hard: when 3 of the last 5 answers in a skill needed help or were missed, the unit grows:
+      time with the stage friend (the tutor), another game for that skill (a games-library game when there is one),
+      and later the lesson again. The next unit waits until these are done (or the skill earns a star).
+   3. Fast lane: a game round with 90% or more right the first time, on a skill already "independent", skips the
+      other games in that unit.
+   4. More of what is needed: from the home screen, Continue leans to the path (numbers or reading) that needs more
+      time: a path whose current skill is hard gets two turns for every one of the other.
+   5. A short "My plan" note on the home screen says what changed and why, in plain words.
+   ========================================================================== */
+const AD = () => { const j = J(); return j.adapt || (j.adapt = { checked: {}, extra: {}, skipped: {}, fast: {}, log: [], turns: {} }); };
+const adLog = (t) => { const a = AD(); a.log.push({ d: todayKey(), t }); if (a.log.length > 12) a.log.shift(); };
+/* hard = 3 of the last 5 answers missed or helped */
+function struggling(id) { const s = S.skills[id]; if (!s || !s.h || s.h.length < 4) return false; return s.h.slice(-5).filter(x => !x[1] || x[2]).length >= 3; }
+const baseKind = k => String(k).replace(/\d+$/, '').replace(/^xg:.*/, 'xg');
+/* ---------- extra steps live in J().adapt.extra[id], placed before "Teach" ---------- */
+{ const _us = unitSteps; unitSteps = function (id) {
+    const ss = _us(id), ex = (J().adapt && J().adapt.extra[id]) || []; if (!ex.length) return ss;
+    const out = ss.slice(), ti = out.findIndex(s => s.k === 'teach'); out.splice(ti < 0 ? out.length : ti, 0, ...ex); return out;
+  }; }
+Object.assign(PHASE, { tutor: 'Interpret', reteach: 'Interpret', xg: 'Interpret' });
+{ const _sl = stepLabel; stepLabel = function (id, i) { const s = unitSteps(id)[i]; if (!s) return ''; const b = baseKind(s.k);
+    if (b === 'tutor') return `Practise with ${friendFor(id).name}`; if (b === 'reteach') return 'Learn it again'; if (b === 'xg') { const g = GameReg.by[s.g]; return g ? g.title : 'Game'; } return _sl(id, i); }; }
+{ const _sd = stepDisc; stepDisc = function (id, s) { const b = baseKind(s.k);
+    if (b === 'tutor') { const f = friendFor(id); return `<span class="teachdisc">${friendFace(f.id, 'happy', 42)}</span>`; } if (b === 'reteach') return BOOK_SVG;
+    if (b === 'xg') return `<img src="${esc(GameReg.base + s.g + '/' + ((GameReg.by[s.g] || {}).thumbnail || 'thumb.svg'))}" alt="">`; return _sd(id, s); }; }
+/* the map draws phase ribbons from PHASE[s.k]: give numbered extra kinds a phase too */
+{ const _mh = mapHTML; mapHTML = function (m) { for (const ex of Object.values(AD().extra)) for (const s of ex) if (!PHASE[s.k]) PHASE[s.k] = 'Interpret'; return _mh(m); }; }
+const backToPath = () => { App.state = 'hub'; JR.scrollToCur = true; showHome(); };
+{ const _rs = runStep; runStep = function (id, i) {
+    const s = unitSteps(id)[i]; if (!s) return _rs(id, i); const b = baseKind(s.k);
+    if (!VIEW) { const t = AD().turns; if (t.d !== todayKey()) { t.d = todayKey(); t.num = 0; t.lit = 0; } t[SKILL[id].mode] = (t[SKILL[id].mode] || 0) + 1; }
+    if (b === 'tutor' || b === 'reteach' || b === 'xg') { App.step = { id, i }; J().strand = SKILL[id].mode; setFriend(friendFor(id).id); }
+    if (b === 'tutor') { App.state = 'tutor'; setScreen(''); Round.game = null; App.attract = null; Tutor.onPracticeDone = () => { if (markStep(id, s)) confetti(30); }; return Tutor.practice(id, () => { Tutor.onPracticeDone = null; backToPath(); }); }
+    if (b === 'reteach') { L.reteachStep = { id, s }; return L.start(id); }
+    if (b === 'xg') return GamePlayer.open(s.g, { skill: id, fromSkill: id, ret: () => { markStep(id, s); backToPath(); } });
+    /* 1. show me first: a new unit (nothing done yet) that was never checked */
+    if (!VIEW && i === 0 && !AD().checked[id] && J().placed && !unitSteps(id).some(x => stepDone(id, x)) && SKILL[id] && !SKILL[id].extra && typeof GEN[id] === 'function') return Adapt.check(id, i);
+    return _rs(id, i);
+  }; }
+{ const _fin = L.finish; L.finish = function () {
+    if (this.kind === 'check') return Adapt.checkDone();
+    const rt = this.reteachStep; this.reteachStep = null; const r = _fin.call(this); if (rt && rt.id === this.id) markStep(rt.id, rt.s); return r;
+  }; }
+/* check answers: first tap only, no hints, no teaching; two misses end it early */
+{ const _ans = L.answer; L.answer = function (i, el) {
+    if (this.kind !== 'check') return _ans.call(this, i, el);
+    const s = this.step, q = s && s.q; if (!q || q.lock) return; q.lock = true; const o = q.opts[i], right = String(o.v) === String(q.cv);
+    if (q.item) Engine.answer(q.item, o); Adapt.cs.n++; if (right) Adapt.cs.r++; else Adapt.cs.miss++;
+    el.classList.add(right ? 'good' : 'pick'); Sfx.play(right ? 'good' : 'pop'); this.say(right ? pick(R, ['Yes!', 'Good!', 'Right!']) : 'Thank you!');
+    const stop = Adapt.cs.miss >= 2; this.later(() => { if (stop) { this.si = this.steps.length; this.finish(); } else this.next(); }, 900);
+  }; }
+const Adapt = {
+  cs: null,
+  check(id, i) {
+    AD().checked[id] = todayKey(); Store.save(); this.cs = { id, i, n: 0, r: 0, miss: 0 };
+    const steps = Array.from({ length: 4 }, (_, k) => quizStep(id, k === 0 ? `Show me what you know about ${SHORT[id]}! If you know it, we skip ahead.` : ''));
+    L.custom(id, steps, 'check', null);
+  },
+  checkDone() {
+    const c = this.cs; L.kind = null; App.state = 'lessondone'; const id = c.id;
+    if (c.r >= 4) {
+      for (const s of unitSteps(id)) if (['inspire', 'learn', 'g'].includes(s.k)) markStep(id, s);
+      AD().skipped[id] = todayKey(); adLog(`You already knew ${SHORT[id]}, so we skipped ahead.`); Store.save(); Sfx.play('fanfare'); confetti(40);
+      setScreen(`<div class="scr dim jr"><div style="align-self:center">${kidiMini('happy', 110)}</div><div class="h2" style="text-align:center">You already know it!</div><div class="sub" style="text-align:center">4 of 4 right. We skip the lesson and games for ${esc(SHORT[id])}. Now teach ${esc(friendFor(id).name)}!</div><button class="btn go" data-j="continue">Teach ${esc(friendFor(id).name)}</button><button class="btn ghost" data-j="home">Map</button></div>`);
+      Speech.say(`You already know ${SHORT[id]}! We skip ahead. Now teach ${friendFor(id).name}!`); App.step = null; return;
+    }
+    setScreen(`<div class="scr dim jr"><div style="align-self:center">${kidiMini('happy', 110)}</div><div class="h2" style="text-align:center">Let's learn it together!</div><div class="sub" style="text-align:center">${esc(SHORT[id])} is new. ${esc(friendFor(id).name)} will show you.</div><button class="btn go" data-ad="start" data-id="${id}" data-i="${c.i}">Let's go!</button></div>`);
+    Speech.say(`${SHORT[id]} is new. Let's learn it together!`);
+  },
+  /* 2. more help when it is hard */
+  support(id) {
+    if (VIEW || !SKILL[id] || SKILL[id].extra || !struggling(id)) return;
+    const a = AD(), ex = a.extra[id] || (a.extra[id] = []); if (ex.some(s => !stepDone(id, s)) || ex.length >= 6) return;
+    const round = ex.length ? 2 : 1, inUnit = new Set(unitSteps(id).filter(s => s.k === 'g' || baseKind(s.k) === 'xg').map(s => s.g)), add = [];
+    const plug = GameReg.enabled().find(g => g.skills.includes(id) && !inUnit.has(g.id)), built = gamesFor(id).find(g => !inUnit.has(g.id));
+    if (round === 2 || stepDone(id, { k: 'learn' })) add.push({ k: round === 1 ? 'reteach' : 'reteach2' });
+    add.push({ k: round === 1 ? 'tutor' : 'tutor2' });
+    if (plug) add.push({ k: 'xg:' + plug.id, g: plug.id }); else if (built) add.push({ k: 'g', g: built.id });
+    ex.push(...add); adLog(`${SHORT[id]} needs a little more time, so we added ${add.map(s => baseKind(s.k) === 'tutor' ? 'practice with ' + friendFor(id).name : baseKind(s.k) === 'reteach' ? 'the lesson again' : 'another game').join(', ')}.`); Store.save();
+    setTimeout(() => Speech.say(`${SHORT[id]} is tricky. That's OK! I added more practice to your path.`, { queue: true }), 1500);
+  },
+  /* 3. fast lane */
+  fast(id) {
+    if (VIEW || !SKILL[id] || skillState(id) < 3 || Round.total < 6 || Round.correct / Round.total < .9 || AD().fast[id]) return;
+    const left = unitSteps(id).filter(s => s.k === 'g' && !stepDone(id, s)); if (!left.length) return;
+    for (const s of left) markStep(id, s); AD().fast[id] = todayKey(); adLog(`You were flying in ${SHORT[id]}, so we skipped the other games.`); Store.save();
+    setTimeout(() => Speech.say(`You are flying! We skip the other ${SHORT[id]} games.`, { queue: true }), 1200);
+  },
+  /* 4. the path that needs more time gets more turns */
+  need(m) { let id; try { id = nextStep(m).id; } catch (e) { return 1; } return struggling(id) || mastery(id) < .5 && (S.skills[id] || {}).n >= 5 ? 2 : 1; },
+  pickStrand() { const t = AD().turns, today = t.d === todayKey(); const sc = m => ((today && t[m]) || 0) / this.need(m); const a = sc('num'), b = sc('lit'); return a === b ? J().strand : a < b ? 'num' : 'lit'; },
+  plan() {
+    const out = [], a = AD(), td = todayKey();
+    for (const m of ['num', 'lit']) { if (this.need(m) === 2) { const id = nextStep(m).id; out.push(`More ${m === 'num' ? 'numbers' : 'reading'} today: ${SHORT[id]} needs a little more time.`); } }
+    for (const l of a.log.slice().reverse()) if (l.d === td && !out.includes(l.t) && !out.some(o => o.includes(l.t.split(' needs')[0] + ' needs')) && out.length < 3) out.push(l.t);
+    return out;
+  },
+};
+/* after every step: more help, or the fast lane */
+{ const _ms = markStep; markStep = function (id, s) { const r = _ms(id, s); if (r && SKILL[id] && !VIEW) setTimeout(() => Adapt.support(id), 0); return r; }; }
+{ const _end = endRound; endRound = function (extra) { const was = App.state, id = App.fromSkill; const r = _end(extra); if (was === 'play' && App.zone === 'journey' && id) { Adapt.fast(id); Adapt.support(id); } return r; }; window.__arc.endRound = endRound; }
+/* home: Continue leans to the path that needs more, unless the child picked a path; "My plan" says why */
+$('#stage').addEventListener('click', e => { if (e.target.closest('[data-j="strand"]')) App.strandPicked = true; const b = e.target.closest('[data-ad="start"]'); if (b) { Sfx.unlock(); runStep(b.dataset.id, +b.dataset.i); } }, true);
+{ const _sh = showHome; showHome = function () {
+    if (!VIEW && JR.loaded && J().placed && !App.strandPicked && App.state !== 'lesson') { const m = Adapt.pickStrand(); if (m !== J().strand) J().strand = m; }
+    _sh(); if (App.state !== 'hub' || VIEW) return; const lines = Adapt.plan(); if (!lines.length) return;
+    const kb = document.querySelector('#screen .kb'); if (kb) kb.insertAdjacentHTML('afterend', `<div class="myplan"><b>My plan</b>${lines.map(l => `<span>${esc(l)}</span>`).join('')}</div>`);
+  }; }
+{ const u = n => `calc(var(--u)*${n})`; const el = document.createElement('style'); el.textContent = `.myplan{display:flex;flex-direction:column;gap:${u(3)};background:rgba(255,248,236,.94);color:#2B1E17;border-radius:${u(14)};padding:${u(8)} ${u(12)};font-size:${u(14)};border-left:${u(6)} solid #F2B829}.myplan b{font-size:${u(15)}}
+.jopt.pick{border-color:#F2B829!important;background:#FFF3C4!important}`; document.head.appendChild(el); }
+window.__ky = Object.assign(window.__ky || {}, { Adapt, struggling, AD });
 
 boot();
 

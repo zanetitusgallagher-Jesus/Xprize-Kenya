@@ -232,7 +232,22 @@ and a key box. It is hidden from children by the press-and-hold.
 - **Themes:** a "Theme" button with 9 colour palettes named after Kenya, including a high-contrast one; each child keeps their own.
   - **Dress-up themes:** 7 fun worlds (Christmas, Fairy-tale magic, Superheroes, Outer space, Dinosaurs, Under the sea, Football) and 3 Kenyan ones (Jamhuri Day, Matatu madness, Maasai Mara migration). Each changes the moving background, dresses Kuku, Kobe, Twiga and Tembo in a costume (Santa hat, tiara, hero mask and cape, space helmet, snorkel, Kenyan beads and more), and changes the greeting and praise words. All art is Somo's own: no film or comic characters. A closet hat replaces the theme hat.
 
-### 2.15 The games library and 13 new games (November 19 to 20)
+### 2.15 The path adjusts to each child (November 20)
+
+- **"Show me what you know":** before a new unit, 4 quick questions with no hints. If the child gets all 4 right,
+  Somo says "You already know it!" and skips the lesson and games for that skill (the child still teaches the animal
+  friend, and the skill comes back in reviews). Two misses end the check early, kindly, and the unit starts as usual.
+- **More help when it is hard:** if 3 of the last 5 answers in a skill were missed or needed help, the unit grows by
+  itself: time with the stage friend (the AI tutor), another game for that skill, and later the lesson again. Somo
+  says "That's OK! I added more practice to your path."
+- **Fast lane:** a game round with 90% or more right the first time, on a skill the child can already do alone, skips
+  the other games in that unit.
+- **More of what is needed:** if numbers are hard right now, Continue on the home screen gives numbers two turns for
+  every one of reading (and the other way round).
+- **My plan:** a short note on the home screen says what changed today and why, for example "More numbers today:
+  Big numbers needs a little more time."
+
+### 2.16 The games library and 13 new games (November 19 to 20)
 
 **Michezo · Games** holds the 20 built-in games and 13 new games made as plug-ins. Every new game has 3 levels of 8 to
 12 items, no timers, no scores, every line spoken (with subtitles, and in Kiswahili), and the same hint ladder: the
@@ -402,4 +417,4 @@ row-level security on with no policies, so the function is the only way in.
 | Nov 6 | The learning path (Build 2) with stage tutors, Inspire → Interpret → Impart, stories, tracing, new games; the AI key setup page; the README |
 | Nov 7 | The learning path became the main page, with feature buttons: welcome video, accounts, parent page with AI progress story, gap chart and plan, guestbook and polls, safari music and roadmap, at-home activities |
 | Nov 12 | Delete account; progress saved to Supabase and everything renamed from KenyAI to Somo; Somo 3 (admin), classes, subtitles; all data in Supabase; egg rewards removed (treasure chests back); certificates after every lesson (Somo and Turi's trail); **Somo 4**: teachers with PINs, AI teachers, the admin assigns students by age, class and one-on-one chat with voice notes, challenges, leaderboard, "See what they see"; the parent view, guestbook and polls removed from the child's app |
-| Nov 19 to 20 | Plug-in games system (registry, SDK, sandbox, offline), the Michezo games library, 13 new games, two-day mastery, CURRICULUM.md and SIMULATION.md |
+| Nov 19 to 20 | The path adjusts to the child (show me first, more help, fast lane, more of what is needed, My plan); plug-in games system (registry, SDK, sandbox, offline), the Michezo games library, 13 new games, two-day mastery, CURRICULUM.md and SIMULATION.md |

@@ -63,6 +63,12 @@ The pages try these routes **in this order**:
 ## The learning path in more detail (`somo2/`)
 
 - **Placement check** at the start (Teaching at the Right Level): a short check that opens the path at the child's level. It never says right or wrong.
+- **The path adjusts to the child** (Nov 20, 2026):
+  - **Show me first:** before a new unit, 4 quick questions with no hints. 4 of 4 right skips the lesson and games ("You already know it!"); two misses end the check early and the unit starts as usual.
+  - **More help when it is hard:** when 3 of the last 5 answers in a skill were missed or needed help, the unit grows: practice with the stage friend (the tutor), another game (a games-library game when there is one), and later the lesson again. The next unit waits for these, unless the skill earns a star.
+  - **Fast lane:** a game round with 90% or more right the first time, on a skill the child can already do alone, skips the other games in that unit.
+  - **More of what is needed:** from the home screen, Continue goes to numbers or reading, whichever needs more time (two turns for every one of the other).
+  - **My plan:** a short note on the home screen says what changed and why.
 - **Four stages, each with its own AI tutor**:
 
   | Stage | Tutor | Skills |

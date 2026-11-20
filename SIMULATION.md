@@ -6,13 +6,13 @@ Each model takes placement (each skill checked separately with 4 items; an area 
 
 ## Results
 
-| Model child | Items answered | Teaching items on skills already known | All items on known skills (incl. reviews) | Skills mastered | Independent | Practising or learning | Not started | Reviews | Remediation turns | Plug-in game rounds | Days ended early |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| No knowledge yet | 720 | 0% | 0% | 13 | 9 | 1 | 4 | 43 | 1 | 57 | 0 |
-| Knows letters, cannot blend | 720 | 1% | 6% | 20 | 6 | 0 | 1 | 61 | 0 | 62 | 0 |
-| Decodes short words | 668 | 5% | 34% | 25 | 2 | 0 | 0 | 90 | 0 | 60 | 6 |
-| Reads sentences | 628 | 9% | 55% | 26 | 1 | 0 | 0 | 107 | 0 | 62 | 11 |
-| Strong (knows nearly everything) | 556 | 12% | 100% | 25 | 1 | 1 | 0 | 123 | 0 | 60 | 9 |
+| Model child | Items answered | Teaching items on skills already known | All items on known skills (incl. reviews) | Skills mastered | Independent | Practising or learning | Not started | Reviews | Remediation turns | Plug-in game rounds | Days ended early | Skills skipped by "show me first" |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| No knowledge yet | 720 | 0% | 0% | 13 | 8 | 1 | 5 | 40 | 0 | 54 | 0 | 0 |
+| Knows letters, cannot blend | 720 | 0% | 6% | 17 | 5 | 0 | 5 | 56 | 0 | 59 | 0 | 1 |
+| Decodes short words | 700 | 1% | 30% | 22 | 5 | 0 | 0 | 95 | 0 | 64 | 1 | 4 |
+| Reads sentences | 643 | 4% | 49% | 25 | 2 | 0 | 0 | 105 | 0 | 56 | 10 | 9 |
+| Strong (knows nearly everything) | 596 | 9% | 85% | 25 | 2 | 0 | 0 | 113 | 0 | 54 | 13 | 17 |
 
 ## Checks
 
@@ -23,13 +23,13 @@ Each model takes placement (each skill checked separately with 4 items; an area 
 | 30 right answers in one day do not give mastery (unit test) | pass | state after 30 right on one day: independent |
 | The same answers spread over 2 days do give mastery (unit test) | pass | state: mastered |
 | No reading story uses an untaught word | pass | 85 words checked |
-| Near-zero teaching time on skills the child already knew (target: under 10% of items, spaced reviews not counted) | **finding** (see notes) | No knowledge yet: 0%; Knows letters, cannot blend: 1%; Decodes short words: 5%; Reads sentences: 9%; Strong (knows nearly everything): 12% |
+| Near-zero teaching time on skills the child already knew (target: under 10% of items, spaced reviews not counted) | pass | No knowledge yet: 0%; Knows letters, cannot blend: 0%; Decodes short words: 1%; Reads sentences: 4%; Strong (knows nearly everything): 9% |
 | A skill is first practised only after its prerequisites are independent (reviews of a skill whose prerequisite slipped are allowed) | pass | see the first check |
 
 ## Notes
 
-- **Teaching items on skills already known** counts items, outside spaced reviews, on skills the model could already do (85% or more) before playing. It comes from placement being strict (a skill is credited only after 4 of 4 right), so a skill the child knows can be taught again for a day. The strongest model is at 12%, above the 10% target: a short "check first" before teaching each new skill (4 new items, no hints; 4 of 4 skips the teaching) would bring this near zero. That check is not built yet.
+- **Teaching items on skills already known** counts items, outside spaced reviews, on skills the model could already do (85% or more) before playing. It comes from placement being strict (a skill is credited only after 4 of 4 right), so a skill the child knows can be taught again for a day. Somo now runs a short "show me first" check before teaching each new skill (4 new items, no hints; 4 of 4 skips the teaching; 2 misses end it early), and the simulation does the same.
 - Reviews of known skills are counted separately (**All items on known skills**): they are on purpose, so skills do not slip.
 - When there is nothing new and nothing due, the simulated session ends early (**Days ended early**), which saves screen time.
-- What the app does today: the mastery states (`mastery.js`, two different days for mastered), the skill graph and prerequisites, and the games library's "Next for you" (current skills first) are in Somo. The full order used here (remediation, then reviews on 1, 2, 4, 7, 14 days, then the next skill) is the intended picker; in the app the learning path still moves in path order, with reviews from the earlier learning engine (1, 3, 7, 14 days).
+- What the app does today: "show me first", more help when a skill is hard (time with the tutor, another game, the lesson again), the fast lane, Continue leaning to the path that needs more, the mastery states (`mastery.js`, two different days for mastered), the skill graph and prerequisites, and the games library's "Next for you" (current skills first) are in Somo. The full order used here (remediation, then reviews on 1, 2, 4, 7, 14 days, then the next skill) is the intended picker; in the app the learning path still moves in path order, with reviews from the earlier learning engine (1, 3, 7, 14 days).
 - Models learn a little from every item (more after a hint). Real children will differ.
